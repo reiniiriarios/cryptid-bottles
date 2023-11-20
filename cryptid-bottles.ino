@@ -5,6 +5,7 @@
 #include "cryptid-bottles.h"
 #include "src/pxl8.h"
 #include "src/interwebs.h"
+#include "src/bottle.h"
 
 // GLOBALS -----------------------------------------------------------------------------------------
 
@@ -12,6 +13,9 @@ bool PIXELS_ON = true;
 
 Pxl8 pxl8;
 Interwebs interwebs;
+// Bottle bottles[8] = {
+//   Bottle(&pxl8, 0, 6),
+// };
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
