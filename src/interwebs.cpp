@@ -1,11 +1,11 @@
+using namespace std;
 #include <WiFiNINA.h>
 #include <MQTT.h>
 
 #include "../wifi-config.h"
 #include "interwebs.h"
 
-Interwebs::Interwebs(bool *PIXELS_ON_p) {
-  PIXELS_ON = PIXELS_ON_p;
+Interwebs::Interwebs() {
   mqttBroker = IPAddress(MQTT_SERVER);
   mqttClient = new MQTTClient(1024);
   WiFi.setPins(SPIWIFI_SS, SPIWIFI_ACK, ESP32_RESETN, ESP32_GPIO0, &SPIWIFI);
@@ -317,55 +317,33 @@ void Interwebs::mqttSendMessage(String topic, String payload) {
 }
 
 bool Interwebs::mqttSubscribe(void) {
-  Serial.print("MQTT subscribing...");
+  Serial.println("MQTT subscribing...");
   bool success = true;
-
-  // HASS
-  if (!mqttClient->subscribe("homeassistant/status")) {
-    Serial.println("Error subscribing to homeassistant/status");
-    success = false;
+  for (auto sub : mqttSubs) {
+    if (!mqttClient->subscribe(sub.first)) {
+      Serial.println("Error subscribing to " + sub.first);
+      success = false;
+    }
   }
-
-  // OPERATIONS
-  if (!mqttClient->subscribe("cryptid/bottles/set")) {
-    Serial.println("Error subscribing to cryptid/bottles/set");
-    success = false;
-  }
-
-  // done
   if (!success) {
     status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
-    Serial.println("failed to subscribe to all topics.");
     return false;
   }
   status = INTERWEBS_STATUS_MQTT_CONNECTED;
-  Serial.println("success.");
   return true;
+}
+
+void Interwebs::onMqtt(String topic, mqttcallback_t callback) {
+  mqttSubs[topic] = callback;
 }
 
 void Interwebs::mqttMessageReceived(String &topic, String &payload) {
   Serial.println("MQTT receipt: " + topic + " = " + payload);
-
-  // HASS
-  if (topic == "homeassistant/status") {
-    if (payload == "online") {
-      mqttSendDiscovery();
-    }
+  if (mqttSubs.find(topic) == mqttSubs.end()) {
+    Serial.println("Unrecognized MQTT topic: " + topic);
     return;
   }
-
-  // OPERATIONS
-  if (topic == "cryptid/bottles/set") {
-    if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
-      *PIXELS_ON = true;
-    }
-    else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
-      *PIXELS_ON = false;
-    }
-    return;
-  }
-
-  Serial.println("Unrecognized MQTT topic: " + topic);
+  mqttSubs[topic](payload);
 }
 
 // ------------ DISCOVERY ------------

@@ -1,6 +1,7 @@
 #ifndef CRYPTID_INTERWEBS_H
 #define CRYPTID_INTERWEBS_H
 
+#include <map>
 #include <WiFiNINA.h>
 #include <utility/wifi_drv.h>
 #include <utility/server_drv.h>
@@ -84,6 +85,8 @@ typedef enum {
   INTERWEBS_STATUS_MQTT_ERRORS = 13,
 } interwebs_status_t;
 
+typedef std::function<void(String&)> mqttcallback_t;
+
 /**
  * @brief Connect to the interwebs and discover all the interesting webs.
  */
@@ -96,12 +99,8 @@ class Interwebs {
 
     /**
      * @brief Construct a new Interwebs object.
-     * 
-     * @param gfx_p A pointer to the graphics object.
-     * @param err_p A pointer to the error display object.
-     * @param time_p A pointer to the time display object.
      */
-    Interwebs(bool *PIXELS_ON_p);
+    Interwebs();
 
     /**
      * @brief Connect to WiFi. Run in setup().
@@ -158,6 +157,11 @@ class Interwebs {
     bool mqttSubscribe(void);
 
     /**
+     * @brief 
+     */
+    void onMqtt(String topic, mqttcallback_t callback);
+
+    /**
      * @brief Handle MQTT messages received.
      */
     void mqttMessageReceived(String &topic, String &payload);
@@ -189,9 +193,9 @@ class Interwebs {
 
   private:
     /**
-     * @brief Display status pointer.
+     * @brief A map of mqtt subscriptions and their callbacks.
      */
-    bool *PIXELS_ON;
+    std::map<String, mqttcallback_t> mqttSubs;
 
     /**
      * @brief The WiFi client.

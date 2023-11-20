@@ -11,7 +11,7 @@
 bool PIXELS_ON = true;
 
 Pxl8 pxl8;
-Interwebs interwebs(&PIXELS_ON);
+Interwebs interwebs;
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -26,7 +26,24 @@ void setup(void) {
   // if (!pxl8.begin()) {
   //   err();
   // }
-  // interwebs.connect();
+
+  // Turn lights on or off.
+  interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
+    if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
+      PIXELS_ON = true;
+    }
+    else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
+      PIXELS_ON = false;
+    }
+  });
+  // Send discovery when Home Assistant notifies it's online.
+  interwebs.onMqtt("homeassistant/status", [](String &payload){
+    if (payload == "online") {
+      interwebs.mqttSendDiscovery();
+    }
+  });
+
+  interwebs.connect();
 }
 
 // LOOP --------------------------------------------------------------------------------------------
