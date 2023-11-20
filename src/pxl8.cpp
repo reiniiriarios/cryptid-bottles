@@ -6,5 +6,18 @@ Pxl8::Pxl8(void) {
     (int8_t*)PINS,
     (neoPixelType)NEOPIXEL_FORMAT
   );
-  neopxl8->begin();
+}
+
+bool Pxl8::begin(void) {
+  Serial.print("Starting pixels...");
+  if (!neopxl8->begin()) {
+    Serial.println("fail");
+    return false;
+  }
+  Serial.println("success");
+
+  // @todo remove later
+  neopxl8->setBrightness(33);
+
+  return true;
 }

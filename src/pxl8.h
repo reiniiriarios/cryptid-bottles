@@ -27,6 +27,11 @@ class Pxl8 {
   public:
     Pxl8(void);
 
+    /**
+     * @brief Init pixels.
+     */
+    bool begin(void);
+
   private:
     Adafruit_NeoPXL8 *neopxl8;
 };
