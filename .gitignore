@@ -1,6 +1,9 @@
 # build
 build
 
+# env
+wifi-config.h
+
 # os
 .DS_Store
 Thumbs.db
