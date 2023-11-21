@@ -26,7 +26,7 @@
 
 template<typename Tag>
 struct robbed {
-  /* export it ... */
+  // export it
   typedef typename Tag::type type;
   static type ptr;
 };
@@ -36,7 +36,7 @@ typename robbed<Tag>::type robbed<Tag>::ptr;
 
 template<typename Tag, typename Tag::type p>
 struct rob : robbed<Tag> {
-  /* fill it ... */
+  // fill it
   struct filler {
     filler() { robbed<Tag>::ptr = p; }
   };
@@ -46,29 +46,39 @@ struct rob : robbed<Tag> {
 template<typename Tag, typename Tag::type p>
 typename rob<Tag, p>::filler rob<Tag, p>::filler_obj;
 
+// &MQTTClient::_connected
 struct MQTTClientConnected { typedef bool MQTTClient::*type; };
 template class rob<MQTTClientConnected, &MQTTClient::_connected>;
 
+// &MQTTClient::_lastError
 struct MQTTClientLastError { typedef lwmqtt_err_t MQTTClient::*type; };
 template class rob<MQTTClientLastError, &MQTTClient::_lastError>;
 
+// &MQTTClient::netClient
 struct MQTTClientNetClient { typedef Client* MQTTClient::*type; };
 template class rob<MQTTClientNetClient, &MQTTClient::netClient>;
 
+// &MQTTClient::client
 struct MQTTClientClient { typedef lwmqtt_client_t MQTTClient::*type; };
 template class rob<MQTTClientClient, &MQTTClient::client>;
 
+// &MQTTClient::will
 struct MQTTClientWill { typedef lwmqtt_will_t* MQTTClient::*type; };
 template class rob<MQTTClientWill, &MQTTClient::will>;
 
+// &MQTTClient::returnCode
 struct MQTTClientReturnCode { typedef lwmqtt_return_code_t MQTTClient::*type; };
 template class rob<MQTTClientReturnCode, &MQTTClient::_returnCode>;
 
+// &WiFiClient::_sock
 struct WiFiClientSock { typedef uint8_t WiFiClient::*type; };
 template class rob<WiFiClientSock, &WiFiClient::_sock>;
 
 //-------- End MQTTClient Robbery --------
 
+/**
+ * @brief Interwebs connection status.
+ */
 typedef enum {
   INTERWEBS_STATUS_INIT = 0,
   INTERWEBS_STATUS_WIFI_CONNECTING = 1,
@@ -85,6 +95,9 @@ typedef enum {
   INTERWEBS_STATUS_MQTT_ERRORS = 13,
 } interwebs_status_t;
 
+/**
+ * @brief MQTT subscription callback function. Param is payload.
+ */
 typedef std::function<void(String&)> mqttcallback_t;
 
 /**
