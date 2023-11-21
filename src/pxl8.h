@@ -48,7 +48,13 @@ class Pxl8 {
      * @param b 
      * @return uint32_t 
      */
-    uint32_t color(uint8_t r, uint8_t g, uint8_t b);
+    static uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
+      return Adafruit_NeoPXL8::Color(
+        Adafruit_NeoPXL8::gamma8(r),
+        Adafruit_NeoPXL8::gamma8(g),
+        Adafruit_NeoPXL8::gamma8(b)
+      );
+    }
 
     /**
      * @brief Set a pixel a specific color.

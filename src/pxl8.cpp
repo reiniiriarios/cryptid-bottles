@@ -26,14 +26,6 @@ void Pxl8::show(void) {
   neopxl8->show();
 }
 
-uint32_t Pxl8::color(uint8_t r, uint8_t g, uint8_t b) {
-  return neopxl8->Color(
-    neopxl8->gamma8(r),
-    neopxl8->gamma8(g),
-    neopxl8->gamma8(b)
-  );
-}
-
 void Pxl8::setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint32_t color) {
   neopxl8->setPixelColor(pin * strand_length + pixel, color);
 }
