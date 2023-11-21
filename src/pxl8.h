@@ -32,6 +32,8 @@ class Pxl8 {
 
     /**
      * @brief Init pixels.
+     *
+     * @return Success
      */
     bool begin(void);
 
@@ -43,10 +45,10 @@ class Pxl8 {
     /**
      * @brief Get a pxl8 color for a given RGB (0-255) value.
      * 
-     * @param r 
-     * @param g 
-     * @param b 
-     * @return uint32_t 
+     * @param r Red
+     * @param g Green
+     * @param b Blue
+     * @return Packed color.
      */
     static uint32_t color(uint8_t r, uint8_t g, uint8_t b) {
       return Adafruit_NeoPXL8::Color(

@@ -106,26 +106,16 @@ typedef std::function<void(String&)> mqttcallback_t;
 class Interwebs {
   public:
     /**
-     * @brief Current status of interwebs connections.
-     */
-    int status = INTERWEBS_STATUS_INIT;
-
-    /**
      * @brief Construct a new Interwebs object.
      */
     Interwebs();
 
     /**
-     * @brief Connect to WiFi. Run in setup().
+     * @brief Connect to WiFi. Run in setup() after subscription hooks.
      *
      * @return Whether the connection was successful.
      */
     bool connect(void);
-
-    /**
-     * @brief Print WiFi status over the Serial connection.
-     */
-    void printWifiStatus(void);
 
     /**
      * @brief Connect to the given WiFi network, using password.
@@ -142,6 +132,16 @@ class Interwebs {
     bool wifiReconnect(void);
 
     /**
+     * @brief WiFi connection.
+     */
+    bool wifiIsConnected(void);
+
+    /**
+     * @brief Print WiFi status over the Serial connection.
+     */
+    void printWifiStatus(void);
+
+    /**
      * @brief Initialize MQTT client.
      *
      * @return Success
@@ -156,11 +156,38 @@ class Interwebs {
     bool mqttReconnect(void);
 
     /**
+     * @brief MQTT connection.
+     */
+    bool mqttIsConnected(void);
+
+    /**
      * @brief Verify connection to WiFi and MQTT.
      * 
      * @return Connected
      */
     bool verifyConnection(void);
+
+    /**
+     * @brief Main MQTT client loop. Run on main loop.
+     */
+    void mqttLoop(void);
+
+    /**
+     * @brief MQTT hook.
+     */
+    void onMqtt(String topic, mqttcallback_t callback);
+
+    /**
+     * @brief Send MQTT message.
+     */
+    void mqttSendMessage(String topic, String payload);
+
+    /**
+     * @brief Send all discoveries.
+     *
+     * @return Success
+     */
+    bool mqttSendDiscovery(void);
 
     /**
      * @brief Connect MQTT subscriptions.
@@ -169,42 +196,12 @@ class Interwebs {
      */
     bool mqttSubscribe(void);
 
-    /**
-     * @brief 
-     */
-    void onMqtt(String topic, mqttcallback_t callback);
-
-    /**
-     * @brief Handle MQTT messages received.
-     */
-    void mqttMessageReceived(String &topic, String &payload);
-
-    /**
-     * @brief Main MQTT client loop.
-     */
-    void mqttLoop(void);
-
-    /**
-     * @brief Send MQTT message.
-     */
-    void mqttSendMessage(String topic, String payload);
-
-    /**
-     * @brief MQTT connection.
-     */
-    bool mqttIsConnected(void);
-
-    /**
-     * @brief WiFi connection.
-     */
-    bool wifiIsConnected(void);
-
-    /**
-     * @brief Send all discoveries.
-     */
-    bool mqttSendDiscovery(void);
-
   private:
+    /**
+     * @brief Current status of interwebs connections.
+     */
+    int status = INTERWEBS_STATUS_INIT;
+
     /**
      * @brief A map of mqtt subscriptions and their callbacks.
      */
@@ -224,6 +221,11 @@ class Interwebs {
      * @brief The IP address to connect to.
      */
     IPAddress mqttBroker;
+
+    /**
+     * @brief Handle MQTT messages received.
+     */
+    void mqttMessageReceived(String &topic, String &payload);
 };
 
 #endif
