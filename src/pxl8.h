@@ -38,7 +38,7 @@ class Pxl8 {
     /**
      * @brief Render.
      */
-    void Pxl8::show(void);
+    void show(void);
 
     /**
      * @brief Get a pxl8 color for a given RGB (0-255) value.
