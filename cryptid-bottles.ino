@@ -78,6 +78,10 @@ void loop(void) {
       case BOTTLE_ANIMATION_DEFAULT:
         // bottles[0]->testBlink();
         break;
+      case BOTTLE_ANIMATION_GLOW:
+        // @todo sync multiple bottles, cycle through colors
+        // bottles[0]->glow(...);
+        break;
       case BOTTLE_ANIMATION_RAIN:
         bottles[0]->rain();
         break;

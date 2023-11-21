@@ -2,6 +2,7 @@
 #define CRYPTID_BOTTLE_H
 
 #include "pxl8.h"
+#include "color.h"
 
 class Bottle {
   public:
@@ -13,6 +14,16 @@ class Bottle {
      * @param length Number of pixels on strand.
      */
     Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length);
+
+    /**
+     * @brief Glow animation.
+     *
+     * @param glowFrequency Speed of brightness pulse.
+     * @param colorFrequency Speed of hue pulse.
+     * @param hueStart Hue lower range in degrees.
+     * @param hueEnd Hue upper range in degrees.
+     */
+    void glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd);
 
     /**
      * @brief Rain animation.
