@@ -58,6 +58,7 @@ void loop(void) {
   // interwebs.mqttLoop();
 
   if (PIXELS_ON) {
+    // bottles[0].testBlink();
     // bottles[0].rain();
     // pxl8.show();
   }

@@ -15,6 +15,11 @@ class Bottle {
     Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length);
 
     /**
+     * @brief Test blink animation.
+     */
+    void testBlink(void);
+
+    /**
      * @brief Rain animation.
      */
     void rain(void);

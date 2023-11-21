@@ -3,6 +3,15 @@
 Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length)
   : pxl8(pxl8), pin(pin), length(length) {}
 
+void Bottle::testBlink(void) {
+  uint32_t c = 0;
+  if ((millis() / 500) & 1) {
+    c = pxl8->color(255, 255, 255);
+  }
+  for (uint16_t pixel = 0; pixel < length; pixel++) {
+    pxl8->setPixelColor(pin, length, pixel, c);
+  }
+}
 
 void Bottle::rain(void) {
   for (uint16_t pixel = 0; pixel < length; pixel++) {
