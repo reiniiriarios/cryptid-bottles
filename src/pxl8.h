@@ -35,6 +35,43 @@ class Pxl8 {
      */
     bool begin(void);
 
+    /**
+     * @brief Render.
+     */
+    void Pxl8::show(void);
+
+    /**
+     * @brief Get a pxl8 color for a given RGB (0-255) value.
+     * 
+     * @param r 
+     * @param g 
+     * @param b 
+     * @return uint32_t 
+     */
+    uint32_t color(uint8_t r, uint8_t g, uint8_t b);
+
+    /**
+     * @brief Set a pixel a specific color.
+     * 
+     * @param pin Pin (strand).
+     * @param strand_length Number of pixels on strand.
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @param color Packed color.
+     */
+    void setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint32_t color);
+
+    /**
+     * @brief Set a pixel a specific RGB (0-255) color.
+     * 
+     * @param pin Pin (strand).
+     * @param strand_length Number of pixels on strand.
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @param r Red
+     * @param g Green
+     * @param b Blue
+     */
+    void setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
+
   private:
     /**
      * @brief The NeoPXL8 object used to control the pixels.

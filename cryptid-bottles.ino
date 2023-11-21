@@ -57,6 +57,11 @@ void loop(void) {
   // Run main MQTT loop every loop.
   // interwebs.mqttLoop();
 
+  if (PIXELS_ON) {
+    // bottles[0].rain();
+    // pxl8.show();
+  }
+
   // Check interwebs connections.
   // if (!interwebs.wifiIsConnected()) {
   //   // ...

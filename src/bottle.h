@@ -14,6 +14,11 @@ class Bottle {
      */
     Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length);
 
+    /**
+     * @brief Rain animation.
+     */
+    void rain(void);
+
   private:
     /**
      * @brief Pointer to the pxl8 object for drawing.
