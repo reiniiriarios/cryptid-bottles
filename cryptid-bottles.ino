@@ -10,12 +10,13 @@
 // GLOBALS -----------------------------------------------------------------------------------------
 
 bool PIXELS_ON = true;
+bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
 
 Pxl8 pxl8;
 Interwebs interwebs;
-// Bottle bottles[8] = {
-//   Bottle(&pxl8, 0, 6),
-// };
+Bottle *bottles[8] = {
+  new Bottle(&pxl8, 0, 6),
+};
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -35,11 +36,26 @@ void setup(void) {
   interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
       PIXELS_ON = true;
+      interwebs.mqttSendMessage("cryptid/bottles/status", "ON");
     }
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
       PIXELS_ON = false;
+      interwebs.mqttSendMessage("cryptid/bottles/status", "OFF");
     }
   });
+
+  // Set the bottles animation.
+  interwebs.onMqtt("cryptid/bottles/animation/set", [](String &payload){
+    PIXELS_ON = true;
+    if (BOTTLE_ANIMATIONS.find(payload) != BOTTLE_ANIMATIONS.end()) {
+      bottleAnimation = BOTTLE_ANIMATIONS[payload];
+      interwebs.mqttSendMessage("cryptid/bottles/animation/status", payload);
+    } else {
+      bottleAnimation = BOTTLE_ANIMATION_WARNING;
+      interwebs.mqttSendMessage("cryptid/bottles/animation/status", "warning");
+    }
+  });
+
   // Send discovery when Home Assistant notifies it's online.
   interwebs.onMqtt("homeassistant/status", [](String &payload){
     if (payload == "online") {
@@ -58,10 +74,22 @@ void loop(void) {
   // interwebs.mqttLoop();
 
   if (PIXELS_ON) {
-    // bottles[0].testBlink();
-    // bottles[0].rain();
-    // pxl8.show();
+    switch (bottleAnimation) {
+      case BOTTLE_ANIMATION_DEFAULT:
+        // bottles[0]->testBlink();
+        break;
+      case BOTTLE_ANIMATION_RAIN:
+        bottles[0]->rain();
+        break;
+      case BOTTLE_ANIMATION_TEST:
+        bottles[0]->testBlink();
+        break;
+      case BOTTLE_ANIMATION_WARNING:
+      default:
+        bottles[0]->warning();
+    }
   }
+  // pxl8.show();
 
   // Check interwebs connections.
   // if (!interwebs.wifiIsConnected()) {
