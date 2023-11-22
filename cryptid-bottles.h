@@ -34,6 +34,11 @@ static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
 };
 
 /**
+ * @brief Whether to render a faerie.
+ */
+bool shouldShowFaerie();
+
+/**
  * @brief Call if fatal crash.
  */
 void err(void);

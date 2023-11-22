@@ -68,8 +68,25 @@ void setup(void) {
 
 // LOOP --------------------------------------------------------------------------------------------
 
-void loop(void) {
+// Whether there is currently a faerie spawned.
+bool faerieFlying = false;
+// Last time a faerie flew. Start at current time to avoid immediate spawn.
+uint32_t lastFaerieFly = millis();
+// Timeout in ms until another faerie should be spawned.
+const uint32_t faerieFlyTimeout = 30000;
+// Bottle faerie is currently in.
+int8_t faerieBottle = -1;
 
+bool shouldShowFaerie() {
+  // If a faerie is already flying, keep displaying animation.
+  if (faerieFlying) return true;
+  // Randomly spawn a faerie.
+  if (random(0, 10000) == 0) return true;
+  // Timeout for spawning a faerie has been reached.
+  if (millis() - lastFaerieFly > faerieFlyTimeout) return true;
+}
+
+void loop(void) {
   // Run main MQTT loop every loop.
   // interwebs.mqttLoop();
 
@@ -77,6 +94,23 @@ void loop(void) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
         // bottles[0]->testBlink();
+        break;
+      case BOTTLE_ANIMATION_FAERIES:
+        // @todo sync multiple bottles, cycle through colors
+        // bottles[0]->glow(...);
+        // Render a fairy on top of the glow animations.
+        if (shouldShowFaerie()) {
+          // If a new faerie, pick a random bottle.
+          if (faerieBottle = -1) {
+            faerieBottle = random(0, 7);
+          }
+          faerieFlying = bottles[faerieBottle]->showFaerie();
+          // After animation, reset bottle and log time.
+          if (!faerieFlying) {
+            faerieBottle = -1;
+            lastFaerieFly = millis();
+          }
+        }
         break;
       case BOTTLE_ANIMATION_GLOW:
         // @todo sync multiple bottles, cycle through colors

@@ -53,6 +53,15 @@ class Bottle {
      */
     void testBlink(void);
 
+    /**
+     * @brief Animate a faerie. Call after other animation for set number of frames.
+     *
+     * @param speed animation speed multiplier
+     * @param color RGB faerie color
+     * @return bool: Animation continues, display again next loop.
+     */
+    bool showFaerie(uint8_t speed = 1, rgb_t color = { 255, 255, 255 });
+
   private:
     /**
      * @brief Pointer to the pxl8 object for drawing.
@@ -69,6 +78,51 @@ class Bottle {
      * @brief Number of pixels on the strand.
      */
     uint16_t length;
+
+    /**
+     * @brief Millis at start of faerie animation.
+     */
+    uint32_t faerieAnimationStart = 0;
+
+    /**
+     * @brief Fly faerie from one pixel to another.
+     *
+     * @param color faerie color at max brightness
+     * @param startPos pixel on bottle strand
+     * @param endPos pixel on bottle strand
+     * @param startBright 0-100
+     * @param endBright 0-100
+     * @param percent 0-100 percent through animation
+     */
+    void faerieFly(rgb_t color, uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent);
+
+    /**
+     * @brief Stop flying at a pixel. The light trail will fade out.
+     *
+     * @param color faerie color at max brightness
+     * @param pos pixel on bottle strand
+     * @param reverse is the faerie flying backwards
+     * @param percent 0-100 percent through animation
+     */
+    void faerieStop(rgb_t color, uint16_t pos, bool reverse, float percent);
+
+    /**
+     * @brief Set a pixel a specific color.
+     * 
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @param color Packed color.
+     */
+    void setPixelColor(uint16_t pixel, uint32_t color);
+
+    /**
+     * @brief Set a pixel a specific color.
+     * 
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @param r Red
+     * @param g Green
+     * @param b Blue
+     */
+    void setPixelColor(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
 };
 
 #endif
