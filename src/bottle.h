@@ -1,6 +1,8 @@
 #ifndef CRYPTID_BOTTLE_H
 #define CRYPTID_BOTTLE_H
 
+using namespace std;
+
 #include "pxl8.h"
 #include "color.h"
 
@@ -24,19 +26,36 @@ class Bottle {
      * @param pxl8 Pointer to the Pxl8 object.
      * @param pin Pin index (not id on board)
      * @param length Number of pixels on strand.
+     * @param startHue Hue range lower bound.
+     * @param endHue Hue range upper bound.
      */
-    Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length);
+    Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length, uint16_t startHue, uint16_t endHue);
+
+    /**
+     * @brief Set the hue range of the bottle in degrees.
+     * 
+     * @param start
+     * @param end 
+     */
+    void setHue(uint16_t start, uint16_t end);
+
+    /**
+     * @brief Set the hue range of the bottle in degrees.
+     * 
+     * @param start
+     * @param end
+     * @param ms fade time in millis
+     */
+    void setHue(uint16_t start, uint16_t end, uint32_t ms);
 
     /**
      * @brief Glow animation.
      *
      * @param glowFrequency Speed of brightness pulse.
      * @param colorFrequency Speed of hue pulse.
-     * @param hueStart Hue lower range in degrees.
-     * @param hueEnd Hue upper range in degrees.
      * @param waveShape Waveshape. SINE will produce a smooth glow while SAWTOOTH will make the bottle sparkly.
      */
-    void glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd, waveshape_t waveShape = SINE);
+    void glow(float glowFrequency = 0.00015, float colorFrequency = 0.0001, waveshape_t waveShape = SINE);
 
     /**
      * @brief Rain animation.
@@ -83,6 +102,36 @@ class Bottle {
      * @brief Millis at start of faerie animation.
      */
     uint32_t faerieAnimationStart = 0;
+
+    /**
+     * @brief Hue range.
+     */
+    pair<uint16_t, uint16_t> hueRange = { 0, 30 };
+
+    /**
+     * @brief Starting hue range for fade.
+     */
+    pair<uint16_t, uint16_t> startHueRange = { 0, 30 };
+
+    /**
+     * @brief Ending hue range for fade.
+     */
+    pair<uint16_t, uint16_t> endHueRange = { 0, 30 };
+
+    /**
+     * @brief Hue fade time in ms.
+     */
+    uint32_t hueFadeSpeed = 0;
+
+    /**
+     * @brief If fading hue, this is the start time.
+     */
+    uint32_t hueFadeStartTime = 0;
+
+    /**
+     * @brief Update hue step between start and end range, if different.
+     */
+    void updateHue();
 
     /**
      * @brief Fly faerie from one pixel to another.

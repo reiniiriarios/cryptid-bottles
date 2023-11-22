@@ -1,19 +1,51 @@
 #include "bottle.h"
 
-Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length)
-  : pxl8(pxl8), pin(pin), length(length) {}
+Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length, uint16_t hueStart, uint16_t hueEnd)
+  : pxl8(pxl8), pin(pin), length(length) {
+  setHue(hueStart, hueEnd);
+}
 
-void Bottle::glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd, waveshape_t waveShape) {
-  // normalize hue values
-  hueStart = normalizeHue(hueStart);
-  hueEnd = normalizeHue(hueEnd);
-  if (hueEnd < hueStart) {
-    float t = hueStart;
-    hueStart = hueEnd;
-    hueEnd = t;
+void Bottle::setHue(uint16_t start, uint16_t end) {
+  start = normalizeHue(start);
+  end = normalizeHue(end);
+  if (start > end) {
+    uint16_t t = start;
+    start = end;
+    end = t;
   }
+  hueRange = { start, end };
+  endHueRange = { start, end };
+}
+
+void Bottle::setHue(uint16_t start, uint16_t end, uint32_t ms) {
+  hueFadeStartTime = millis();
+  start = normalizeHue(start);
+  end = normalizeHue(end);
+  if (start > end) {
+    uint16_t t = start;
+    start = end;
+    end = t;
+  }
+  startHueRange = hueRange;
+  endHueRange = { start, end };
+}
+
+void Bottle::updateHue() {
+  if (hueRange.first != endHueRange.first || hueRange.second != endHueRange.second) {
+    float percent = (millis() - hueFadeStartTime) / hueFadeSpeed;
+    hueRange.first = normalizeHue(
+      startHueRange.first + ((endHueRange.first - startHueRange.first) * percent)
+    );
+    hueRange.second = normalizeHue(
+      startHueRange.second + ((endHueRange.second - startHueRange.second) * percent)
+    );
+  }
+}
+
+void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveShape) {
+  updateHue();
   // amplitude of hue sine wave
-  float hueAmp = (hueEnd - hueStart) / 2;
+  float hueAmp = (hueRange.second - hueRange.first) / 2;
   // animation step
   long t = micros();
   for (uint16_t pixel = 0; pixel < length; pixel++) {
@@ -26,13 +58,13 @@ void Bottle::glow(float glowFrequency, float colorFrequency, uint16_t hueStart, 
       // 66 < l < 100
       case SAWTOOTH:
         // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
-        h = hueAmp * (2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1) + hueEnd - hueAmp;
+        h = hueAmp * (2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1) + hueRange.second - hueAmp;
         l = 33 * (2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1) + 50;
         break;
       case SINE:
       default:
         // amplitude * sin(time * 2 * PI * freq) + amplitude
-        h = hueAmp * sin(tp * 2 * PI * colorFrequency) + hueEnd - hueAmp;
+        h = hueAmp * sin(tp * 2 * PI * colorFrequency) + hueRange.second - hueAmp;
         l = 33 * sin(tp * 2 * PI * glowFrequency) + 50;
         break;
     }

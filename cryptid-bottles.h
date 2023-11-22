@@ -34,9 +34,24 @@ static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
 };
 
 /**
+ * @brief Whether to change a bottle's hue.
+ */
+bool shouldChangeHue(void);
+
+/**
+ * @brief Update bottle hues.
+ */
+void updateBottleHues(void);
+
+/**
  * @brief Whether to render a faerie.
  */
-bool shouldShowFaerie();
+bool shouldShowFaerie(void);
+
+/**
+ * @brief Randomly spawn and render faeries.
+ */
+void spawnFaeries(void);
 
 /**
  * @brief Call if fatal crash.
