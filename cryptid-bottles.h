@@ -1,8 +1,8 @@
 #ifndef CRYPTID_BOTTLES_H
 #define CRYPTID_BOTTLES_H
 
+#include <functional>
 #include <map>
-using namespace std;
 
 /**
  * @brief Loop all bottles.

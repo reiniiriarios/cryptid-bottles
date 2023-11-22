@@ -1,6 +1,7 @@
 #ifndef CRYPTID_BOTTLE_H
 #define CRYPTID_BOTTLE_H
 
+#include <utility>
 using namespace std;
 
 #include "pxl8.h"
@@ -106,17 +107,17 @@ class Bottle {
     /**
      * @brief Hue range.
      */
-    pair<uint16_t, uint16_t> hueRange = { 0, 30 };
+    std::pair<uint16_t, uint16_t> hueRange = { 0, 30 };
 
     /**
      * @brief Starting hue range for fade.
      */
-    pair<uint16_t, uint16_t> startHueRange = { 0, 30 };
+    std::pair<uint16_t, uint16_t> startHueRange = { 0, 30 };
 
     /**
      * @brief Ending hue range for fade.
      */
-    pair<uint16_t, uint16_t> endHueRange = { 0, 30 };
+    std::pair<uint16_t, uint16_t> endHueRange = { 0, 30 };
 
     /**
      * @brief Hue fade time in ms.

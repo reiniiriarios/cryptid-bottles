@@ -2,6 +2,18 @@
 #define CRYPTID_COLOR_H
 
 /**
+ * @brief Normalize hue between 0 and 360. Useful for cases when hue calculations may escape range.
+ * 
+ * @param hue 
+ * @return hue
+ */
+static inline uint16_t normalizeHue(uint16_t hue) {
+  while (hue > 360) hue -= 360;
+  while (hue < 0) hue += 360;
+  return hue;
+}
+
+/**
  * @brief RGB normalized between 0 and 255.
  */
 typedef struct rgb_t {
@@ -75,18 +87,6 @@ static rgb_t hsl2rgb(hsl_t hsl) {
   b *= 255;
 
   return rgb_t { r, g, b };
-}
-
-/**
- * @brief Normalize hue between 0 and 360. Useful for cases when hue calculations may escape range.
- * 
- * @param hue 
- * @return hue
- */
-static inline uint16_t normalizeHue(uint16_t hue) {
-  while (hue > 360) hue -= 360;
-  while (hue < 0) hue += 360;
-  return hue;
 }
 
 #endif
