@@ -4,6 +4,18 @@
 #include "pxl8.h"
 #include "color.h"
 
+/**
+ * @brief Waveshapes.
+ * 
+ */
+typedef enum {
+  SINE = 0,
+  SAWTOOTH = 1,
+} waveshape_t;
+
+/**
+ * @brief A strip of LEDs. In a bottle.
+ */
 class Bottle {
   public:
     /**
@@ -22,8 +34,9 @@ class Bottle {
      * @param colorFrequency Speed of hue pulse.
      * @param hueStart Hue lower range in degrees.
      * @param hueEnd Hue upper range in degrees.
+     * @param waveShape Waveshape. SINE will produce a smooth glow while SAWTOOTH will make the bottle sparkly.
      */
-    void glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd);
+    void glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd, waveshape_t waveShape = SINE);
 
     /**
      * @brief Rain animation.

@@ -3,7 +3,7 @@
 Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length)
   : pxl8(pxl8), pin(pin), length(length) {}
 
-void Bottle::glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd) {
+void Bottle::glow(float glowFrequency, float colorFrequency, uint16_t hueStart, uint16_t hueEnd, waveshape_t waveShape) {
   // normalize hue values
   hueStart = normalizeHue(hueStart);
   hueEnd = normalizeHue(hueEnd);
@@ -20,9 +20,20 @@ void Bottle::glow(float glowFrequency, float colorFrequency, uint16_t hueStart, 
     // adjust time for each to phase out of sync
     long tp = t + pixel * 200;
 
-    // amplitude * sin(time * 2 * PI * freq * scale) + amplitude
-    float h = hueAmp * sin(tp * 2 * PI * colorFrequency * 0.0001) + hueEnd - hueAmp; // 0 < h < 360 && hueStart < h < hueEnd
-    float l = 100 * sin(tp * 2 * PI * glowFrequency * 0.0001) + 100; // 0 < l < 100
+    float h, l;
+    switch (waveShape) {
+      case SAWTOOTH:
+        // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
+        h = hueAmp * (2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1) + hueEnd - hueAmp;
+        l = 100 * (2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1) + 100;
+        break;
+      case SINE:
+      default:
+        // amplitude * sin(time * 2 * PI * freq) + amplitude
+        h = hueAmp * sin(tp * 2 * PI * colorFrequency) + hueEnd - hueAmp;
+        l = 100 * sin(tp * 2 * PI * glowFrequency) + 100;
+        break;
+    }
 
     rgb_t rgb = hsl2rgb(hsl_t{ h, 100, l });
     pxl8->setPixelColor(pin, length, pixel, rgb.r, rgb.g, rgb.b);
