@@ -64,6 +64,11 @@ class Bottle {
     void rain(void);
 
     /**
+     * @brief Rainbow animation.
+     */
+    void rainbow(void);
+
+    /**
      * @brief Warning animation.
      */
     void warning(void);

@@ -152,6 +152,11 @@ void loop(void) {
           bottles[i]->rain();
         });
         break;
+      case BOTTLE_ANIMATION_RAINBOW:
+        allBottles([](int i){
+          bottles[i]->rainbow();
+        });
+        break;
       case BOTTLE_ANIMATION_TEST:
         allBottles([](int i){
           bottles[i]->testBlink();
