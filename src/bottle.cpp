@@ -25,13 +25,13 @@ void Bottle::glow(float glowFrequency, float colorFrequency, uint16_t hueStart, 
       case SAWTOOTH:
         // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
         h = hueAmp * (2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1) + hueEnd - hueAmp;
-        l = 100 * (2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1) + 100;
+        l = 67 * (2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1) + 100;
         break;
       case SINE:
       default:
         // amplitude * sin(time * 2 * PI * freq) + amplitude
         h = hueAmp * sin(tp * 2 * PI * colorFrequency) + hueEnd - hueAmp;
-        l = 100 * sin(tp * 2 * PI * glowFrequency) + 100;
+        l = 67 * sin(tp * 2 * PI * glowFrequency) + 100;
         break;
     }
 
