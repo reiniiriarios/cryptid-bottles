@@ -50,13 +50,13 @@ bool Interwebs::wifiInit(void) {
   Serial.println(WIFI_SSID);
 
   status = INTERWEBS_STATUS_WIFI_CONNECTING;
-	uint8_t wifiStatus = WL_IDLE_STATUS;
+  uint8_t wifiStatus = WL_IDLE_STATUS;
   uint8_t completeAttempts = 5;
   do {
     wifiStatus = WiFiDrv::wifiSetPassphrase(WIFI_SSID, strlen(WIFI_SSID), WIFI_PASS, strlen(WIFI_PASS));
     if (wifiStatus != WL_FAILURE) {
       Serial.print("Connecting");
-    	uint8_t attempts = 5;
+      uint8_t attempts = 5;
       do {
         Serial.print(".");
         delay(2000);
@@ -202,13 +202,13 @@ bool Interwebs::mqttReconnect(void) {
       mqttNetClient->*robbed<WiFiClientSock>::ptr = ServerDrv::getSocket();
       if (mqttNetClient->*robbed<WiFiClientSock>::ptr == NO_SOCKET_AVAIL) {
         // failure, flag to start over
-      	Serial.println("No Socket available");
+        Serial.println("No Socket available");
         mqttClient->*robbed<MQTTClientLastError>::ptr = LWMQTT_NETWORK_FAILED_CONNECT;
         status = INTERWEBS_STATUS_MQTT_OFFLINE;
         return false;
       }
 
-    	ServerDrv::startClient(uint32_t(mqttBroker), (uint16_t)1883, mqttNetClient->*robbed<WiFiClientSock>::ptr);
+      ServerDrv::startClient(uint32_t(mqttBroker), (uint16_t)1883, mqttNetClient->*robbed<WiFiClientSock>::ptr);
     }
     // step complete, break
     status = INTERWEBS_STATUS_MQTT_CONNECTING_2;
@@ -218,11 +218,11 @@ bool Interwebs::mqttReconnect(void) {
   // step 2 copied from mqttClient->:connect()
   if (status = INTERWEBS_STATUS_MQTT_CONNECTING_2) {
     // check step 1 was successful
-  	if (!(mqttClient->*robbed<MQTTClientNetClient>::ptr)->connected()) {
+    if (!(mqttClient->*robbed<MQTTClientNetClient>::ptr)->connected()) {
       status = INTERWEBS_STATUS_MQTT_OFFLINE;
       mqttClient->*robbed<MQTTClientLastError>::ptr = LWMQTT_NETWORK_FAILED_CONNECT;
       return false;
-  	}
+    }
 
     Serial.println("MQTT connecting to broker...");
     // prepare options
