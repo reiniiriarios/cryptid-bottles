@@ -69,7 +69,7 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
         break;
     }
 
-    rgb_t rgb = hsl2rgb(hsl_t{ h, 100, l });
+    rgb_t rgb = hsl2rgb(hsl_t{ (uint16_t)((int)h & 0xFFFF), 100, (uint8_t)((int)l & 0x64) });
     setPixelColor(pixel, rgb.r, rgb.g, rgb.b);
   }
 }
