@@ -136,26 +136,32 @@ void loop(void) {
         break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
-        for (uint8_t i = 0; i < 8; i++) {
+        allBottles([](int i){
           bottles[i]->glow();
-        }
+        });
         spawnFaeries();
         break;
       case BOTTLE_ANIMATION_GLOW:
         updateBottleHues();
-        for (uint8_t i = 0; i < 8; i++) {
+        allBottles([](int i){
           bottles[i]->glow();
-        }
+        });
         break;
       case BOTTLE_ANIMATION_RAIN:
-        bottles[0]->rain();
+        allBottles([](int i){
+          bottles[i]->rain();
+        });
         break;
       case BOTTLE_ANIMATION_TEST:
-        bottles[0]->testBlink();
+        allBottles([](int i){
+          bottles[i]->testBlink();
+        });
         break;
       case BOTTLE_ANIMATION_WARNING:
       default:
-        bottles[0]->warning();
+        allBottles([](int i){
+          bottles[i]->warning();
+        });
     }
   }
   // pxl8.show();

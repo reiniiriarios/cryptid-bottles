@@ -2,6 +2,14 @@
 #define CRYPTID_BOTTLES_H
 
 #include <map>
+using namespace std;
+
+/**
+ * @brief Loop all bottles.
+ */
+inline void allBottles(std::function<void(int)> f) {
+  for (int i = 0; i < 8; ++i) f(i);
+}
 
 /**
  * @brief Bottle animations.
