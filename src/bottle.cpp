@@ -69,7 +69,7 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
         break;
     }
 
-    rgb_t rgb = hsl2rgb(hsl_t{ (uint16_t)((int)h & 0xFFFF), 100, (uint8_t)((int)l & 0x64) });
+    rgb_t rgb = hsl2rgb(hsl_t{ h, 100.f, l });
     setPixelColor(pixel, rgb.r, rgb.g, rgb.b);
   }
 }
@@ -120,8 +120,8 @@ bool Bottle::showFaerie(uint8_t speed, rgb_t color) {
 
 void Bottle::faerieFly(rgb_t color, uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent) {
   // limit 0-100
-  endBright = endBright & 0x64;
-  startBright = startBright & 0x64;
+  endBright = normalizeSL(endBright);
+  startBright = normalizeSL(startBright);
   // scale rgb by brightness from 0-color.*
   uint8_t r = (int)(startBright + ((endBright - startBright) * percent / 100)) * color.r & 0xFF;
   uint8_t g = (int)(startBright + ((endBright - startBright) * percent / 100)) * color.g & 0xFF;
