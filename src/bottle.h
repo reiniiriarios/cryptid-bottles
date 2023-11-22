@@ -74,6 +74,21 @@ class Bottle {
     void warning(void);
 
     /**
+     * @brief Warning animation for WiFi issue.
+     */
+    void warningWiFi(void);
+
+    /**
+     * @brief Warning animation for MQTT issue.
+     */
+    void warningMQTT(void);
+
+    /**
+     * @brief Warning animation at specific color.
+     */
+    void warning(uint8_t r, uint8_t g, uint8_t b);
+
+    /**
      * @brief Test blink animation.
      */
     void testBlink(void);

@@ -169,13 +169,14 @@ void loop(void) {
         });
     }
   }
-  // pxl8.show();
 
   // Check interwebs connections.
   // if (!interwebs.wifiIsConnected()) {
-  //   // ...
+  //   bottles[0]->warningWiFi();
   // }
   // else if (!interwebs.mqttIsConnected()) {
-  //   // ...
+  //   bottles[0]->warningMQTT();
   // }
+
+  // pxl8.show();
 }

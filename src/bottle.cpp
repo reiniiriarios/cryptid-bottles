@@ -186,13 +186,24 @@ void Bottle::rainbow(void) {
   }
 }
 
-void Bottle::warning(void) {
-  uint32_t c = 0;
-  if ((millis() / 500) & 1) {
-    c = pxl8->color(255, 0, 0);
-  }
+void Bottle::warning() {
+  warning(255, 0, 0);
+}
+
+void Bottle::warningWiFi() {
+  warning(0, 0, 255);
+}
+
+void Bottle::warningMQTT() {
+  warning(255, 127, 0);
+}
+
+void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
+  uint8_t rs = r * sin(millis() / 2 * PI * 0.001) + r;
+  uint8_t gs = g * sin(millis() / 2 * PI * 0.001) + g;
+  uint8_t bs = b * sin(millis() / 2 * PI * 0.001) + b;
   for (uint16_t pixel = 0; pixel < length; pixel++) {
-    setPixelColor(pixel, c);
+    setPixelColor(pixel, normalizeRGB(rs), normalizeRGB(gs), normalizeRGB(bs));
   }
 }
 
