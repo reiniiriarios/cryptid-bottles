@@ -100,7 +100,7 @@ class Bottle {
      * @param color RGB faerie color
      * @return bool: Animation continues, display again next loop.
      */
-    bool showFaerie(uint8_t speed = 1, rgb_t color = { 255, 255, 255 });
+    bool showFaerie(float speed = 1, rgb_t color = { 255, 255, 255 });
 
   private:
     /**

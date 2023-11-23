@@ -76,7 +76,7 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   }
 }
 
-bool Bottle::showFaerie(uint8_t speed, rgb_t color) {
+bool Bottle::showFaerie(float speed, rgb_t color) {
   if (faerieAnimationStart == 0) {
     faerieAnimationStart = millis();
   }
