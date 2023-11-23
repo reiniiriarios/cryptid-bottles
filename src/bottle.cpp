@@ -181,7 +181,7 @@ void Bottle::rainbow(void) {
   uint8_t t = millis(); // overflow loop
   for (uint16_t p = 0; p < length; p++) {
     uint16_t hue = p * 256 / length + t;
-    rgb_t c = hsl2rgb(hsl_t{ hue, 100, 100 });
+    rgb_t c = hsl2rgb(hsl_t{ hue, 100U, 100U });
     setPixelColor(p, c.r, c.g, c.b);
   }
 }
