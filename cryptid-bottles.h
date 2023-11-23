@@ -88,6 +88,11 @@ bool shouldShowFaerie(void);
 void spawnFaeries(void);
 
 /**
+ * @brief Send all current MQTT status.
+ */
+void mqttCurrentStatus(void);
+
+/**
  * @brief Call if fatal crash.
  */
 void err(void);

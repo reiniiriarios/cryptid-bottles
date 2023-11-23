@@ -178,7 +178,7 @@ class Interwebs {
     void onMqtt(String topic, mqttcallback_t callback);
 
     /**
-     * @brief Send MQTT message.
+     * @brief Send MQTT message. Verifies connection before sending.
      */
     void mqttSendMessage(String topic, String payload);
 

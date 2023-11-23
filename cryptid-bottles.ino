@@ -28,6 +28,14 @@ void err(void) {
 
 // SETUP -------------------------------------------------------------------------------------------
 
+void mqttCurrentStatus(void) {
+  String on = "ON";
+  if (!PIXELS_ON) on = "OFF";
+  interwebs.mqttSendMessage("cryptid/bottles/status", on);
+  interwebs.mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
+  interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
+}
+
 void setup(void) {
   // if (!pxl8.begin()) {
   //   err();
@@ -79,18 +87,12 @@ void setup(void) {
   interwebs.onMqtt("homeassistant/status", [](String &payload){
     if (payload == "online") {
       interwebs.mqttSendDiscovery();
-      String on = "ON";
-      if (!PIXELS_ON) on = "OFF";
-      interwebs.mqttSendMessage("cryptid/bottles/status", on);
-      interwebs.mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
-      interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
+      mqttCurrentStatus();
     }
   });
 
   if (interwebs.connect()) {
-    interwebs.mqttSendMessage("cryptid/bottles/status", "ON");
-    interwebs.mqttSendMessage("cryptid/bottles/animation/status", "default");
-    interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
+    mqttCurrentStatus();
   }
 }
 
@@ -153,6 +155,8 @@ void spawnFaeries(void) {
 
 // LOOP --------------------------------------------------------------------------------------------
 
+uint16_t loopCounter = 0;  // Counts up every frame based on MAX_FPS.
+
 void loop(void) {
   // Run main MQTT loop every loop.
   // interwebs.mqttLoop();
@@ -198,13 +202,24 @@ void loop(void) {
     }
   }
 
-  // Check interwebs connections.
-  // if (!interwebs.wifiIsConnected()) {
-  //   bottles[0]->warningWiFi();
-  // }
-  // else if (!interwebs.mqttIsConnected()) {
-  //   bottles[0]->warningMQTT();
-  // }
+  // Check and repair interwebs connections.
+  if (!interwebs.wifiIsConnected()) {
+    bottles[0]->warningWiFi();
+    interwebs.wifiReconnect();
+  }
+  else if (!interwebs.mqttIsConnected()) {
+    bottles[0]->warningMQTT();
+    if (interwebs.mqttReconnect()) {
+      mqttCurrentStatus();
+    }
+  }
 
   // pxl8.show();
+
+  // Assuming 60fps, every 30 seconds.
+  if (loopCounter % 1800 == 0) {
+    mqttCurrentStatus();
+    loopCounter = 0;
+  }
+  loopCounter++;
 }
