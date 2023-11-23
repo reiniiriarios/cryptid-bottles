@@ -4,11 +4,25 @@
 #include <functional>
 #include <map>
 
+// !! @see src/pxl8.h for more gfx config !!
+
+// Number of LED strands.
+#define NUM_BOTTLES 1
+
 /**
  * @brief Loop all bottles.
  */
 inline void allBottles(std::function<void(int)> f) {
-  for (int i = 0; i < 8; ++i) f(i);
+  for (int i = 0; i < NUM_BOTTLES; ++i) f(i);
+}
+
+/**
+ * @brief Random bottle index.
+ * 
+ * @return index
+ */
+static inline uint8_t randBottleId(void) {
+  return (uint8_t)random(0, NUM_BOTTLES - 1);
 }
 
 /**

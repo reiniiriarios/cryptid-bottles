@@ -14,7 +14,7 @@ bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
 
 Pxl8 pxl8;
 Interwebs interwebs;
-Bottle *bottles[8] = {
+Bottle *bottles[NUM_BOTTLES] = {
   new Bottle(&pxl8, 0, 6, 0, 30),
 };
 
@@ -83,7 +83,7 @@ bool shouldChangeHue(void) {
 void updateBottleHues(void) {
   if (shouldChangeHue()) {
     uint16_t hueStart = random(0, 360);
-    bottles[random(0, 7)]->setHue(hueStart, hueStart + 40, random(750, 1500));
+    bottles[randBottleId()]->setHue(hueStart, hueStart + 40, random(750, 1500));
     lastHueChange = millis();
   }
 }
@@ -112,7 +112,7 @@ void spawnFaeries(void) {
   if (shouldShowFaerie()) {
     // If a new faerie, pick a random bottle.
     if (faerieBottle = -1) {
-      faerieBottle = random(0, 7);
+      faerieBottle = randBottleId();
     }
     faerieFlying = bottles[faerieBottle]->showFaerie();
     // After animation, reset bottle and log time.
