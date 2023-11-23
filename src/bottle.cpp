@@ -52,20 +52,22 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
     // adjust time for each to phase out of sync
     long tp = t + pixel * 200;
 
-    float h, l;
+    float a, h, l;
     switch (waveShape) {
       // hueStart < h < hueEnd
       // 66 < l < 100
       case SAWTOOTH:
         // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
-        h = hueAmp * (2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1) + hueRange.second - hueAmp;
-        l = 33 * (2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1) + 50;
+        a = 2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1;
+        h = hueAmp * a + hueRange.second - hueAmp;
+        l = 33 * a + 50;
         break;
       case SINE:
       default:
         // amplitude * sin(time * 2 * PI * freq) + amplitude
-        h = hueAmp * sin(tp * 2 * PI * colorFrequency) + hueRange.second - hueAmp;
-        l = 33 * sin(tp * 2 * PI * glowFrequency) + 50;
+        a = sin(tp * 2 * PI * colorFrequency);
+        h = hueAmp * a + hueRange.second - hueAmp;
+        l = 33 * a + 50;
         break;
     }
 
@@ -123,9 +125,10 @@ void Bottle::faerieFly(rgb_t color, uint16_t startPos, uint16_t endPos, uint8_t 
   endBright = normalizeSL(endBright);
   startBright = normalizeSL(startBright);
   // scale rgb by brightness from 0-color.*
-  uint8_t r = (int)(startBright + ((endBright - startBright) * percent / 100)) * color.r & 0xFF;
-  uint8_t g = (int)(startBright + ((endBright - startBright) * percent / 100)) * color.g & 0xFF;
-  uint8_t b = (int)(startBright + ((endBright - startBright) * percent / 100)) * color.b & 0xFF;
+  float a = startBright + ((endBright - startBright) * percent / 100);
+  uint8_t r = normalizeRGB(a * color.r);
+  uint8_t g = normalizeRGB(a * color.g);
+  uint8_t b = normalizeRGB(a * color.b);
   // faerie
   uint16_t pos = startPos + ((endPos - startPos) / percent);
   setPixelColor(pos, r, g, b);
@@ -153,18 +156,20 @@ void Bottle::faerieStop(rgb_t color, uint16_t pos, bool reverse, float percent) 
   if (reverse) pos2 += 1;
   else pos2 -= 1;
   if (percent < 30 && pos2 <= length && pos2 >= 0) {
-    uint8_t r2 = color.r * 0.5 * (30 - percent);
-    uint8_t g2 = color.g * 0.5 * (30 - percent);
-    uint8_t b2 = color.b * 0.5 * (30 - percent);
+    float a1 = 0.5 * (30 - percent);
+    uint8_t r2 = color.r * a1;
+    uint8_t g2 = color.g * a1;
+    uint8_t b2 = color.b * a1;
     setPixelColor(pos2, r2, g2, b2);
     // two pixels behind
     uint16_t pos3 = pos2;
     if (reverse) pos3 += 1;
     else pos3 -= 1;
     if (percent < 15 && pos3 <= length && pos3 >= 0) {
-      uint8_t r3 = color.r * 0.25 * (15 - percent);
-      uint8_t g3 = color.g * 0.25 * (15 - percent);
-      uint8_t b3 = color.b * 0.25 * (15 - percent);
+      float a2 = 0.25 * (15 - percent);
+      uint8_t r3 = color.r * a2;
+      uint8_t g3 = color.g * a2;
+      uint8_t b3 = color.b * a2;
       setPixelColor(pos3, r3, g3, b3);
     }
   }
@@ -173,7 +178,7 @@ void Bottle::faerieStop(rgb_t color, uint16_t pos, bool reverse, float percent) 
 void Bottle::rain(void) {
   for (uint16_t pixel = 0; pixel < length; pixel++) {
     uint16_t v = 256 - ((millis() / 4 - pin * 32 + pixel * 256 / length) & 0xFF);
-    setPixelColor(pixel, v >> 8, v * 160 >> 8, v * 255 >> 8);
+    setPixelColor(pixel, v * 2 >> 8, v * 160 >> 8, v * 255 >> 8);
   }
 }
 
@@ -199,9 +204,10 @@ void Bottle::warningMQTT() {
 }
 
 void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
-  uint8_t rs = r * sin(millis() / 2 * PI * 0.001) + r;
-  uint8_t gs = g * sin(millis() / 2 * PI * 0.001) + g;
-  uint8_t bs = b * sin(millis() / 2 * PI * 0.001) + b;
+  float b = sin(millis() / 2 * PI * 0.001);
+  uint8_t rs = r * b + r;
+  uint8_t gs = g * b + g;
+  uint8_t bs = b * b + b;
   for (uint16_t pixel = 0; pixel < length; pixel++) {
     setPixelColor(pixel, normalizeRGB(rs), normalizeRGB(gs), normalizeRGB(bs));
   }
@@ -209,7 +215,7 @@ void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
 
 void Bottle::testBlink(void) {
   uint32_t c = 0;
-  if ((millis() / 500) & 1) {
+  if (millis() / 500 & 1) {
     c = pxl8->color(255, 255, 255);
   }
   for (uint16_t pixel = 0; pixel < length; pixel++) {
