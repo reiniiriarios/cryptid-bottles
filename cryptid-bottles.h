@@ -48,7 +48,7 @@ typedef enum {
 /**
  * @brief Map of strings for MQTT commands to bottle animations.
  */
-static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
+const static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
   { "default", BOTTLE_ANIMATION_DEFAULT },
   { "faeries", BOTTLE_ANIMATION_FAERIES },
   { "rain",    BOTTLE_ANIMATION_RAIN    },
@@ -57,6 +57,15 @@ static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
   { "test",    BOTTLE_ANIMATION_TEST    },
   { "warning", BOTTLE_ANIMATION_WARNING },
 };
+
+/**
+ * @brief Map of bottle animations to MQTT string values.
+ */
+const static std::map<bottle_animation_t, String> BOTTLE_ANIMATIONS_INV = []() -> std::map<bottle_animation_t, String> {
+  std::map<bottle_animation_t, String> inv;
+  for (auto const& x : BOTTLE_ANIMATIONS) inv[x.second] = x.first;
+  return inv;
+}();
 
 /**
  * @brief Whether to change a bottle's hue.

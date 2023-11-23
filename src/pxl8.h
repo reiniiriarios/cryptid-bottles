@@ -43,6 +43,13 @@ class Pxl8 {
     void show(void);
 
     /**
+     * @brief Set brightness.
+     * 
+     * @param b 
+     */
+    void setBrightness(uint8_t b);
+
+    /**
      * @brief Get a pxl8 color for a given RGB (0-255) value.
      * 
      * @param r Red

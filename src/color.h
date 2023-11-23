@@ -67,6 +67,18 @@ static inline uint8_t normalizeSL(int v) {
  * @param value 
  * @return normalized value
  */
+static inline uint8_t normalizeSL(long v) {
+  if (v > 100) v = 100;
+  if (v < 0) v = 0;
+  return (uint8_t)v;
+}
+
+/**
+ * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
+ * 
+ * @param value 
+ * @return normalized value
+ */
 static inline uint8_t normalizeSL(uint8_t v) {
   return v & 0x64;
 }

@@ -11,6 +11,7 @@
 
 bool PIXELS_ON = true;
 bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
+uint8_t BRIGHTNESS = 33;
 
 Pxl8 pxl8;
 Interwebs interwebs;
@@ -31,6 +32,7 @@ void setup(void) {
   // if (!pxl8.begin()) {
   //   err();
   // }
+  // pxl8.setBrightness(BRIGHTNESS);
 
   // Turn lights on or off.
   interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
@@ -48,7 +50,7 @@ void setup(void) {
   interwebs.onMqtt("cryptid/bottles/animation/set", [](String &payload){
     PIXELS_ON = true;
     if (BOTTLE_ANIMATIONS.find(payload) != BOTTLE_ANIMATIONS.end()) {
-      bottleAnimation = BOTTLE_ANIMATIONS[payload];
+      bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
       interwebs.mqttSendMessage("cryptid/bottles/animation/status", payload);
     } else {
       bottleAnimation = BOTTLE_ANIMATION_WARNING;
@@ -56,14 +58,40 @@ void setup(void) {
     }
   });
 
+  // Set the bottles brightness.
+  interwebs.onMqtt("cryptid/bottles/brightness/set", [](String &payload){
+    uint8_t b = normalizeSL(payload.toInt());
+    BRIGHTNESS = b;
+    pxl8.setBrightness(b);
+    String on;
+    if (b == 0) {
+      PIXELS_ON = false;
+      on = "OFF";
+    } else {
+      PIXELS_ON = true;
+      on = "ON";
+    }
+    interwebs.mqttSendMessage("cryptid/bottles/status", on);
+    interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
+  });
+
   // Send discovery when Home Assistant notifies it's online.
   interwebs.onMqtt("homeassistant/status", [](String &payload){
     if (payload == "online") {
       interwebs.mqttSendDiscovery();
+      String on = "ON";
+      if (!PIXELS_ON) on = "OFF";
+      interwebs.mqttSendMessage("cryptid/bottles/status", on);
+      interwebs.mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
+      interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
     }
   });
 
-  interwebs.connect();
+  if (interwebs.connect()) {
+    interwebs.mqttSendMessage("cryptid/bottles/status", "ON");
+    interwebs.mqttSendMessage("cryptid/bottles/animation/status", "default");
+    interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
+  }
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------

@@ -15,15 +15,15 @@ bool Pxl8::begin(void) {
     return false;
   }
   Serial.println("success");
-
-  // @todo remove later
-  neopxl8->setBrightness(33);
-
   return true;
 }
 
 void Pxl8::show(void) {
   neopxl8->show();
+}
+
+void Pxl8::setBrightness(uint8_t b) {
+  neopxl8->setBrightness(b);
 }
 
 void Pxl8::setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint32_t color) {
