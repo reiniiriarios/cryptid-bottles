@@ -40,9 +40,11 @@ void setup(void) {
   while (!Serial) delay(10);
   Serial.println("Starting...");
 
+  // Create bottles.
   bottles[0] = new Bottle(&pxl8, 0, 50, 0, 30);
   bottles[1] = new Bottle(&pxl8, 1, 50, 0, 30);
 
+  // Start pixel driver.
   if (!pxl8.init()) {
     err();
   }
@@ -114,7 +116,6 @@ const uint32_t hueChangeTimeout = 50000;
 bool shouldChangeHue(void) {
   if (random(0, 20000) == 0) return true;
   if (millis() - lastHueChange > hueChangeTimeout) return true;
-
   return false;
 }
 
@@ -172,8 +173,8 @@ void loop(void) {
   if (PIXELS_ON) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
-        bottles[0]->warning();
-        bottles[1]->warning();
+        bottles[0]->rainbow();
+        bottles[1]->rainbow();
         break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();

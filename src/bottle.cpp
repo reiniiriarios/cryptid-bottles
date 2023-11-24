@@ -184,10 +184,10 @@ void Bottle::rain(void) {
 }
 
 void Bottle::rainbow(void) {
-  uint8_t t = millis(); // overflow loop
+  uint16_t t = millis() / 10;
   for (uint16_t p = 0; p < length; p++) {
-    uint16_t hue = p * 256 / length + t;
-    rgb_t c = hsl2rgb(hsl_t{ hue, 100U, 100U });
+    uint16_t hue = p * 360 / length + t;
+    rgb_t c = hsl2rgb(hsl_t{ hue, 100U, 50U });
     setPixelColor(p, c.r, c.g, c.b);
   }
 }
