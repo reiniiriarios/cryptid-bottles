@@ -42,7 +42,7 @@ void setup(void) {
 
   // Create bottles.
   bottles[0] = new Bottle(&pxl8, 0, 50, 0, 30);
-  bottles[1] = new Bottle(&pxl8, 1, 50, 0, 30);
+  bottles[1] = new Bottle(&pxl8, 1, 50, 30, 60);
 
   // Start pixel driver.
   if (!pxl8.init()) {
@@ -173,8 +173,8 @@ void loop(void) {
   if (PIXELS_ON) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
-        bottles[0]->rainbow();
-        bottles[1]->rainbow();
+        bottles[0]->glow();
+        bottles[1]->glow();
         break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();

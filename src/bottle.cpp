@@ -49,26 +49,31 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   float hueAmp = (hueRange.second - hueRange.first) / 2;
   // animation step
   long t = micros();
+  // smaller!
+  glowFrequency *= 0.0000001;
+  colorFrequency *= 0.0000001;
   for (uint16_t pixel = 0; pixel < length; pixel++) {
     // adjust time for each to phase out of sync
-    long tp = t + pixel * 200;
+    long tp = t + (pixel * 1000);
 
-    float a, h, l;
+    float ah, al, h, l;
     switch (waveShape) {
       // hueStart < h < hueEnd
-      // 66 < l < 100
+      // ? < l < ?
       case SAWTOOTH:
         // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
-        a = 2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1;
-        h = hueAmp * a + hueRange.second - hueAmp;
-        l = 33 * a + 50;
+        ah = 2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1;
+        al = 2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1;
+        h = hueAmp * ah + hueRange.second - hueAmp;
+        l = 10 * al + 35;
         break;
       case SINE:
       default:
         // amplitude * sin(time * 2 * PI * freq) + amplitude
-        a = sin(tp * 2 * PI * colorFrequency);
-        h = hueAmp * a + hueRange.second - hueAmp;
-        l = 33 * a + 50;
+        ah = sin(tp * PI * colorFrequency);
+        al = sin(tp * PI * glowFrequency);
+        h = hueAmp * ah + hueRange.second - hueAmp;
+        l = 10 * al + 35;
         break;
     }
 
