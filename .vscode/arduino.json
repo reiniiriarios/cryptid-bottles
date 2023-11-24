@@ -4,5 +4,5 @@
     "configuration": "cache=on,speed=120,opt=small,maxqspi=50,usbstack=arduino,debug=off",
     "programmer": "adafruit:adafruit_jlink",
     "output": "build",
-    "port": "/dev/ttyACM0"
+    "port": "/dev/ttyACM1"
 }

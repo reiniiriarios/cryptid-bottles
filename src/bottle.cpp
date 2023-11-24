@@ -48,13 +48,10 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   // amplitude of hue sine wave
   float hueAmp = (hueRange.second - hueRange.first) / 2;
   // animation step
-  long t = micros();
+  uint32_t t = millis();
   // smaller!
-  glowFrequency *= 0.0000001;
-  colorFrequency *= 0.0000001;
   for (uint16_t pixel = 0; pixel < length; pixel++) {
     // adjust time for each to phase out of sync
-    long tp = t + (pixel * 1000);
 
     float ah, al, h, l;
     switch (waveShape) {
@@ -62,21 +59,22 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
       // ? < l < ?
       case SAWTOOTH:
         // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
-        ah = 2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1;
-        al = 2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1;
+        ah = 2 * fmod(t, 1 / colorFrequency) * colorFrequency - 1;
+        al = 2 * fmod(t, 1 / glowFrequency) * glowFrequency - 1;
         h = hueAmp * ah + hueRange.second - hueAmp;
-        l = 128 * al + 255;
+        l = 86 * al + 170;
         break;
       case SINE:
       default:
-        // amplitude * sin(time * 2 * PI * freq) + amplitude
-        ah = sin(tp * PI * colorFrequency);
-        al = sin(tp * PI * glowFrequency);
+        float m = t * 0.0004 * PI;
+        float p = pixel * 2000;
+        ah = sin(colorFrequency * m + p * colorFrequency);
+        al = sin(glowFrequency * m + p * glowFrequency + pin * 1000);
         h = hueAmp * ah + hueRange.second - hueAmp;
-        l = 128 * al + 255;
+        l = 86 * al + 170;
         break;
     }
-    uint32_t c = pxl8->colorHSV(normalizeHue16(h), 255U, normalizeSL8(l));
+    uint32_t c = pxl8->colorHSV(normalizeHue16(h), 255U, l);
     setPixelColor(pixel, c);
   }
 }
