@@ -16,9 +16,8 @@
 #define NEOPIXEL_FORMAT NEO_GRB
 
 // @see docs/neopxl8-m4.md
-// The last 4 can be changed with some cutting/soldering:
-// 13, 12, 11, 10, PIN_SERIAL1_RX, PIN_SERIAL1_TX, SCL, SDA
-#define PINS 13, 12, 11, 10, SCK, 5, 9, 6
+// 13, 12, 11 are unavailable
+#define PINS PIN_SERIAL1_RX, PIN_SERIAL1_TX, 9, 6, 10
 
 /**
  * @brief Driver for NeoPixels.
