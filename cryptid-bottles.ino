@@ -15,10 +15,7 @@ uint8_t BRIGHTNESS = 33;
 
 Pxl8 pxl8;
 Interwebs interwebs;
-Bottle *bottles[NUM_BOTTLES] = {
-  new Bottle(&pxl8, 0, 50, 0, 30),
-  new Bottle(&pxl8, 1, 50, 0, 30)
-};
+Bottle *bottles[NUM_BOTTLES];
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -38,7 +35,15 @@ void mqttCurrentStatus(void) {
 }
 
 void setup(void) {
-  if (!pxl8.begin()) {
+  Serial.begin(9600);
+  // Wait for serial port to open.
+  while (!Serial) delay(10);
+  Serial.println("Starting...");
+
+  bottles[0] = new Bottle(&pxl8, 0, 50, 0, 30);
+  bottles[1] = new Bottle(&pxl8, 1, 50, 0, 30);
+
+  if (!pxl8.init()) {
     err();
   }
   pxl8.setBrightness(BRIGHTNESS);

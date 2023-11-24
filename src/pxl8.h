@@ -37,7 +37,7 @@ class Pxl8 {
      *
      * @return Success
      */
-    bool begin(void);
+    bool init(void);
 
     /**
      * @brief Cycle through red, green, blue, once.
@@ -94,16 +94,27 @@ class Pxl8 {
      */
     void setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
 
+    void addStrand(uint16_t length);
+
   private:
     /**
      * @brief The NeoPXL8 object used to control the pixels.
      */
-    Adafruit_NeoPXL8 *neopxl8;
+    Adafruit_NeoPXL8 *neopxl8 = nullptr;
 
     /**
      * @brief Pinouts for pixel LEDs on board.
      */
     int8_t pins[NUM_PINS] = { PINS };
+
+    /**
+     * @brief 
+     */
+    uint16_t longest_strand = 0;
+
+    uint16_t num_pixels = 0;
+
+    uint16_t num_strands = 0;
 };
 
 #endif

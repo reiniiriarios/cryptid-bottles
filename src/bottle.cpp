@@ -3,6 +3,7 @@
 Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length, uint16_t hueStart, uint16_t hueEnd)
   : pxl8(pxl8), pin(pin), length(length) {
   setHue(hueStart, hueEnd);
+  pxl8->addStrand(length);
 }
 
 void Bottle::setHue(uint16_t start, uint16_t end) {

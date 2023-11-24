@@ -1,14 +1,22 @@
 #include "pxl8.h"
 
-Pxl8::Pxl8(void) {
-  neopxl8 = new Adafruit_NeoPXL8(
-    (uint16_t)LONGEST_STRAND_LENGTH,
-    pins,
-    (neoPixelType)NEOPIXEL_FORMAT
-  );
+Pxl8::Pxl8(void) {}
+
+void Pxl8::addStrand(uint16_t length) {
+  if (neopxl8 != nullptr) {
+    Serial.println("ERROR: Cannot add strands after init.");
+    return;
+  }
+  num_strands++;
+  if (length > longest_strand) {
+    longest_strand = length;
+  }
+  num_pixels = longest_strand * num_strands;
+  Serial.println("Added strand of " + String(length) + ", total: " + String(num_pixels));
 }
 
-bool Pxl8::begin(void) {
+bool Pxl8::init(void) {
+  neopxl8 = new Adafruit_NeoPXL8(longest_strand, pins, (neoPixelType)NEOPIXEL_FORMAT);
   Serial.print("Starting pixels...");
   if (!neopxl8->begin()) {
     Serial.println("fail");
