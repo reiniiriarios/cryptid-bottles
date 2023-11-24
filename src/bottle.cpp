@@ -204,10 +204,10 @@ void Bottle::warningMQTT() {
 }
 
 void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
-  float b = sin(millis() / 2 * PI * 0.001);
-  uint8_t rs = r * b + r;
-  uint8_t gs = g * b + g;
-  uint8_t bs = b * b + b;
+  float br = sin(millis() / 2 * PI * 0.001);
+  uint8_t rs = r * br + r;
+  uint8_t gs = g * br + g;
+  uint8_t bs = b * br + b;
   for (uint16_t pixel = 0; pixel < length; pixel++) {
     setPixelColor(pixel, normalizeRGB(rs), normalizeRGB(gs), normalizeRGB(bs));
   }
