@@ -313,7 +313,7 @@ void Interwebs::printWifiStatus(void) {
 void Interwebs::mqttSendMessage(String topic, String payload) {
   if (wifiIsConnected() && mqttIsConnected()) {
     Serial.println("MQTT publishing to " + topic);
-    if (!mqttClient->publish("cryptid/" + topic, payload)) {
+    if (!mqttClient->publish(topic, payload)) {
       Serial.println("Error publishing");
     }
   }
