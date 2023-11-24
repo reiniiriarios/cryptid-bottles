@@ -20,3 +20,16 @@
 1. For VS Code, compile to finish intellisense setup.
     1. `.vscode/c_cpp_properties.json` may update.
 1. Configure defines in `cryptid-bottles.h` and `src/pxl8.h` if relevant.
+
+## HW Config
+
+**NeoPXL8 Connections:**
+
+- Output #0 comes from `RX`  (Available; shared by `ESPRX`)
+- Output #1 comes from `TX`  (Available; shared by `ESPTX`)
+- Output #2 comes from `D9`  (Available)
+- Output #3 comes from `D6`  (Available)
+- ~~Output #4 comes from~~ `D13` (Unavailable, used by `ESPCS`!)
+- ~~Output #5 comes from~~ `D12` (Unavailable, used by `ESPRST`!)
+- ~~Output #6 comes from~~ `D11` (Unavailable, used by `ESPBUSY`!)
+- Output #7 comes from `D10` (Available; shared by `ESPGPIO0`)
