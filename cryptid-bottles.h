@@ -7,7 +7,7 @@
 // !! @see src/pxl8.h for more gfx config !!
 
 // Number of LED strands.
-#define NUM_BOTTLES 1
+#define NUM_BOTTLES 2
 
 /**
  * @brief Loop all bottles.

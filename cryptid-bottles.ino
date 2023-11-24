@@ -16,7 +16,8 @@ uint8_t BRIGHTNESS = 33;
 Pxl8 pxl8;
 Interwebs interwebs;
 Bottle *bottles[NUM_BOTTLES] = {
-  new Bottle(&pxl8, 0, 6, 0, 30),
+  new Bottle(&pxl8, 0, 50, 0, 30),
+  new Bottle(&pxl8, 1, 50, 0, 30)
 };
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
@@ -37,10 +38,11 @@ void mqttCurrentStatus(void) {
 }
 
 void setup(void) {
-  // if (!pxl8.begin()) {
-  //   err();
-  // }
-  // pxl8.setBrightness(BRIGHTNESS);
+  if (!pxl8.begin()) {
+    err();
+  }
+  pxl8.setBrightness(BRIGHTNESS);
+  return;
 
   // Turn lights on or off.
   interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
@@ -164,7 +166,8 @@ void loop(void) {
   if (PIXELS_ON) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
-        // bottles[0]->testBlink();
+        bottles[0]->testBlink();
+        bottles[1]->testBlink();
         break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
@@ -203,22 +206,22 @@ void loop(void) {
   }
 
   // Check and repair interwebs connections.
-  if (!interwebs.wifiIsConnected()) {
-    bottles[0]->warningWiFi();
-    interwebs.wifiReconnect();
-  }
-  else if (!interwebs.mqttIsConnected()) {
-    bottles[0]->warningMQTT();
-    if (interwebs.mqttReconnect()) {
-      mqttCurrentStatus();
-    }
-  }
+  // if (!interwebs.wifiIsConnected()) {
+  //   bottles[0]->warningWiFi();
+  //   interwebs.wifiReconnect();
+  // }
+  // else if (!interwebs.mqttIsConnected()) {
+  //   bottles[0]->warningMQTT();
+  //   if (interwebs.mqttReconnect()) {
+  //     mqttCurrentStatus();
+  //   }
+  // }
 
-  // pxl8.show();
+  pxl8.show();
 
   // Assuming 60fps, every 30 seconds.
   if (loopCounter % 1800 == 0) {
-    mqttCurrentStatus();
+    // mqttCurrentStatus();
     loopCounter = 0;
   }
   loopCounter++;
