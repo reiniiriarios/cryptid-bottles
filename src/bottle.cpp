@@ -65,7 +65,7 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
         ah = 2 * fmod(tp, 1 / colorFrequency) * colorFrequency - 1;
         al = 2 * fmod(tp, 1 / glowFrequency) * glowFrequency - 1;
         h = hueAmp * ah + hueRange.second - hueAmp;
-        l = 10 * al + 35;
+        l = 128 * al + 255;
         break;
       case SINE:
       default:
@@ -73,12 +73,11 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
         ah = sin(tp * PI * colorFrequency);
         al = sin(tp * PI * glowFrequency);
         h = hueAmp * ah + hueRange.second - hueAmp;
-        l = 10 * al + 35;
+        l = 128 * al + 255;
         break;
     }
-
-    rgb_t rgb = hsl2rgb(hsl_t{ h, 100.f, l });
-    setPixelColor(pixel, rgb.r, rgb.g, rgb.b);
+    uint32_t c = pxl8->colorHSV(normalizeHue16(h), 255U, normalizeSL8(l));
+    setPixelColor(pixel, c);
   }
 }
 
@@ -189,11 +188,12 @@ void Bottle::rain(void) {
 }
 
 void Bottle::rainbow(void) {
-  uint16_t t = millis() / 10;
+  uint16_t t = millis() * 3;
   for (uint16_t p = 0; p < length; p++) {
-    uint16_t hue = p * 360 / length + t;
-    rgb_t c = hsl2rgb(hsl_t{ hue, 100U, 50U });
-    setPixelColor(p, c.r, c.g, c.b);
+    uint16_t hue = p * 65535 / length + t;
+    uint32_t c = pxl8->colorHSV(hue, 255U, 255U);
+    // Serial.println(String(c, HEX));
+    setPixelColor(p, c);
   }
 }
 

@@ -72,6 +72,10 @@ class Pxl8 {
       );
     }
 
+    static uint32_t colorHSV(uint16_t hue, uint8_t sat = 255, uint8_t val = 255) {
+      return Adafruit_NeoPixel::ColorHSV(hue, sat, val);
+    }
+
     /**
      * @brief Set a pixel a specific color.
      * 

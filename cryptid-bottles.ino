@@ -11,7 +11,7 @@
 
 bool PIXELS_ON = true;
 bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
-uint8_t BRIGHTNESS = 33;
+uint8_t BRIGHTNESS = 50;
 
 Pxl8 pxl8;
 Interwebs interwebs;
@@ -37,7 +37,7 @@ void mqttCurrentStatus(void) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  while (!Serial) delay(10);
+  // while (!Serial) delay(10);
   Serial.println("Starting...");
 
   // Create bottles.
@@ -101,9 +101,9 @@ void setup(void) {
     }
   });
 
-  if (interwebs.connect()) {
-    mqttCurrentStatus();
-  }
+  // if (interwebs.connect()) {
+  //   mqttCurrentStatus();
+  // }
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------
@@ -165,6 +165,7 @@ void spawnFaeries(void) {
 // LOOP --------------------------------------------------------------------------------------------
 
 uint16_t loopCounter = 0;  // Counts up every frame based on MAX_FPS.
+// uint32_t millisCounter = millis();
 
 void loop(void) {
   // Run main MQTT loop every loop.
@@ -173,8 +174,8 @@ void loop(void) {
   if (PIXELS_ON) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
-        bottles[0]->glow();
-        bottles[1]->glow();
+        bottles[0]->rainbow();
+        bottles[1]->rainbow();
         break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
@@ -232,4 +233,8 @@ void loop(void) {
     loopCounter = 0;
   }
   loopCounter++;
+
+  // Speed check.
+  // Serial.print("\r" + String(millis() - millisCounter) + "   ");
+  // millisCounter = millis();
 }

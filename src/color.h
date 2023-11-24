@@ -38,6 +38,18 @@ static inline uint16_t normalizeHue(int hue) {
 }
 
 /**
+ * @brief Normalize hue between 0 and 65535. Useful for cases when hue calculations may escape range.
+ * 
+ * @param hue 
+ * @return hue
+ */
+static inline uint16_t normalizeHue16(float hue) {
+  while (hue > 360) hue -= 360;
+  while (hue < 0) hue += 360;
+  return (uint16_t)(hue / 360 * 65535);
+}
+
+/**
  * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
  * 
  * @param value 
@@ -81,6 +93,18 @@ static inline uint8_t normalizeSL(long v) {
  */
 static inline uint8_t normalizeSL(uint8_t v) {
   return v & 0x64;
+}
+
+/**
+ * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
+ * 
+ * @param value 
+ * @return normalized value
+ */
+static inline uint8_t normalizeSL8(float v) {
+  if (v > 100) v = 100;
+  if (v < 0) v = 0;
+  return (uint8_t)(v * 2.55);
 }
 
 /**
@@ -136,55 +160,5 @@ typedef struct hsl_t {
   hsl_t(float h, float s, float l)
     : h(normalizeHue(h)), s(normalizeSL(s)), l(normalizeSL(l)) {}
 } hsl_t;
-
-/**
- * @brief Convert HSL to RGB.
- * 
- * @param hsl Hue, Saturation, Lightness
- * @return RGB
- */
-static rgb_t hsl2rgb(hsl_t hsl) {
-  float h = hsl.h / 60.f;
-  float s = hsl.s / 100.f;
-  float l = hsl.l / 100.f;
-  float chroma = (1 - abs(2 * l - 1)) * s;
-  float x = chroma * (1 - abs((h - floor(h / 2) * 2) - 1));
-  float m = l - chroma / 2;
-  float r, g, b;
-  if (h < 1) {
-    r = chroma + m;
-    g = x + m;
-    b = m;
-  } else if (h < 2) {
-    r = x + m;
-    g = chroma + m;
-    b = m;
-  } else if (h < 3) {
-    r = m;
-    g = chroma + m;
-    b = x + m;
-  } else if (h < 4) {
-    r = m;
-    g = x + m;
-    b = chroma + m;
-  } else if (h < 5) {
-    r = x + m;
-    g = m;
-    b = chroma + m;
-  } else if (h < 6) {
-    r = chroma + m;
-    g = m;
-    b = x + m;
-  } else {
-    r = m;
-    g = m;
-    b = m;
-  }
-  r *= 255;
-  g *= 255;
-  b *= 255;
-
-  return rgb_t { r, g, b };
-}
 
 #endif
