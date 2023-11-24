@@ -3,7 +3,7 @@
 Pxl8::Pxl8(void) {
   neopxl8 = new Adafruit_NeoPXL8(
     (uint16_t)LONGEST_STRAND_LENGTH,
-    (int8_t*)(pins),
+    pins,
     (neoPixelType)NEOPIXEL_FORMAT
   );
 }
@@ -16,6 +16,19 @@ bool Pxl8::begin(void) {
   }
   Serial.println("success");
   return true;
+}
+
+void Pxl8::cycle(void) {
+  // Cycle all pixels red/green/blue. If you see a different
+  // sequence, COLOR_ORDER doesn't match your particular NeoPixel type.
+  // If you get a jumble of colors, you're using RGBW NeoPixels with an
+  // RGB order. Try different COLOR_ORDER values until code and hardware
+  // are in harmony.
+  for (uint32_t color = 0xFF0000; color > 0; color >>= 8) {
+    neopxl8->fill(color);
+    neopxl8->show();
+    delay(500);
+  }
 }
 
 void Pxl8::show(void) {

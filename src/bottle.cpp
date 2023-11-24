@@ -205,16 +205,19 @@ void Bottle::warningMQTT() {
 
 void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
   float br = sin(millis() / 2 * PI * 0.001);
-  uint8_t rs = r * br + r;
-  uint8_t gs = g * br + g;
-  uint8_t bs = b * br + b;
+  float r2 = r / 2;
+  float g2 = g / 2;
+  float b2 = b / 2;
+  uint8_t rs = r2 * br + r2;
+  uint8_t gs = g2 * br + g2;
+  uint8_t bs = b2 * br + b2;
   for (uint16_t pixel = 0; pixel < length; pixel++) {
     setPixelColor(pixel, normalizeRGB(rs), normalizeRGB(gs), normalizeRGB(bs));
   }
 }
 
 void Bottle::testBlink(void) {
-  uint32_t c = 0;
+  uint32_t c = pxl8->color(0, 0, 0);
   if (millis() / 500 & 1) {
     c = pxl8->color(255, 255, 255);
   }

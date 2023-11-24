@@ -42,6 +42,7 @@ void setup(void) {
     err();
   }
   pxl8.setBrightness(BRIGHTNESS);
+  // pxl8.cycle();
   return;
 
   // Turn lights on or off.
@@ -166,8 +167,8 @@ void loop(void) {
   if (PIXELS_ON) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
-        bottles[0]->testBlink();
-        bottles[1]->testBlink();
+        bottles[0]->warning();
+        bottles[1]->warning();
         break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();

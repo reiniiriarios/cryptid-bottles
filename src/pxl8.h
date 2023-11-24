@@ -5,7 +5,7 @@
 
 // Length of longest strand.
 // Memory usage determined by longest strang length * number of strands.
-#define LONGEST_STRAND_LENGTH 7
+#define LONGEST_STRAND_LENGTH 50
 
 // Pixel type flags, add together as needed:
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
@@ -18,6 +18,9 @@
 // @see docs/neopxl8-m4.md
 // 13, 12, 11 are unavailable
 #define PINS PIN_SERIAL1_RX, PIN_SERIAL1_TX, 9, 6, 10
+
+// Number of pins wired.
+#define NUM_PINS 5
 
 /**
  * @brief Driver for NeoPixels.
@@ -35,6 +38,11 @@ class Pxl8 {
      * @return Success
      */
     bool begin(void);
+
+    /**
+     * @brief Cycle through red, green, blue, once.
+     */
+    void cycle(void);
 
     /**
      * @brief Render.
@@ -95,7 +103,7 @@ class Pxl8 {
     /**
      * @brief Pinouts for pixel LEDs on board.
      */
-    uint8_t pins[8] = { PINS };
+    int8_t pins[NUM_PINS] = { PINS };
 };
 
 #endif
