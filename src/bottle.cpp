@@ -10,11 +10,6 @@ Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length, ui
 void Bottle::setHue(uint16_t start, uint16_t end) {
   start = normalizeHue(start);
   end = normalizeHue(end);
-  if (start > end) {
-    uint16_t t = start;
-    start = end;
-    end = t;
-  }
   hueRange = { start, end };
   endHueRange = { start, end };
 }
@@ -22,26 +17,30 @@ void Bottle::setHue(uint16_t start, uint16_t end) {
 void Bottle::setHue(uint16_t start, uint16_t end, uint32_t ms) {
   hueFadeStartTime = millis();
   hueFadeSpeed = ms;
-  start = normalizeHue(start);
-  end = normalizeHue(end);
-  if (start > end) {
-    uint16_t t = start;
-    start = end;
-    end = t;
-  }
   startHueRange = hueRange;
-  endHueRange = { start, end };
+  endHueRange = { normalizeHue(start), normalizeHue(end) };
 }
 
 void Bottle::updateHue() {
   if (hueRange.first != endHueRange.first || hueRange.second != endHueRange.second) {
     float percent = float(millis() - hueFadeStartTime) / hueFadeSpeed;
-    hueRange.first = normalizeHue(
-      startHueRange.first + ((endHueRange.first - startHueRange.first) * percent)
-    );
-    hueRange.second = normalizeHue(
-      startHueRange.second + ((endHueRange.second - startHueRange.second) * percent)
-    );
+    float s1 = startHueRange.first;
+    float s2 = startHueRange.second;
+    float e1 = endHueRange.first;
+    float e2 = endHueRange.second;
+    // adj looping around zero
+    if (s2 < s1) s2 += 360;
+    if (e2 < e1) e2 += 360;
+    // widdershins
+    if (e1 - s1 > 180) {
+      s1 += 360;
+      s2 += 360;
+    } else if (s1 - e1 > 180) {
+      e1 += 360;
+      e2 += 360;
+    }
+    hueRange.first = normalizeHue(s1 + (e1 - s1) * percent);
+    hueRange.second = normalizeHue(s2 + (e2 - s2) * percent);
   }
 }
 
@@ -49,10 +48,14 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   updateHue();
   // animation step
   float t = millis() * 0.0004 * PI;
-  // amplitude of hue sine wave
-  // hueStart < h < hueEnd
-  float hLower = (hueRange.second - hueRange.first) / 2;
-  float hUpper = hueRange.second - hLower;
+  // if end range is below start, raise above; normalization will resolve
+  float hrSecond = hueRange.second;
+  if (hueRange.first > hrSecond) {
+    hrSecond += 360;
+  }
+  // hueRange.first < h < hueRange.second
+  float hLower = (hrSecond - hueRange.first) / 2;
+  float hUpper = hrSecond - hLower;
   // lightness amplitude adjustments
   // lLower < l < 255
   uint8_t lLower = 86;

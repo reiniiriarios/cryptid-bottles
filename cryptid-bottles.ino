@@ -139,7 +139,7 @@ void setup(void) {
 // Last time a bottle changed hues.
 uint32_t lastHueChange = millis();
 // Timeout in ms until another bottle should change hue.
-const uint32_t hueChangeTimeout = 50000;
+const uint32_t hueChangeTimeout = 5000;
 
 bool shouldChangeHue(void) {
   if (millis() - lastHueChange < 2500) return false; // Don't change too often.
@@ -198,7 +198,7 @@ void spawnFaeries(void) {
 // LOOP --------------------------------------------------------------------------------------------
 
 uint32_t prevMicros; // FPS throttle.
-uint32_t prevMillis; // Speed check.
+uint32_t prevMillis = 0; // Speed check.
 uint16_t loopCounter = 0;  // Counts up every frame.
 
 void loop(void) {
@@ -272,7 +272,7 @@ void loop(void) {
 
   // Speed check.
   uint32_t m = millis();
-  if (m > prevMillis) { // ignores millis() overflow
+  if (prevMillis != 0 && m > prevMillis) { // skips first, ignores millis() overflow
     uint32_t s = m - prevMillis;
     if (s > 20) {
       Serial.println("Slow frame at " + String(s) + " ms.");
