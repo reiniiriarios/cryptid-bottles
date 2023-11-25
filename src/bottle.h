@@ -26,11 +26,12 @@ class Bottle {
      *
      * @param pxl8 Pointer to the Pxl8 object.
      * @param pin Pin index (not id on board)
+     * @param startPixel First pixel on strand that belongs to this bottle.
      * @param length Number of pixels on strand.
      * @param startHue Hue range lower bound.
      * @param endHue Hue range upper bound.
      */
-    Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length, uint16_t startHue, uint16_t endHue);
+    Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length, uint16_t startHue, uint16_t endHue);
 
     /**
      * @brief Set the hue range of the bottle in degrees.
@@ -109,13 +110,18 @@ class Bottle {
     Pxl8 *pxl8;
 
     /**
-     * @brief Pin index. This is the index and does not
+     * @brief Pin index. This is the index, the nth bottle, and does not
      *        directly reference pins on the board.
      */
     uint8_t pin;
 
     /**
-     * @brief Number of pixels on the strand.
+     * @brief First pixel on LED strand that belongs to this bottle.
+     */
+    uint16_t startPixel = 0;
+
+    /**
+     * @brief Number of pixels on the strand that belong to the bottle.
      */
     uint16_t length;
 

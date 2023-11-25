@@ -6,7 +6,7 @@
 
 // !! @see src/pxl8.h for more gfx config !!
 
-// Number of LED strands.
+// Number of bottles.
 #define NUM_BOTTLES 2
 
 /**

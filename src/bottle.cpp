@@ -1,7 +1,7 @@
 #include "bottle.h"
 
-Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t length, uint16_t hueStart, uint16_t hueEnd)
-  : pxl8(pxl8), pin(pin), length(length) {
+Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length, uint16_t hueStart, uint16_t hueEnd)
+  : pxl8(pxl8), pin(pin), startPixel(startPixel), length(length) {
   setHue(hueStart, hueEnd);
   pxl8->addStrand(pin, length);
 }
@@ -57,7 +57,7 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   uint8_t lLower = 86;
   uint8_t lUpper = 255 - lLower;
 
-  for (uint16_t pixel = 0; pixel < length; pixel++) {
+  for (uint16_t pixel = startPixel; pixel < length; pixel++) {
     float h, l;
     switch (waveShape) {
       case SAWTOOTH:
@@ -94,7 +94,7 @@ bool Bottle::showFaerie(float speed, rgb_t color) {
 
   if (frame <= keyframe1) {
     float percent = (float)frame / (float)keyframe1 * 100.f;
-    faerieFly(color, 0, length / 2, 0, 100, percent);
+    faerieFly(color, startPixel, length / 2, 0, 100, percent);
   }
   else if (frame <= keyframe2) {
     float percent = (float)frame / (float)keyframe2 * 100.f;
@@ -110,7 +110,7 @@ bool Bottle::showFaerie(float speed, rgb_t color) {
   }
   else if (frame <= keyframe5) {
     float percent = (float)frame / (float)keyframe5 * 100.f;
-    faerieFly(color, length, 0, 100, 0, percent);
+    faerieFly(color, length, startPixel, 100, 0, percent);
   }
   else {
     faerieAnimationStart = 0;
@@ -175,7 +175,7 @@ void Bottle::faerieStop(rgb_t color, uint16_t pos, bool reverse, float percent) 
 }
 
 void Bottle::rain(void) {
-  for (uint16_t pixel = 0; pixel < length; pixel++) {
+  for (uint16_t pixel = startPixel; pixel < length; pixel++) {
     uint16_t v = 256 - ((millis() / 4 - pin * 32 + pixel * 256 / length) & 0xFF);
     setPixelColor(pixel, v * 2 >> 8, v * 160 >> 8, v * 255 >> 8);
   }
@@ -183,7 +183,7 @@ void Bottle::rain(void) {
 
 void Bottle::rainbow(void) {
   uint16_t t = millis() * 3;
-  for (uint16_t p = 0; p < length; p++) {
+  for (uint16_t p = startPixel; p < length; p++) {
     uint16_t hue = p * 65535 / length + t;
     uint32_t c = pxl8->colorHSV(hue, 255U, 255U);
     // Serial.println(String(c, HEX));
@@ -211,7 +211,7 @@ void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
   uint8_t rs = r2 * br + r2;
   uint8_t gs = g2 * br + g2;
   uint8_t bs = b2 * br + b2;
-  for (uint16_t pixel = 0; pixel < length; pixel++) {
+  for (uint16_t pixel = startPixel; pixel < length; pixel++) {
     setPixelColor(pixel, normalizeRGB(rs), normalizeRGB(gs), normalizeRGB(bs));
   }
 }
@@ -221,7 +221,7 @@ void Bottle::testBlink(void) {
   if (millis() / 500 & 1) {
     c = pxl8->color(255, 255, 255);
   }
-  for (uint16_t pixel = 0; pixel < length; pixel++) {
+  for (uint16_t pixel = startPixel; pixel < length; pixel++) {
     setPixelColor(pixel, c);
   }
 }

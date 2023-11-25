@@ -46,9 +46,9 @@ class Pxl8 {
     void show(void);
 
     /**
-     * @brief Set brightness.
+     * @brief Set brightness. Only call as a config setting, not as part of animation.
      * 
-     * @param b 
+     * @param b 0-255
      */
     void setBrightness(uint8_t b);
 

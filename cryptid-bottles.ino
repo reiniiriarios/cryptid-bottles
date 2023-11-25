@@ -44,8 +44,8 @@ void setup(void) {
   randomSeed(analogRead(A0));
 
   // Create bottles.
-  bottles[0] = new Bottle(&pxl8, 0, 50, 0, 25);
-  bottles[1] = new Bottle(&pxl8, 1, 50, 40, 80);
+  bottles[0] = new Bottle(&pxl8, 0, 0, 50, 0, 25);
+  bottles[1] = new Bottle(&pxl8, 1, 0, 50, 40, 80);
 
   // Start pixel driver.
   if (!pxl8.init()) {
