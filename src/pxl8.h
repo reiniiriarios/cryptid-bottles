@@ -68,6 +68,14 @@ class Pxl8 {
       );
     }
 
+    /**
+     * @brief Get a pxl8 color for a given HSV color. HSV should be in max bit depth.
+     * 
+     * @param hue 0-65535
+     * @param sat 0-255
+     * @param val 0-255
+     * @return Packed color.
+     */
     static uint32_t colorHSV(uint16_t hue, uint8_t sat = 255, uint8_t val = 255) {
       return Adafruit_NeoPixel::ColorHSV(hue, sat, val);
     }
