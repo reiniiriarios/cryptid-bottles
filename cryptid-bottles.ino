@@ -34,15 +34,7 @@ void mqttCurrentStatus(void) {
   interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
 }
 
-void setup(void) {
-  Serial.begin(9600);
-  // Wait for serial port to open.
-  // while (!Serial) delay(10);
-  Serial.println("Starting...");
-
-  // Seed by reading unused anolog pin.
-  randomSeed(analogRead(A0));
-
+void setupLEDs(void) {
   // Create bottles.            id start end <hue >hue
   bottles[0] = new Bottle(&pxl8, 0,    0, 25,   0,  25);
   bottles[1] = new Bottle(&pxl8, 0,   25, 25,  40,  80);
@@ -55,8 +47,9 @@ void setup(void) {
   }
   pxl8.setBrightness(BRIGHTNESS);
   // pxl8.cycle();
-  return;
+}
 
+void setupInterwebs(void) {
   // Turn lights on or off.
   interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
@@ -109,6 +102,22 @@ void setup(void) {
   // if (interwebs.connect()) {
   //   mqttCurrentStatus();
   // }
+}
+
+void setup(void) {
+  Serial.begin(9600);
+  // Wait for serial port to open.
+  // while (!Serial) delay(10);
+  Serial.println("Starting...");
+
+  // Seed by reading unused anolog pin.
+  randomSeed(analogRead(A0));
+
+  // NeoPXL8, etc.
+  setupLEDs();
+
+  // WiFi, MQTT, etc.
+  // setupInterwebs();
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------

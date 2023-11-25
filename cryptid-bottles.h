@@ -97,6 +97,16 @@ void mqttCurrentStatus(void);
  */
 void err(void);
 
+/**
+ * @brief Setup LEDs.
+ */
+void setupLEDs(void);
+
+/**
+ * @brief Setup Interwebs.
+ */
+void setupInterwebs(void);
+
 void setup(void);
 void loop(void);
 
