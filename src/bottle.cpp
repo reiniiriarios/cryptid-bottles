@@ -122,38 +122,23 @@ bool Bottle::showFaerie() {
 }
 
 void Bottle::faerieFly(uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent) {
-  // limit 0-100
-  endBright = normalizeSL(endBright);
-  startBright = normalizeSL(startBright);
   // faerie
   uint16_t pos = startPos + ((endPos - startPos) * percent);
-  rgb_t currentColor = getPixelColor(pos);
   // scale rgb by brightness from currentColor -> faerieColor
-  float a = (startBright + ((endBright - startBright) * percent)) / 100;
-  uint8_t r = normalizeRGB(currentColor.r + a * (faerieColor.r - currentColor.r));
-  uint8_t g = normalizeRGB(currentColor.g + a * (faerieColor.g - currentColor.g));
-  uint8_t b = normalizeRGB(currentColor.b + a * (faerieColor.b - currentColor.b));
-  setPixelColor(pos, r, g, b);
-  if (pos > startPixel) {
-    // light trail
-    uint16_t pos2 = pos;
-    if (startPos > endPos) pos2 += 1;
-    else pos2 -= 1;
-    rgb_t currentColor2 = getPixelColor(pos2);
-    uint8_t r2 = normalizeRGB(currentColor2.r + a * 0.5f * (faerieColor.r - currentColor2.r));
-    uint8_t g2 = normalizeRGB(currentColor2.g + a * 0.5f * (faerieColor.g - currentColor2.g));
-    uint8_t b2 = normalizeRGB(currentColor2.b + a * 0.5f * (faerieColor.b - currentColor2.b));
-    setPixelColor(pos2, r2, g2, b2);
-    if (pos > startPixel + 1) {
-      // softer light trail
-      uint16_t pos3 = pos2;
-      if (startPos > endPos) pos3 += 1;
-      else pos3 -= 1;
-      rgb_t currentColor3 = getPixelColor(pos3);
-      uint8_t r3 = normalizeRGB(currentColor3.r + a * 0.25f * (faerieColor.r - currentColor3.r));
-      uint8_t g3 = normalizeRGB(currentColor3.g + a * 0.25f * (faerieColor.g - currentColor3.g));
-      uint8_t b3 = normalizeRGB(currentColor3.b + a * 0.25f * (faerieColor.b - currentColor3.b));
-      setPixelColor(pos3, r3, g3, b3);
+  float blend = (startBright + ((endBright - startBright) * percent)) / 100;
+  setPixelColor(pos, blendRGB(getPixelColor(pos), faerieColor, blend));
+  // light trail
+  uint16_t pos2 = pos;
+  if (startPos > endPos) pos2 += 1;
+  else pos2 -= 1;
+  if (pixelInBottle(pos2)) {
+    setPixelColor(pos2, blendRGB(getPixelColor(pos2), faerieColor, blend * 0.5f));
+    // softer light trail
+    uint16_t pos3 = pos2;
+    if (startPos > endPos) pos3 += 1;
+    else pos3 -= 1;
+    if (pixelInBottle(pos3)) {
+      setPixelColor(pos3, blendRGB(getPixelColor(pos3), faerieColor, blend * 0.25f));
     }
   }
 }
@@ -165,24 +150,14 @@ void Bottle::faerieStop(uint16_t pos, bool reverse, float percent) {
   uint16_t pos2 = pos;
   if (reverse) pos2 += 1;
   else pos2 -= 1;
-  if (percent < 0.3f && pos2 <= lastPixel && pos2 >= startPixel) {
-    float a1 = 0.5f * (0.3f - percent);
-    rgb_t currentColor2 = getPixelColor(pos2);
-    uint8_t r2 = normalizeRGB(currentColor2.r + a1 * (faerieColor.r - currentColor2.r));
-    uint8_t g2 = normalizeRGB(currentColor2.g + a1 * (faerieColor.g - currentColor2.g));
-    uint8_t b2 = normalizeRGB(currentColor2.b + a1 * (faerieColor.b - currentColor2.b));
-    setPixelColor(pos2, r2, g2, b2);
+  if (percent < 0.3f && pixelInBottle(pos2)) {
+    setPixelColor(pos2, blendRGB(getPixelColor(pos2), faerieColor, 0.5f * (0.3f - percent)));
     // two pixels behind
     uint16_t pos3 = pos2;
     if (reverse) pos3 += 1;
     else pos3 -= 1;
-    if (percent < 0.15f && pos3 <= lastPixel && pos3 >= startPixel) {
-      float a2 = 0.25f * (0.15f - percent);
-      rgb_t currentColor3 = getPixelColor(pos3);
-      uint8_t r3 = normalizeRGB(currentColor3.r + a2 * (faerieColor.r - currentColor3.r));
-      uint8_t g3 = normalizeRGB(currentColor3.g + a2 * (faerieColor.g - currentColor3.g));
-      uint8_t b3 = normalizeRGB(currentColor3.b + a2 * (faerieColor.b - currentColor3.b));
-      setPixelColor(pos3, r3, g3, b3);
+    if (percent < 0.15f && pixelInBottle(pos3)) {
+      setPixelColor(pos3, blendRGB(getPixelColor(pos3), faerieColor, 0.25f * (0.13f - percent)));
     }
   }
 }
@@ -253,6 +228,14 @@ void Bottle::setPixelColor(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b) {
   pxl8->setPixelColor(pin, pixel, r, g, b);
 }
 
+void Bottle::setPixelColor(uint16_t pixel, rgb_t rgb) {
+  pxl8->setPixelColor(pin, pixel, rgb.r, rgb.g, rgb.b);
+}
+
 rgb_t Bottle::getPixelColor(uint16_t pixel) {
   return pxl8->getPixelColor(pin, pixel);
+}
+
+bool Bottle::pixelInBottle(uint16_t pixel) {
+  return pixel >= startPixel && pixel <= lastPixel;
 }

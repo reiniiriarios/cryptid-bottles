@@ -161,4 +161,32 @@ typedef struct hsl_t {
     : h(normalizeHue(h)), s(normalizeSL(s)), l(normalizeSL(l)) {}
 } hsl_t;
 
+/**
+ * @brief Blend one RGB value with another and normalize.
+ * 
+ * @param current
+ * @param target
+ * @param amount 0-1
+ * @return blended value
+ */
+static inline uint8_t blendValue(uint8_t current, uint8_t target, float amount) {
+  return normalizeRGB((float)current + amount * (target - current));
+}
+
+/**
+ * @brief Blend one RGB color with another and normalize.
+ * 
+ * @param current
+ * @param target
+ * @param amount 0-1
+ * @return blended RGB
+ */
+static inline rgb_t blendRGB(rgb_t current, rgb_t target, float amount) {
+  return rgb_t {
+    blendValue(current.r, target.r, amount),
+    blendValue(current.g, target.g, amount),
+    blendValue(current.b, target.b, amount),
+  };
+}
+
 #endif

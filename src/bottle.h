@@ -187,6 +187,13 @@ class Bottle {
     void updateHue();
 
     /**
+     * @brief Whether a given pixel is out of bounds for this bottle.
+     *
+     * @return (bool) pixel is in bottle
+     */
+    inline bool pixelInBottle(uint16_t pixel);
+
+    /**
      * @brief Fly faerie from one pixel to another.
      *
      * @param startPos pixel on bottle strand
@@ -223,6 +230,14 @@ class Bottle {
      * @param b Blue
      */
     void setPixelColor(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
+
+    /**
+     * @brief Set a pixel a specific color.
+     * 
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @param rgb
+     */
+    void setPixelColor(uint16_t pixel, rgb_t rgb);
 
     /**
      * @brief Get a pixel's color.
