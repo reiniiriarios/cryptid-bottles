@@ -40,6 +40,9 @@ void setup(void) {
   // while (!Serial) delay(10);
   Serial.println("Starting...");
 
+  // Seed by reading unused anolog pin.
+  randomSeed(analogRead(A0));
+
   // Create bottles.
   bottles[0] = new Bottle(&pxl8, 0, 50, 0, 25);
   bottles[1] = new Bottle(&pxl8, 1, 50, 40, 80);
@@ -114,7 +117,8 @@ uint32_t lastHueChange = millis();
 const uint32_t hueChangeTimeout = 50000;
 
 bool shouldChangeHue(void) {
-  if (random(0, 20000) == 0) return true;
+  if (millis() - lastHueChange < 2500) return false; // Don't change too often.
+  if (random(0, 15000) == 0) return true;
   if (millis() - lastHueChange > hueChangeTimeout) return true;
   return false;
 }
@@ -123,8 +127,9 @@ void updateBottleHues(void) {
   if (shouldChangeHue()) {
     uint8_t id = randBottleId();
     uint16_t hueStart = random(0, 360);
-    Serial.println("Updating hue for bottle " + String(id) + " to " + String(hueStart));
-    bottles[id]->setHue(hueStart, hueStart + random(30, 40), random(1500, 2500));
+    uint16_t hueEnd = hueStart + random(30, 40);
+    Serial.println("Updating hue for bottle " + String(id) + " to " + String(hueStart) + "-" + String(hueEnd));
+    bottles[id]->setHue(hueStart, hueEnd, random(1500, 2500));
     lastHueChange = millis();
   }
 }

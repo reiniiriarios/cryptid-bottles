@@ -22,7 +22,7 @@ inline void allBottles(std::function<void(int)> f) {
  * @return index
  */
 static inline uint8_t randBottleId(void) {
-  return (uint8_t)random(0, NUM_BOTTLES - 1);
+  return (uint8_t)random(0, NUM_BOTTLES);
 }
 
 /**
