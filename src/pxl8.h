@@ -2,6 +2,7 @@
 #define CRYPTID_PXL8_H
 
 #include <Adafruit_NeoPXL8.h>
+#include "color.h"
 
 // Pixel type flags, add together as needed:
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
@@ -99,6 +100,15 @@ class Pxl8 {
      * @param b Blue
      */
     void setPixelColor(uint8_t pin, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
+
+    /**
+     * @brief Get a pixel's color in RGB.
+     * 
+     * @param pin Pin (strand).
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @return RGB
+     */
+    rgb_t getPixelColor(uint8_t pin, uint16_t pixel);
 
     /**
      * @brief Add strand of LEDs. MUST be called before init().

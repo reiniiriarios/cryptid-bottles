@@ -1,7 +1,7 @@
 #include "bottle.h"
 
 Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length, uint16_t hueStart, uint16_t hueEnd)
-  : pxl8(pxl8), pin(pin), startPixel(startPixel), length(length), lastPixel(startPixel + length) {
+  : pxl8(pxl8), pin(pin), startPixel(startPixel), length(length), lastPixel(startPixel + length - 1) {
   setHue(hueStart, hueEnd);
   pxl8->addStrand(pin, length);
   Serial.println("Bottle of " + String(length) + " pixels on pin " + String(pin) + " added.");
@@ -79,44 +79,40 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   }
 }
 
-bool Bottle::showFaerie(float speed, rgb_t color) {
-  if (faerieAnimationStart == 0) {
-    faerieAnimationStart = millis();
-  }
+void Bottle::spawnFaerie(float speed, rgb_t color) {
+  faerieColor = color;
+  faerieKeyframes[0] = 300 / speed;
+  faerieKeyframes[1] = 600 / speed + faerieKeyframes[0];
+  faerieKeyframes[2] = 200 / speed + faerieKeyframes[1];
+  faerieKeyframes[3] = 400 / speed + faerieKeyframes[2];
+  faerieKeyframes[4] = 300 / speed + faerieKeyframes[3];
+  faerieAnimationStart = millis();
+  Serial.println("+ faerie spawned at " + String(speed) + "x; will fly for " + String(faerieKeyframes[4]) + " ms");
+}
+
+bool Bottle::showFaerie() {
   uint32_t frame = millis() - faerieAnimationStart;
-
-  // Zoom over and fade in to a pixel.
-  uint32_t keyframe1 = 1000 / speed;
-  // Wait.
-  uint32_t keyframe2 = 800 / speed + keyframe1;
-  // Zoom over to another pixel.
-  uint32_t keyframe3 = 700 / speed + keyframe2;
-  // Wait.
-  uint32_t keyframe4 = 600 / speed + keyframe3;
-  // Zoom away and fade out.
-  uint32_t keyframe5 = 1000 / speed + keyframe4;
-
   uint16_t midpoint = startPixel + length / 2;
 
-  if (frame <= keyframe1) {
-    float percent = (float)frame / (float)keyframe1 * 100.f;
-    faerieFly(color, startPixel, midpoint, 0, 100, percent);
+  if (frame <= faerieKeyframes[0]) {
+    float percent = (float)frame / faerieKeyframes[0];
+    faerieFly(startPixel, midpoint, 0, 100, percent);
   }
-  else if (frame <= keyframe2) {
-    float percent = (float)frame / (float)keyframe2 * 100.f;
-    faerieStop(color, midpoint, false, percent);
+  else if (frame <= faerieKeyframes[1]) {
+    float percent = (float)frame / faerieKeyframes[1];
+    faerieStop(midpoint, false, percent);
   }
-  else if (frame <= keyframe3) {
-    float percent = (float)frame / (float)keyframe3 * 100.f;
-    faerieFly(color, midpoint, length, 100, 100, percent);
+  else if (frame <= faerieKeyframes[2]) {
+    float percent = (float)frame / faerieKeyframes[2];
+    faerieFly(midpoint, lastPixel, 100, 100, percent);
   }
-  else if (frame <= keyframe4) {
-    float percent = (float)frame / (float)keyframe4 * 100.f;
-    faerieStop(color, length, false, percent);
+  else if (frame <= faerieKeyframes[3]) {
+    float percent = (float)frame / faerieKeyframes[3];
+    faerieStop(lastPixel, false, percent);
   }
-  else if (frame <= keyframe5) {
-    float percent = (float)frame / (float)keyframe5 * 100.f;
-    faerieFly(color, length, startPixel, 100, 0, percent);
+  else if (frame <= faerieKeyframes[4]) {
+    float percent = (float)frame / faerieKeyframes[4];
+    faerieFly(lastPixel, startPixel, 100, 0, percent);
   }
   else {
     faerieAnimationStart = 0;
@@ -125,59 +121,66 @@ bool Bottle::showFaerie(float speed, rgb_t color) {
   return true;
 }
 
-void Bottle::faerieFly(rgb_t color, uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent) {
+void Bottle::faerieFly(uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent) {
   // limit 0-100
   endBright = normalizeSL(endBright);
   startBright = normalizeSL(startBright);
-  // scale rgb by brightness from 0-color.*
-  float a = startBright + ((endBright - startBright) * percent / 100);
-  uint8_t r = normalizeRGB(a * color.r);
-  uint8_t g = normalizeRGB(a * color.g);
-  uint8_t b = normalizeRGB(a * color.b);
   // faerie
-  uint16_t pos = startPos + ((endPos - startPos) / percent);
+  uint16_t pos = startPos + ((endPos - startPos) * percent);
+  rgb_t currentColor = getPixelColor(pos);
+  // scale rgb by brightness from currentColor -> faerieColor
+  float a = (startBright + ((endBright - startBright) * percent)) / 100;
+  uint8_t r = normalizeRGB(currentColor.r + a * (faerieColor.r - currentColor.r));
+  uint8_t g = normalizeRGB(currentColor.g + a * (faerieColor.g - currentColor.g));
+  uint8_t b = normalizeRGB(currentColor.b + a * (faerieColor.b - currentColor.b));
   setPixelColor(pos, r, g, b);
-  if (pos > 0) {
-    // light trail
-    uint8_t r2 = r * 0.5;
-    uint8_t g2 = g * 0.5;
-    uint8_t b2 = b * 0.5;
-    setPixelColor(pos - 1, r2, g2, b2);
-    if (pos > 1) {
-      // softer light trail
-      uint8_t r3 = r * 0.25;
-      uint8_t g3 = g * 0.25;
-      uint8_t b3 = b * 0.25;
-      setPixelColor(pos - 2, r3, g3, b3);
-    }
-  }
+  // if (pos > startPixel) {
+  //   // light trail
+  //   uint8_t r2 = r * 0.5;
+  //   uint8_t g2 = g * 0.5;
+  //   uint8_t b2 = b * 0.5;
+  //   uint16_t pos2;
+  //   if (startPos > endPos) pos2 += 1;
+  //   else pos2 -= 1;
+  //   setPixelColor(pos2, r2, g2, b2);
+  //   if (pos > startPixel + 1) {
+  //     // softer light trail
+  //     uint8_t r3 = r * 0.25;
+  //     uint8_t g3 = g * 0.25;
+  //     uint8_t b3 = b * 0.25;
+  //     uint16_t pos3;
+  //     if (startPos > endPos) pos3 += 1;
+  //     else pos3 -= 1;
+  //     setPixelColor(pos3, r3, g3, b3);
+  //   }
+  // }
 }
 
-void Bottle::faerieStop(rgb_t color, uint16_t pos, bool reverse, float percent) {
+void Bottle::faerieStop(uint16_t pos, bool reverse, float percent) {
   // faerie
-  setPixelColor(pos, color.r, color.g, color.b);
+  setPixelColor(pos, faerieColor.r, faerieColor.g, faerieColor.b);
   // one pixel behind
-  uint16_t pos2 = pos;
-  if (reverse) pos2 += 1;
-  else pos2 -= 1;
-  if (percent < 30 && pos2 <= length && pos2 >= 0) {
-    float a1 = 0.5 * (30 - percent);
-    uint8_t r2 = color.r * a1;
-    uint8_t g2 = color.g * a1;
-    uint8_t b2 = color.b * a1;
-    setPixelColor(pos2, r2, g2, b2);
-    // two pixels behind
-    uint16_t pos3 = pos2;
-    if (reverse) pos3 += 1;
-    else pos3 -= 1;
-    if (percent < 15 && pos3 <= length && pos3 >= 0) {
-      float a2 = 0.25 * (15 - percent);
-      uint8_t r3 = color.r * a2;
-      uint8_t g3 = color.g * a2;
-      uint8_t b3 = color.b * a2;
-      setPixelColor(pos3, r3, g3, b3);
-    }
-  }
+  // uint16_t pos2 = pos;
+  // if (reverse) pos2 += 1;
+  // else pos2 -= 1;
+  // if (percent < 30 && pos2 <= lastPixel && pos2 >= startPixel) {
+  //   float a1 = 0.5 * (30 - percent);
+  //   uint8_t r2 = faerieColor.r * a1;
+  //   uint8_t g2 = faerieColor.g * a1;
+  //   uint8_t b2 = faerieColor.b * a1;
+  //   setPixelColor(pos2, r2, g2, b2);
+  //   // two pixels behind
+  //   uint16_t pos3 = pos2;
+  //   if (reverse) pos3 += 1;
+  //   else pos3 -= 1;
+  //   if (percent < 15 && pos3 <= lastPixel && pos3 >= startPixel) {
+  //     float a2 = 0.25 * (15 - percent);
+  //     uint8_t r3 = faerieColor.r * a2;
+  //     uint8_t g3 = faerieColor.g * a2;
+  //     uint8_t b3 = faerieColor.b * a2;
+  //     setPixelColor(pos3, r3, g3, b3);
+  //   }
+  // }
 }
 
 void Bottle::rain(void) {
@@ -244,4 +247,8 @@ void Bottle::setPixelColor(uint16_t pixel, uint32_t color) {
 
 void Bottle::setPixelColor(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b) {
   pxl8->setPixelColor(pin, pixel, r, g, b);
+}
+
+rgb_t Bottle::getPixelColor(uint16_t pixel) {
+  return pxl8->getPixelColor(pin, pixel);
 }

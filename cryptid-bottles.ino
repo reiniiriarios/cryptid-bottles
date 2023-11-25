@@ -121,7 +121,7 @@ void setupInterwebs(void) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  while (!Serial) delay(10);
+  // while (!Serial) delay(10);
   Serial.println("Starting...");
 
   // Seed by reading unused anolog pin.
@@ -164,7 +164,7 @@ bool faerieFlying = false;
 // Last time a faerie flew. Start at current time to avoid immediate spawn.
 uint32_t lastFaerieFly = millis();
 // Timeout in ms until another faerie should be spawned.
-const uint32_t faerieFlyTimeout = 30000;
+const uint32_t faerieFlyTimeout = 6000;
 // Bottle faerie is currently in.
 int8_t faerieBottle = -1;
 
@@ -182,15 +182,18 @@ bool shouldShowFaerie(void) {
 void spawnFaeries(void) {
   if (shouldShowFaerie()) {
     // If a new faerie, pick a random bottle.
-    if (faerieBottle = -1) {
+    if (faerieBottle == -1) {
       faerieBottle = randBottleId();
       Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
+      bottles[faerieBottle]->spawnFaerie();
     }
     faerieFlying = bottles[faerieBottle]->showFaerie();
     // After animation, reset bottle and log time.
     if (!faerieFlying) {
+      Serial.println("Faerie has flown away from bottle " + String(faerieBottle));
       faerieBottle = -1;
       lastFaerieFly = millis();
+      faerieFlying = false;
     }
   }
 }
@@ -212,6 +215,7 @@ void loop(void) {
 
   if (PIXELS_ON) {
     switch (bottleAnimation) {
+      case BOTTLE_ANIMATION_DEFAULT:
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
         allBottles([](int i){
@@ -219,7 +223,6 @@ void loop(void) {
         });
         spawnFaeries();
         break;
-      case BOTTLE_ANIMATION_DEFAULT:
       case BOTTLE_ANIMATION_GLOW:
         updateBottleHues();
         allBottles([](int i){

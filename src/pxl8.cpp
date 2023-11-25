@@ -69,3 +69,9 @@ void Pxl8::setPixelColor(uint8_t pin, uint16_t pixel, uint32_t color) {
 void Pxl8::setPixelColor(uint8_t pin, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b) {
   neopxl8->setPixelColor(pin * strands[pin] + pixel, color(r, g, b));
 }
+
+rgb_t Pxl8::getPixelColor(uint8_t pin, uint16_t pixel) {
+  uint32_t c = neopxl8->getPixelColor(pin * strands[pin] + pixel);
+  uint8_t r = (uint8_t)(c >> 16), g = (uint8_t)(c >> 8), b = (uint8_t)c;
+  return rgb_t{ r, g, b };
+}

@@ -100,13 +100,19 @@ class Bottle {
     void testBlink(void);
 
     /**
-     * @brief Animate a faerie. Call after other animation for set number of frames.
+     * @brief Animate a faerie. Call each loop until it returns false.
      *
-     * @param speed animation speed multiplier
-     * @param color RGB faerie color
      * @return bool: Animation continues, display again next loop.
      */
-    bool showFaerie(float speed = 1, rgb_t color = { 255, 255, 255 });
+    bool showFaerie(void);
+
+    /**
+     * @brief Spawn a new faerie.
+     * 
+     * @param speed animation speed multiplier
+     * @param color RGB faerie color
+     */
+    void spawnFaerie(float speed = 1, rgb_t color = { 255, 255, 255 });
 
   private:
     /**
@@ -166,6 +172,16 @@ class Bottle {
     uint32_t hueFadeStartTime = 0;
 
     /**
+     * @brief Faerie keyframe timing.
+     */
+    uint32_t faerieKeyframes[5] = {};
+
+    /**
+     * @brief Faerie color.
+     */
+    rgb_t faerieColor = { 255, 255, 255 };
+
+    /**
      * @brief Update hue step between start and end range, if different.
      */
     void updateHue();
@@ -173,24 +189,22 @@ class Bottle {
     /**
      * @brief Fly faerie from one pixel to another.
      *
-     * @param color faerie color at max brightness
      * @param startPos pixel on bottle strand
      * @param endPos pixel on bottle strand
      * @param startBright 0-100
      * @param endBright 0-100
      * @param percent 0-100 percent through animation
      */
-    void faerieFly(rgb_t color, uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent);
+    void faerieFly(uint16_t startPos, uint16_t endPos, uint8_t startBright, uint8_t endBright, float percent);
 
     /**
      * @brief Stop flying at a pixel. The light trail will fade out.
      *
-     * @param color faerie color at max brightness
      * @param pos pixel on bottle strand
      * @param reverse is the faerie flying backwards
      * @param percent 0-100 percent through animation
      */
-    void faerieStop(rgb_t color, uint16_t pos, bool reverse, float percent);
+    void faerieStop(uint16_t pos, bool reverse, float percent);
 
     /**
      * @brief Set a pixel a specific color.
@@ -209,6 +223,14 @@ class Bottle {
      * @param b Blue
      */
     void setPixelColor(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
+
+    /**
+     * @brief Get a pixel's color.
+     * 
+     * @param pixel Number of pixel on strand (zero-indexed).
+     * @return RGB
+     */
+    rgb_t getPixelColor(uint16_t pixel);
 };
 
 #endif
