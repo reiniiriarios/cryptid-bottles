@@ -56,7 +56,7 @@ class Bottle {
      * @param colorFrequency Speed of hue pulse.
      * @param waveShape Waveshape. SINE will produce a smooth glow while SAWTOOTH will make the bottle sparkly.
      */
-    void glow(float glowFrequency = 1.25, float colorFrequency = 1, waveshape_t waveShape = SINE);
+    void glow(float glowFrequency = 1.25, float colorFrequency = 1, waveshape_t waveShape = SAWTOOTH);
 
     /**
      * @brief Rain animation.

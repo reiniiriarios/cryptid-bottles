@@ -45,33 +45,28 @@ void Bottle::updateHue() {
 
 void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveShape) {
   updateHue();
-  // amplitude of hue sine wave
-  float hueAmp = (hueRange.second - hueRange.first) / 2;
   // animation step
-  uint32_t t = millis();
-  // smaller!
-  for (uint16_t pixel = 0; pixel < length; pixel++) {
-    // adjust time for each to phase out of sync
+  float t = millis() * 0.0004 * PI;
+  // amplitude of hue sine wave
+  // hueStart < h < hueEnd
+  float hLower = (hueRange.second - hueRange.first) / 2;
+  float hUpper = hueRange.second - hLower;
+  // lightness amplitude adjustments
+  // lLower < l < 255
+  uint8_t lLower = 86;
+  uint8_t lUpper = 255 - lLower;
 
-    float ah, al, h, l;
+  for (uint16_t pixel = 0; pixel < length; pixel++) {
+    float h, l;
     switch (waveShape) {
-      // hueStart < h < hueEnd
-      // ? < l < ?
       case SAWTOOTH:
-        // amplitude * (2 * (time % (1 / freq)) * freq - 1) + amplitude
-        ah = 2 * fmod(t, 1 / colorFrequency) * colorFrequency - 1;
-        al = 2 * fmod(t, 1 / glowFrequency) * glowFrequency - 1;
-        h = hueAmp * ah + hueRange.second - hueAmp;
-        l = 86 * al + 170;
+        h = hLower * sin(colorFrequency * t + pixel * 2000 * colorFrequency) + hUpper;
+        l = lLower * (2 * fmod(t * glowFrequency * 0.2 + pixel, 0.8) * 1.25 - 1) + lUpper;
         break;
       case SINE:
       default:
-        float m = t * 0.0004 * PI;
-        float p = pixel * 2000;
-        ah = sin(colorFrequency * m + p * colorFrequency);
-        al = sin(glowFrequency * m + p * glowFrequency + pin * 1000);
-        h = hueAmp * ah + hueRange.second - hueAmp;
-        l = 86 * al + 170;
+        h = hLower * sin(colorFrequency * t + pixel * 2000 * colorFrequency) + hUpper;
+        l = lLower * sin(glowFrequency * t + pixel * 2000 * glowFrequency + pin * 1000) + lUpper;
         break;
     }
     uint32_t c = pxl8->colorHSV(normalizeHue16(h), 255U, l);
