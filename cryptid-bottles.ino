@@ -192,11 +192,6 @@ void loop(void) {
 
   if (PIXELS_ON) {
     switch (bottleAnimation) {
-      case BOTTLE_ANIMATION_DEFAULT:
-        updateBottleHues();
-        bottles[0]->glow();
-        bottles[1]->glow();
-        break;
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
         allBottles([](int i){
@@ -204,6 +199,7 @@ void loop(void) {
         });
         spawnFaeries();
         break;
+      case BOTTLE_ANIMATION_DEFAULT:
       case BOTTLE_ANIMATION_GLOW:
         updateBottleHues();
         allBottles([](int i){
