@@ -4,6 +4,7 @@ Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length, ui
   : pxl8(pxl8), pin(pin), startPixel(startPixel), length(length) {
   setHue(hueStart, hueEnd);
   pxl8->addStrand(pin, length);
+  Serial.println("Bottle of " + String(length) + " pixels on pin " + String(pin) + " added.");
 }
 
 void Bottle::setHue(uint16_t start, uint16_t end) {

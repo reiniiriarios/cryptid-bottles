@@ -35,6 +35,7 @@ void mqttCurrentStatus(void) {
 }
 
 void setupLEDs(void) {
+  Serial.println("Setting up LEDs...");
   // Create bottles.            id start end <hue >hue
   bottles[0] = new Bottle(&pxl8, 0,    0, 25,   0,  25);
   bottles[1] = new Bottle(&pxl8, 0,   25, 25,  40,  80);
@@ -50,6 +51,7 @@ void setupLEDs(void) {
 }
 
 void setupInterwebs(void) {
+  Serial.println("Setting up Interwebs...");
   // Turn lights on or off.
   interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
@@ -183,10 +185,16 @@ void spawnFaeries(void) {
 
 // LOOP --------------------------------------------------------------------------------------------
 
-uint16_t loopCounter = 0;  // Counts up every frame based on MAX_FPS.
-// uint32_t millisCounter = millis();
+uint32_t prevMicros; // FPS throttle.
+uint32_t prevMillis; // Speed check.
+uint16_t loopCounter = 0;  // Counts up every frame.
 
 void loop(void) {
+  // FPS Throttle.
+  uint32_t t;
+  while (((t = micros()) - prevMicros) < (1000000L / MAX_FPS));
+  prevMicros = t;
+
   // Run main MQTT loop every loop.
   // interwebs.mqttLoop();
 
@@ -243,14 +251,20 @@ void loop(void) {
 
   pxl8.show();
 
-  // Assuming 60fps, every 30 seconds.
-  if (loopCounter % 1800 == 0) {
+  // At max FPS, every 30 seconds.
+  if (loopCounter % (MAX_FPS * 30) == 0) {
     // mqttCurrentStatus();
     loopCounter = 0;
   }
   loopCounter++;
 
   // Speed check.
-  // Serial.print("\r" + String(millis() - millisCounter) + "   ");
-  // millisCounter = millis();
+  uint32_t m = millis();
+  if (m > prevMillis) { // ignores millis() overflow
+    uint32_t s = m - prevMillis;
+    if (s > 20) {
+      Serial.println("Slow frame at " + String(s) + " ms.");
+    }
+  }
+  prevMillis = m;
 }

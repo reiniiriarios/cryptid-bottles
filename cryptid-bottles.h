@@ -6,6 +6,9 @@
 
 // !! @see src/pxl8.h for more gfx config !!
 
+// Max frames per second.
+#define MAX_FPS 120
+
 // Number of bottles.
 #define NUM_BOTTLES 4
 
