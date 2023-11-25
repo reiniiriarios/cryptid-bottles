@@ -121,7 +121,7 @@ void setupInterwebs(void) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  // while (!Serial) delay(10);
+  while (!Serial) delay(10);
   Serial.println("Starting...");
 
   // Seed by reading unused anolog pin.

@@ -18,11 +18,17 @@ void Pxl8::addStrand(uint8_t pin, uint16_t length) {
   if (strands[pin] > longest_strand) {
     longest_strand = strands[pin];
   }
-  num_pixels = longest_strand * num_strands;
-  Serial.println("Added strand of " + String(length) + ", total: " + String(num_pixels));
+  num_pixels += length;
+  num_calc_pixels = longest_strand * num_strands;
+  Serial.println("+ Added strand of " + String(length) + " on " + String(pin) +
+    ", leds: " + String(num_pixels) + " (" + String(num_calc_pixels) + ")");
 }
 
 bool Pxl8::init(void) {
+  for (uint8_t i = 0; i < num_strands; i++) {
+    Serial.println("Strand " + String(i) + ": " + String(strands[i]) + " pixels");
+  };
+  Serial.println("Longest strand = " + String(longest_strand));
   neopxl8 = new Adafruit_NeoPXL8(longest_strand, pins, (neoPixelType)NEOPIXEL_FORMAT);
   Serial.print("Starting pixels...");
   if (!neopxl8->begin()) {
@@ -44,6 +50,7 @@ void Pxl8::cycle(void) {
     neopxl8->show();
     delay(500);
   }
+  neopxl8->fill(0);
 }
 
 void Pxl8::show(void) {
@@ -55,10 +62,10 @@ void Pxl8::setBrightness(uint8_t b) {
   neopxl8->setBrightness(b);
 }
 
-void Pxl8::setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint32_t color) {
-  neopxl8->setPixelColor(pin * strand_length + pixel, color);
+void Pxl8::setPixelColor(uint8_t pin, uint16_t pixel, uint32_t color) {
+  neopxl8->setPixelColor(pin * strands[pin] + pixel, color);
 }
 
-void Pxl8::setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b) {
-  neopxl8->setPixelColor(pin * strand_length + pixel, color(r, g, b));
+void Pxl8::setPixelColor(uint8_t pin, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b) {
+  neopxl8->setPixelColor(pin * strands[pin] + pixel, color(r, g, b));
 }

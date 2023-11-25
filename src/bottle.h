@@ -126,6 +126,11 @@ class Bottle {
     uint16_t startPixel = 0;
 
     /**
+     * @brief Last pixel on LED strand that belongs to this bottle.
+     */
+    uint16_t lastPixel = 0;
+
+    /**
      * @brief Number of pixels on the strand that belong to the bottle.
      */
     uint16_t length;
