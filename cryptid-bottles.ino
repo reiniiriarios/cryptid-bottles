@@ -11,7 +11,7 @@
 
 bool PIXELS_ON = true;
 bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
-uint8_t BRIGHTNESS = 50;
+uint8_t BRIGHTNESS = 127;
 
 Pxl8 pxl8;
 Interwebs interwebs;
@@ -76,7 +76,7 @@ void setupInterwebs(void) {
 
   // Set the bottles brightness.
   interwebs.onMqtt("cryptid/bottles/brightness/set", [](String &payload){
-    uint8_t b = normalizeSL(payload.toInt());
+    uint8_t b = payload.toInt() & 0xFF;
     BRIGHTNESS = b;
     pxl8.setBrightness(b);
     String on;
