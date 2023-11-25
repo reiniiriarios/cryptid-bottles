@@ -7,7 +7,7 @@
 // !! @see src/pxl8.h for more gfx config !!
 
 // Number of bottles.
-#define NUM_BOTTLES 2
+#define NUM_BOTTLES 4
 
 /**
  * @brief Loop all bottles.

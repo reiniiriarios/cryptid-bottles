@@ -43,9 +43,11 @@ void setup(void) {
   // Seed by reading unused anolog pin.
   randomSeed(analogRead(A0));
 
-  // Create bottles.
-  bottles[0] = new Bottle(&pxl8, 0, 0, 50, 0, 25);
-  bottles[1] = new Bottle(&pxl8, 1, 0, 50, 40, 80);
+  // Create bottles.            id start end <hue >hue
+  bottles[0] = new Bottle(&pxl8, 0,    0, 25,   0,  25);
+  bottles[1] = new Bottle(&pxl8, 0,   25, 25,  40,  80);
+  bottles[2] = new Bottle(&pxl8, 1,    0, 20,  90, 120);
+  bottles[3] = new Bottle(&pxl8, 1,   20, 30, 130, 160);
 
   // Start pixel driver.
   if (!pxl8.init()) {
