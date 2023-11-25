@@ -134,53 +134,57 @@ void Bottle::faerieFly(uint16_t startPos, uint16_t endPos, uint8_t startBright, 
   uint8_t g = normalizeRGB(currentColor.g + a * (faerieColor.g - currentColor.g));
   uint8_t b = normalizeRGB(currentColor.b + a * (faerieColor.b - currentColor.b));
   setPixelColor(pos, r, g, b);
-  // if (pos > startPixel) {
-  //   // light trail
-  //   uint8_t r2 = r * 0.5;
-  //   uint8_t g2 = g * 0.5;
-  //   uint8_t b2 = b * 0.5;
-  //   uint16_t pos2;
-  //   if (startPos > endPos) pos2 += 1;
-  //   else pos2 -= 1;
-  //   setPixelColor(pos2, r2, g2, b2);
-  //   if (pos > startPixel + 1) {
-  //     // softer light trail
-  //     uint8_t r3 = r * 0.25;
-  //     uint8_t g3 = g * 0.25;
-  //     uint8_t b3 = b * 0.25;
-  //     uint16_t pos3;
-  //     if (startPos > endPos) pos3 += 1;
-  //     else pos3 -= 1;
-  //     setPixelColor(pos3, r3, g3, b3);
-  //   }
-  // }
+  if (pos > startPixel) {
+    // light trail
+    uint16_t pos2 = pos;
+    if (startPos > endPos) pos2 += 1;
+    else pos2 -= 1;
+    rgb_t currentColor2 = getPixelColor(pos2);
+    uint8_t r2 = normalizeRGB(currentColor2.r + a * 0.5f * (faerieColor.r - currentColor2.r));
+    uint8_t g2 = normalizeRGB(currentColor2.g + a * 0.5f * (faerieColor.g - currentColor2.g));
+    uint8_t b2 = normalizeRGB(currentColor2.b + a * 0.5f * (faerieColor.b - currentColor2.b));
+    setPixelColor(pos2, r2, g2, b2);
+    if (pos > startPixel + 1) {
+      // softer light trail
+      uint16_t pos3 = pos2;
+      if (startPos > endPos) pos3 += 1;
+      else pos3 -= 1;
+      rgb_t currentColor3 = getPixelColor(pos3);
+      uint8_t r3 = normalizeRGB(currentColor3.r + a * 0.25f * (faerieColor.r - currentColor3.r));
+      uint8_t g3 = normalizeRGB(currentColor3.g + a * 0.25f * (faerieColor.g - currentColor3.g));
+      uint8_t b3 = normalizeRGB(currentColor3.b + a * 0.25f * (faerieColor.b - currentColor3.b));
+      setPixelColor(pos3, r3, g3, b3);
+    }
+  }
 }
 
 void Bottle::faerieStop(uint16_t pos, bool reverse, float percent) {
   // faerie
   setPixelColor(pos, faerieColor.r, faerieColor.g, faerieColor.b);
   // one pixel behind
-  // uint16_t pos2 = pos;
-  // if (reverse) pos2 += 1;
-  // else pos2 -= 1;
-  // if (percent < 30 && pos2 <= lastPixel && pos2 >= startPixel) {
-  //   float a1 = 0.5 * (30 - percent);
-  //   uint8_t r2 = faerieColor.r * a1;
-  //   uint8_t g2 = faerieColor.g * a1;
-  //   uint8_t b2 = faerieColor.b * a1;
-  //   setPixelColor(pos2, r2, g2, b2);
-  //   // two pixels behind
-  //   uint16_t pos3 = pos2;
-  //   if (reverse) pos3 += 1;
-  //   else pos3 -= 1;
-  //   if (percent < 15 && pos3 <= lastPixel && pos3 >= startPixel) {
-  //     float a2 = 0.25 * (15 - percent);
-  //     uint8_t r3 = faerieColor.r * a2;
-  //     uint8_t g3 = faerieColor.g * a2;
-  //     uint8_t b3 = faerieColor.b * a2;
-  //     setPixelColor(pos3, r3, g3, b3);
-  //   }
-  // }
+  uint16_t pos2 = pos;
+  if (reverse) pos2 += 1;
+  else pos2 -= 1;
+  if (percent < 0.3f && pos2 <= lastPixel && pos2 >= startPixel) {
+    float a1 = 0.5f * (0.3f - percent);
+    rgb_t currentColor2 = getPixelColor(pos2);
+    uint8_t r2 = normalizeRGB(currentColor2.r + a1 * (faerieColor.r - currentColor2.r));
+    uint8_t g2 = normalizeRGB(currentColor2.g + a1 * (faerieColor.g - currentColor2.g));
+    uint8_t b2 = normalizeRGB(currentColor2.b + a1 * (faerieColor.b - currentColor2.b));
+    setPixelColor(pos2, r2, g2, b2);
+    // two pixels behind
+    uint16_t pos3 = pos2;
+    if (reverse) pos3 += 1;
+    else pos3 -= 1;
+    if (percent < 0.15f && pos3 <= lastPixel && pos3 >= startPixel) {
+      float a2 = 0.25f * (0.15f - percent);
+      rgb_t currentColor3 = getPixelColor(pos3);
+      uint8_t r3 = normalizeRGB(currentColor3.r + a2 * (faerieColor.r - currentColor3.r));
+      uint8_t g3 = normalizeRGB(currentColor3.g + a2 * (faerieColor.g - currentColor3.g));
+      uint8_t b3 = normalizeRGB(currentColor3.b + a2 * (faerieColor.b - currentColor3.b));
+      setPixelColor(pos3, r3, g3, b3);
+    }
+  }
 }
 
 void Bottle::rain(void) {
