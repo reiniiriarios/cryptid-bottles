@@ -45,5 +45,22 @@
     "streambuf": "cpp",
     "cinttypes": "cpp",
     "typeinfo": "cpp"
+  },
+  "C_Cpp.files.exclude": {
+    "**/build": true,
+    "**/*.code-search": true,
+    "docs/**": true
+  },
+  "files.watcherExclude": {
+    "**/build": true,
+    "**/*.code-search": true
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/*.code-search": true
+  },
+  "files.exclude": {
+    "**/build": true,
+    "**/*.code-search": true
   }
 }
