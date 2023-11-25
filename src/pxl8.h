@@ -3,10 +3,6 @@
 
 #include <Adafruit_NeoPXL8.h>
 
-// Length of longest strand.
-// Memory usage determined by longest strang length * number of strands.
-#define LONGEST_STRAND_LENGTH 50
-
 // Pixel type flags, add together as needed:
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
