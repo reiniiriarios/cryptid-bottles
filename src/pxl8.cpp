@@ -2,14 +2,21 @@
 
 Pxl8::Pxl8(void) {}
 
-void Pxl8::addStrand(uint16_t length) {
+void Pxl8::addStrand(uint8_t pin, uint16_t length) {
   if (neopxl8 != nullptr) {
     Serial.println("ERROR: Cannot add strands after init.");
     return;
   }
-  num_strands++;
-  if (length > longest_strand) {
-    longest_strand = length;
+  if (pin > NUM_PINS) {
+    Serial.println("ERROR: Pin out of range.");
+    return;
+  }
+  if (strands[pin] == 0) {
+    num_strands++;
+  }
+  strands[pin] += length;
+  if (strands[pin] > longest_strand) {
+    longest_strand = strands[pin];
   }
   num_pixels = longest_strand * num_strands;
   Serial.println("Added strand of " + String(length) + ", total: " + String(num_pixels));

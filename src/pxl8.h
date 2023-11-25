@@ -94,7 +94,13 @@ class Pxl8 {
      */
     void setPixelColor(uint8_t pin, uint8_t strand_length, uint16_t pixel, uint8_t r, uint8_t g, uint8_t b);
 
-    void addStrand(uint16_t length);
+    /**
+     * @brief Add strand of LEDs. MUST be called before init().
+     * 
+     * @param pin Pin (strand).
+     * @param length Number of pixels.
+     */
+    void addStrand(uint8_t pin, uint16_t length);
 
   private:
     /**
@@ -108,12 +114,25 @@ class Pxl8 {
     int8_t pins[NUM_PINS] = { PINS };
 
     /**
-     * @brief 
+     * @brief Pixel strands. Limited to 5 pins.
+     */
+    uint16_t strands[NUM_PINS] = { 0, 0, 0, 0, 0 };
+
+    /**
+     * @brief Length of longest strand of pixels.
      */
     uint16_t longest_strand = 0;
 
+    /**
+     * @brief "Total" number of pixels. This number is used to reference pixel ids and is
+     *        the longest strand * the number of strands. The total processing power NeoPXL8
+     *        will consume will be the longest strand * 8.
+     */
     uint16_t num_pixels = 0;
 
+    /**
+     * @brief Number of strands added.
+     */
     uint16_t num_strands = 0;
 };
 
