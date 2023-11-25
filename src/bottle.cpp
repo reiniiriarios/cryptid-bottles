@@ -192,6 +192,12 @@ void Bottle::rainbow(void) {
   }
 }
 
+void Bottle::blank(void) {
+  for (uint16_t p = startPixel; p < length; p++) {
+    setPixelColor(p, 0);
+  }
+}
+
 void Bottle::warning() {
   warning(255, 0, 0);
 }

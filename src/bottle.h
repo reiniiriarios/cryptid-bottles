@@ -70,6 +70,11 @@ class Bottle {
     void rainbow(void);
 
     /**
+     * @brief Blank all pixels.
+     */
+    void blank(void);
+
+    /**
      * @brief Warning animation.
      */
     void warning(void);

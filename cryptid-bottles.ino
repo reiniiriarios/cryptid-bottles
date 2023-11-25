@@ -9,8 +9,11 @@
 
 // GLOBALS -----------------------------------------------------------------------------------------
 
+// Whether to display pixels.
 bool PIXELS_ON = true;
+// Current animation.
 bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
+// Overall brightness, 0-255
 uint8_t BRIGHTNESS = 127;
 
 Pxl8 pxl8;
@@ -56,10 +59,16 @@ void setupInterwebs(void) {
   interwebs.onMqtt("cryptid/bottles/set", [](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
       PIXELS_ON = true;
+      if (BRIGHTNESS == 0) {
+        BRIGHTNESS = 127;
+      }
       interwebs.mqttSendMessage("cryptid/bottles/status", "ON");
     }
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
       PIXELS_ON = false;
+      allBottles([](int i){
+        bottles[i]->blank();
+      });
       interwebs.mqttSendMessage("cryptid/bottles/status", "OFF");
     }
   });
@@ -79,16 +88,19 @@ void setupInterwebs(void) {
   // Set the bottles brightness.
   interwebs.onMqtt("cryptid/bottles/brightness/set", [](String &payload){
     uint8_t b = payload.toInt() & 0xFF;
-    BRIGHTNESS = b;
-    pxl8.setBrightness(b);
     String on;
     if (b == 0) {
       PIXELS_ON = false;
       on = "OFF";
+      allBottles([](int i){
+        bottles[i]->blank();
+      });
     } else {
       PIXELS_ON = true;
       on = "ON";
     }
+    pxl8.setBrightness(b);
+    BRIGHTNESS = b;
     interwebs.mqttSendMessage("cryptid/bottles/status", on);
     interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
   });
