@@ -71,6 +71,60 @@ const static std::map<bottle_animation_t, String> BOTTLE_ANIMATIONS_INV = []() -
 }();
 
 /**
+ * @brief Faerie animation timeout in ms.
+ */
+typedef enum {
+  FAERIE_SPEED_SLOW   = 32000,
+  FAERIE_SPEED_MEDIUM = 16000,
+  FAERIE_SPEED_FAST   = 6000,
+} faerie_speed_t;
+
+/**
+ * @brief Faerie animation timeout MQTT values.
+ */
+const static std::map<String, faerie_speed_t> FAERIE_SPEED = {
+  { "slow",   FAERIE_SPEED_SLOW   },
+  { "medium", FAERIE_SPEED_MEDIUM },
+  { "fast",   FAERIE_SPEED_FAST   },
+};
+
+/**
+ * @brief Faerie animation timeout MQTT values (INV).
+ */
+const static std::map<faerie_speed_t, String> FAERIE_SPEED_INV = {
+  { FAERIE_SPEED_SLOW,   "slow"   },
+  { FAERIE_SPEED_MEDIUM, "medium" },
+  { FAERIE_SPEED_FAST,   "fast"   },
+};
+
+/**
+ * @brief Glow animation timeout in ms.
+ */
+typedef enum {
+  GLOW_SPEED_SLOW   = 30000,
+  GLOW_SPEED_MEDIUM = 15000,
+  GLOW_SPEED_FAST   = 5000,
+} glow_speed_t;
+
+/**
+ * @brief Glow animation timeout MQTT values.
+ */
+const static std::map<String, glow_speed_t> GLOW_SPEED = {
+  { "slow",   GLOW_SPEED_SLOW   },
+  { "medium", GLOW_SPEED_MEDIUM },
+  { "fast",   GLOW_SPEED_FAST   },
+};
+
+/**
+ * @brief Glow animation timeout MQTT values (INV).
+ */
+const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
+  { GLOW_SPEED_SLOW,   "slow"   },
+  { GLOW_SPEED_MEDIUM, "medium" },
+  { GLOW_SPEED_FAST,   "fast"   },
+};
+
+/**
  * @brief Whether to change a bottle's hue.
  */
 bool shouldChangeHue(void);

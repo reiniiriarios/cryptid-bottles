@@ -13,6 +13,8 @@
 bool PIXELS_ON = true;
 // Current animation.
 bottle_animation_t bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
+glow_speed_t glowSpeed = GLOW_SPEED_MEDIUM;
+faerie_speed_t faerieSpeed = FAERIE_SPEED_MEDIUM;
 // Overall brightness, 0-255
 uint8_t BRIGHTNESS = 127;
 
@@ -34,6 +36,8 @@ void mqttCurrentStatus(void) {
   if (!PIXELS_ON) on = "OFF";
   interwebs.mqttSendMessage("cryptid/bottles/status", on);
   interwebs.mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
+  interwebs.mqttSendMessage("cryptid/bottles/glow-speed/status", GLOW_SPEED_INV.at(glowSpeed));
+  interwebs.mqttSendMessage("cryptid/bottles/faerie-speed/status", FAERIE_SPEED_INV.at(faerieSpeed));
   interwebs.mqttSendMessage("cryptid/bottles/brightness/status", String(BRIGHTNESS));
 }
 
@@ -76,13 +80,35 @@ void setupInterwebs(void) {
   // Set the bottles animation.
   interwebs.onMqtt("cryptid/bottles/animation/set", [](String &payload){
     PIXELS_ON = true;
-    if (BOTTLE_ANIMATIONS.find(payload) != BOTTLE_ANIMATIONS.end()) {
-      bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
-      interwebs.mqttSendMessage("cryptid/bottles/animation/status", payload);
-    } else {
-      bottleAnimation = BOTTLE_ANIMATION_WARNING;
-      interwebs.mqttSendMessage("cryptid/bottles/animation/status", "warning");
+    if (BOTTLE_ANIMATIONS.find(payload) == BOTTLE_ANIMATIONS.end()) {
+      payload = "warning"; // not found
     }
+    bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
+    interwebs.mqttSendMessage("cryptid/bottles/animation/status", payload);
+  });
+
+  // Set the glow animation speed.
+  interwebs.onMqtt("cryptid/bottles/glow-speed/set", [](String &payload){
+    if (bottleAnimation != BOTTLE_ANIMATION_GLOW) {
+      bottleAnimation = BOTTLE_ANIMATION_FAERIES;
+    }
+    if (GLOW_SPEED.find(payload) == GLOW_SPEED.end()) {
+      payload = "medium"; // default
+    }
+    glowSpeed = GLOW_SPEED.at(payload);
+    interwebs.mqttSendMessage("cryptid/bottles/glow-speed/status", payload);
+    interwebs.mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
+  });
+
+  // Set the glow animation speed.
+  interwebs.onMqtt("cryptid/bottles/faerie-speed/set", [](String &payload){
+    bottleAnimation = BOTTLE_ANIMATION_FAERIES;
+    if (FAERIE_SPEED.find(payload) == FAERIE_SPEED.end()) {
+      payload = "medium"; // default
+    }
+    faerieSpeed = FAERIE_SPEED.at(payload);
+    interwebs.mqttSendMessage("cryptid/bottles/faerie-speed/status", payload);
+    interwebs.mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(BOTTLE_ANIMATION_FAERIES));
   });
 
   // Set the bottles brightness.
@@ -138,13 +164,11 @@ void setup(void) {
 
 // Last time a bottle changed hues.
 uint32_t lastHueChange = millis();
-// Timeout in ms until another bottle should change hue.
-const uint32_t hueChangeTimeout = 5000;
 
 bool shouldChangeHue(void) {
   if (millis() - lastHueChange < 2500) return false; // Don't change too often.
   if (random(0, 15000) == 0) return true;
-  if (millis() - lastHueChange > hueChangeTimeout) return true;
+  if (millis() - lastHueChange > glowSpeed) return true;
   return false;
 }
 
@@ -163,8 +187,6 @@ void updateBottleHues(void) {
 bool faerieFlying = false;
 // Last time a faerie flew. Start at current time to avoid immediate spawn.
 uint32_t lastFaerieFly = millis();
-// Timeout in ms until another faerie should be spawned.
-const uint32_t faerieFlyTimeout = 6000;
 // Bottle faerie is currently in.
 int8_t faerieBottle = -1;
 
@@ -174,7 +196,7 @@ bool shouldShowFaerie(void) {
   // Randomly spawn a faerie.
   if (random(0, 10000) == 0) return true;
   // Timeout for spawning a faerie has been reached.
-  if (millis() - lastFaerieFly > faerieFlyTimeout) return true;
+  if (millis() - lastFaerieFly > faerieSpeed) return true;
 
   return false;
 }
