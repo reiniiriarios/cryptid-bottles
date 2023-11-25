@@ -121,8 +121,10 @@ bool shouldChangeHue(void) {
 
 void updateBottleHues(void) {
   if (shouldChangeHue()) {
+    uint8_t id = randBottleId();
     uint16_t hueStart = random(0, 360);
-    bottles[randBottleId()]->setHue(hueStart, hueStart + 40, random(750, 1500));
+    Serial.println("Updating hue for bottle " + String(id) + " to " + String(hueStart));
+    bottles[id]->setHue(hueStart, hueStart + random(30, 40), random(1500, 2500));
     lastHueChange = millis();
   }
 }
@@ -152,6 +154,7 @@ void spawnFaeries(void) {
     // If a new faerie, pick a random bottle.
     if (faerieBottle = -1) {
       faerieBottle = randBottleId();
+      Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
     }
     faerieFlying = bottles[faerieBottle]->showFaerie();
     // After animation, reset bottle and log time.
@@ -174,6 +177,7 @@ void loop(void) {
   if (PIXELS_ON) {
     switch (bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
+        updateBottleHues();
         bottles[0]->glow();
         bottles[1]->glow();
         break;

@@ -20,6 +20,7 @@ void Bottle::setHue(uint16_t start, uint16_t end) {
 
 void Bottle::setHue(uint16_t start, uint16_t end, uint32_t ms) {
   hueFadeStartTime = millis();
+  hueFadeSpeed = ms;
   start = normalizeHue(start);
   end = normalizeHue(end);
   if (start > end) {
@@ -33,7 +34,7 @@ void Bottle::setHue(uint16_t start, uint16_t end, uint32_t ms) {
 
 void Bottle::updateHue() {
   if (hueRange.first != endHueRange.first || hueRange.second != endHueRange.second) {
-    float percent = (millis() - hueFadeStartTime) / hueFadeSpeed;
+    float percent = float(millis() - hueFadeStartTime) / hueFadeSpeed;
     hueRange.first = normalizeHue(
       startHueRange.first + ((endHueRange.first - startHueRange.first) * percent)
     );
