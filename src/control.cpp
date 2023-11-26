@@ -86,6 +86,14 @@ void Control::initMQTT(void) {
       mqttCurrentStatus();
     }
   });
+
+  // Set white balance in degrees kelvin.
+  interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
+    uint16_t k = min(1000,max(round(payload.toInt()),10000));
+    white_kelvin = k;
+    rgb_t c = kelvin2rgb(k);
+    white_color = pxl8->color(c.r, c.g, c.b);
+  });
 }
 
 void Control::mqttCurrentStatus(void) {
@@ -96,12 +104,14 @@ void Control::mqttCurrentStatus(void) {
   interwebs->mqttSendMessage("cryptid/bottles/glow-speed/status", GLOW_SPEED_INV.at(glowSpeed));
   interwebs->mqttSendMessage("cryptid/bottles/faerie-speed/status", FAERIE_SPEED_INV.at(faerieSpeed));
   interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
+  interwebs->mqttSendMessage("cryptid/bottles/white-balance/status", String(white_kelvin));
 }
 
 bool Control::sendDiscoveryAll(void) {
   bool success = true;
   success = success && sendDiscoverySwitch("on");
   success = success && sendDiscoveryNumber("brightness", 0, 100);
+  success = success && sendDiscoveryNumber("white-balance", 1000, 10000);
   success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS);
   success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "glow speed");
   success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "faerie speed");

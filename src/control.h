@@ -18,6 +18,8 @@ typedef enum {
   BOTTLE_ANIMATION_RAINBOW = 4,
   // Gentle glow.
   BOTTLE_ANIMATION_GLOW = 3,
+  // Bright white.
+  BOTTLE_ANIMATION_ILLUM = 5,
   // Test animation.
   BOTTLE_ANIMATION_TEST = 10,
   // Special animation if something goes wrong.
@@ -28,13 +30,14 @@ typedef enum {
  * @brief Map of strings for MQTT commands to bottle animations.
  */
 const static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
-  { "default", BOTTLE_ANIMATION_DEFAULT },
-  { "faeries", BOTTLE_ANIMATION_FAERIES },
-  { "rain",    BOTTLE_ANIMATION_RAIN    },
-  { "rainbow", BOTTLE_ANIMATION_RAINBOW },
-  { "glow",    BOTTLE_ANIMATION_GLOW    },
-  { "test",    BOTTLE_ANIMATION_TEST    },
-  { "warning", BOTTLE_ANIMATION_WARNING },
+  { "default",    BOTTLE_ANIMATION_DEFAULT },
+  { "faeries",    BOTTLE_ANIMATION_FAERIES },
+  { "rain",       BOTTLE_ANIMATION_RAIN    },
+  { "rainbow",    BOTTLE_ANIMATION_RAINBOW },
+  { "glow",       BOTTLE_ANIMATION_GLOW    },
+  { "illuminate", BOTTLE_ANIMATION_ILLUM   },
+  { "test",       BOTTLE_ANIMATION_TEST    },
+  { "warning",    BOTTLE_ANIMATION_WARNING },
 };
 
 /**
@@ -136,6 +139,16 @@ class Control {
      * @brief Faerie spawn timeout speed.
      */
     faerie_speed_t faerieSpeed = FAERIE_SPEED_MEDIUM;
+
+    /**
+     * @brief White balance in degrees kelvin.
+     */
+    uint16_t white_kelvin = 3000;
+
+    /**
+     * @brief White balance in packed RGB.
+     */
+    uint32_t white_color = 0xFFEE5F;
 
     /**
      * @brief Send all current MQTT status.

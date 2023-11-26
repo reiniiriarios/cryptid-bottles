@@ -75,6 +75,13 @@ class Bottle {
     void blank(void);
 
     /**
+     * @brief Illuminate bottles a specific color.
+     *
+     * @param color Packed color.
+     */
+    void illuminate(uint32_t color);
+
+    /**
      * @brief Warning animation.
      */
     void warning(void);
@@ -180,6 +187,11 @@ class Bottle {
      * @brief Faerie color.
      */
     rgb_t faerieColor = { 255, 255, 255 };
+
+    /**
+     * @brief White color.
+     */
+    uint32_t white = 0xFFFFFF;
 
     /**
      * @brief Update hue step between start and end range, if different.

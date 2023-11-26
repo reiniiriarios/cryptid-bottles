@@ -185,6 +185,12 @@ void Bottle::blank(void) {
   }
 }
 
+void Bottle::illuminate(uint32_t color) {
+  for (uint16_t p = startPixel; p <= lastPixel; p++) {
+    setPixelColor(p, color);
+  }
+}
+
 void Bottle::warning() {
   warning(255, 0, 0);
 }

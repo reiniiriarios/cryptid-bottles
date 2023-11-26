@@ -165,6 +165,11 @@ void loop(void) {
           bottles[i].rainbow();
         });
         break;
+      case BOTTLE_ANIMATION_ILLUM:
+        allBottles([](int i){
+          bottles[i].illuminate(control.white_color);
+        });
+        break;
       case BOTTLE_ANIMATION_TEST:
         allBottles([](int i){
           bottles[i].testBlink();
