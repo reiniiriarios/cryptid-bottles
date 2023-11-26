@@ -23,7 +23,7 @@
 
 ## HW Config
 
-**NeoPXL8 Connections:**
+### NeoPXL8 Connections
 
 - Output #0 comes from `RX`  (Available; shared by `ESPRX`)
 - Output #1 comes from `TX`  (Available; shared by `ESPTX`)
@@ -33,3 +33,15 @@
 - ~~Output #5 comes from~~ `D12` (Unavailable, used by `ESPRST`!)
 - ~~Output #6 comes from~~ `D11` (Unavailable, used by `ESPBUSY`!)
 - Output #7 comes from `D10` (Available; shared by `ESPGPIO0`)
+
+### Airlift Connections
+
+- `SPIWIFI` from `SPI`
+- `SPIWIFI_SS` from `D13`
+- `ESP32_RESETN` from `D12`
+- `SPIWIFI_ACK` from `D11`
+- `ESP32_GPIO0` disabled
+
+### Other Pins
+
+- Analog pin `A0` used for random seed.
