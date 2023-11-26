@@ -34,11 +34,11 @@ void setup(void) {
   randomSeed(analogRead(A0));
 
   Serial.println("Setting up LEDs...");
-  // Create bottles.            id start end <hue >hue
-  bottles[0] = Bottle(&pxl8, 0,    0, 25,   0,  25);
-  bottles[1] = Bottle(&pxl8, 0,   25, 25,  40,  80);
-  bottles[2] = Bottle(&pxl8, 1,    0, 20,  90, 120);
-  bottles[3] = Bottle(&pxl8, 1,   20, 30, 130, 160);
+  // Create bottles.        id start end <hue >hue
+  bottles[0] = Bottle(&pxl8, 0,   0,  25,   0,  25);
+  bottles[1] = Bottle(&pxl8, 0,  25,  25,  40,  80);
+  bottles[2] = Bottle(&pxl8, 1,   0,  20,  90, 120);
+  bottles[3] = Bottle(&pxl8, 1,  20,  30, 130, 160);
 
   // Start pixel driver.
   if (!pxl8.init()) {

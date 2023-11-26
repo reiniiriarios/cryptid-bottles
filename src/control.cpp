@@ -132,8 +132,8 @@ bool Control::sendDiscovery(String type, String name, String id, String addl) {
   String topic = "homeassistant/" + type + "/" + id + "/cryptidBottles/config";
   String payload = "{";
   payload += "\"name\":\"" + name + "\",";
-  payload += "\"state_topic\":\"cryptid/bottles/animation/state\",";
-  payload += "\"command_topic\":\"cryptid/bottles/animation/set\",";
+  payload += "\"state_topic\":\"cryptid/bottles/" + id + "/state\",";
+  payload += "\"command_topic\":\"cryptid/bottles/" + id + "/set\",";
   payload += addl;
   payload += "\"unique_id\":\"cryptid-bottles-" + id + "\",";
   payload += "\"device\":{";
