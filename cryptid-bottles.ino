@@ -27,7 +27,7 @@ void err(void) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  // while (!Serial) delay(10);
+  while (!Serial) delay(10);
   Serial.println("Starting...");
 
   // Seed by reading unused anolog pin.
@@ -45,14 +45,13 @@ void setup(void) {
     err();
   }
   pxl8.setBrightness(control.brightness);
-  // pxl8.cycle();
 
   // WiFi, MQTT, etc.
-  // setupInterwebs();
-  // if (interwebs.connect()) {
-  //   control.sendDiscoveryAll();
-  //   control.mqttCurrentStatus();
-  // }
+  control.initMQTT();
+  if (interwebs.connect()) {
+    control.sendDiscoveryAll();
+    control.mqttCurrentStatus();
+  }
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------
@@ -128,8 +127,9 @@ void loop(void) {
   prevMicros = t;
 
   // Run main MQTT loop every loop.
-  // interwebs.mqttLoop();
+  interwebs.mqttLoop();
 
+  // Main animation processing.
   if (control.pixelsOn) {
     switch (control.bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
@@ -170,23 +170,24 @@ void loop(void) {
   }
 
   // Check and repair interwebs connections.
-  // if (!interwebs.wifiIsConnected()) {
-  //   bottles[0]->warningWiFi();
-  //   interwebs.wifiReconnect();
-  // }
-  // else if (!interwebs.mqttIsConnected()) {
-  //   bottles[0]->warningMQTT();
-  //   if (interwebs.mqttReconnect()) {
-  //     control.sendDiscoveryAll();
-  //     control.mqttCurrentStatus();
-  //   }
-  // }
+  if (!interwebs.wifiIsConnected()) {
+    bottles[0].warningWiFi();
+    interwebs.wifiReconnect();
+  }
+  else if (!interwebs.mqttIsConnected()) {
+    bottles[0].warningMQTT();
+    if (interwebs.mqttReconnect()) {
+      control.sendDiscoveryAll();
+      control.mqttCurrentStatus();
+    }
+  }
 
+  // Push all pixel changes to bottles.
   pxl8.show();
 
   // At max FPS, every 30 seconds.
   if (loopCounter % (MAX_FPS * 30) == 0) {
-    // control.mqttCurrentStatus();
+    control.mqttCurrentStatus();
     loopCounter = 0;
   }
   loopCounter++;

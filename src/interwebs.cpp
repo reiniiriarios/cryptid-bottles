@@ -59,7 +59,7 @@ bool Interwebs::wifiInit(void) {
       uint8_t attempts = 5;
       do {
         Serial.print(".");
-        delay(2000);
+        delay(800);
         wifiStatus = WiFiDrv::getConnectionStatus();
       } while ((wifiStatus == WL_IDLE_STATUS || wifiStatus == WL_NO_SSID_AVAIL || wifiStatus == WL_SCAN_COMPLETED) && --attempts > 0);
     }
@@ -233,12 +233,13 @@ bool Interwebs::mqttReconnect(void) {
     options.password = lwmqtt_string(MQTT_PASS);
 
     // connect to broker
+    // biggest delay here! cannot reasonably recode to flagged loop
     mqttClient->*robbed<MQTTClientLastError>::ptr = lwmqtt_connect(
       &(mqttClient->*robbed<MQTTClientClient>::ptr),
       options,
       mqttClient->*robbed<MQTTClientWill>::ptr,
       &(mqttClient->*robbed<MQTTClientReturnCode>::ptr),
-      800 // default = 1000
+      750 // default = 1000, will err LWMQTT_NETWORK_TIMEOUT if reached
     );
     if (mqttClient->*robbed<MQTTClientLastError>::ptr != LWMQTT_SUCCESS) {
       Serial.println("MQTT broker connection failed.");

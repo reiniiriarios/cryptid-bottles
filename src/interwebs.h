@@ -101,7 +101,8 @@ typedef enum {
 typedef std::function<void(String&)> mqttcallback_t;
 
 /**
- * @brief Connect to the interwebs and discover all the interesting webs.
+ * @brief This class manages WiFi connection and MQTT broker connection as well
+ *        as handles MQTT subscription callbacks.
  */
 class Interwebs {
   public:

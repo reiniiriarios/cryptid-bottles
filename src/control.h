@@ -100,6 +100,9 @@ const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
   { GLOW_SPEED_FAST,   "fast"   },
 };
 
+/**
+ * @brief This class provides control via MQTT for various settings/options.
+ */
 class Control {
   public:
     /**
