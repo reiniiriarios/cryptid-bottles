@@ -5,8 +5,10 @@ Control::Control(Pxl8 *pxl8, Interwebs *interwebs, Bottle *bottles, uint8_t num_
 
 void Control::initMQTT(void) {
   Serial.println("Setting up MQTT control...");
+
   // Enable birth and last will and testament.
   interwebs->setBirthLWTtopic("cryptid/bottles/status");
+
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
@@ -48,7 +50,7 @@ void Control::initMQTT(void) {
     interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
   });
 
-  // Set the glow animation speed.
+  // Set the faerie animation speed.
   interwebs->onMqtt("cryptid/bottles/faerie-speed/set", [&](String &payload){
     bottleAnimation = BOTTLE_ANIMATION_FAERIES;
     if (FAERIE_SPEED.find(payload) == FAERIE_SPEED.end()) {
@@ -79,20 +81,20 @@ void Control::initMQTT(void) {
     interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
   });
 
-  // Send discovery when Home Assistant notifies it's online.
-  interwebs->onMqtt("homeassistant/status", [&](String &payload){
-    if (payload == "online") {
-      sendDiscoveryAll();
-      mqttCurrentStatus();
-    }
-  });
-
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
     uint16_t k = min(1000,max(round(payload.toInt()),10000));
     white_kelvin = k;
     rgb_t c = kelvin2rgb(k);
     white_color = pxl8->color(c.r, c.g, c.b);
+  });
+
+  // Send discovery when Home Assistant notifies it's online.
+  interwebs->onMqtt("homeassistant/status", [&](String &payload){
+    if (payload == "online") {
+      sendDiscoveryAll();
+      mqttCurrentStatus();
+    }
   });
 }
 
