@@ -246,21 +246,27 @@ void Bottle::blank(void) {
   }
 }
 
-void Bottle::illuminate(uint32_t color) {
+void Bottle::illuminate(uint32_t staticColor) {
+  for (uint16_t p = startPixel; p <= lastPixel; p++) {
+    setPixelColor(p, staticColor);
+  }
+}
+
+void Bottle::illuminate(void) {
   for (uint16_t p = startPixel; p <= lastPixel; p++) {
     setPixelColor(p, color);
   }
 }
 
-void Bottle::warning() {
+void Bottle::warning(void) {
   warning(255, 0, 0);
 }
 
-void Bottle::warningWiFi() {
+void Bottle::warningWiFi(void) {
   warning(0, 0, 255);
 }
 
-void Bottle::warningMQTT() {
+void Bottle::warningMQTT(void) {
   warning(255, 127, 0);
 }
 

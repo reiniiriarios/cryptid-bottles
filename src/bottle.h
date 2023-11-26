@@ -101,9 +101,14 @@ class Bottle {
     /**
      * @brief Illuminate bottles a specific color.
      *
-     * @param color Packed color.
+     * @param staticColor Packed color.
      */
-    void illuminate(uint32_t color);
+    void illuminate(uint32_t staticColor);
+
+    /**
+     * @brief Illuminate bottles the current bottle color.
+     */
+    void illuminate(void);
 
     /**
      * @brief Warning animation.
