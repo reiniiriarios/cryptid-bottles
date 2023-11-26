@@ -45,3 +45,11 @@
 ### Other Pins
 
 - Analog pin `A0` used for random seed.
+
+## MQTT Control
+
+Bottles can be controlled over MQTT. Discovery (auto-config) messages published for [Home Assistant](https://www.home-assistant.io/) (prefix `homeassistant/`) on startup, reconnection, and Home Assistant birth messages.
+
+Birth and LWT messages sent on `cryptid/bottles/status` as `online`/`offline`.
+
+See [src/control.cpp](./src/control.cpp) for individual command details.

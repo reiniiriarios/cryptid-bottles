@@ -192,6 +192,13 @@ class Interwebs {
      */
     bool mqttPublish(String topic, String payload);
 
+    /**
+     * @brief Set the birth and last will and testament topic. Payload will be "online" or "offline".
+     *
+     * @param topic
+     */
+    void setBirthLWTtopic(String topic);
+
   private:
     /**
      * @brief Current status of interwebs connections.
@@ -217,6 +224,11 @@ class Interwebs {
      * @brief The IP address to connect to.
      */
     IPAddress mqttBroker;
+
+    /**
+     * @brief Birth and last will and testament topic.
+     */
+    String birth_lwt_topic;
 
     /**
      * @brief Handle MQTT messages received.

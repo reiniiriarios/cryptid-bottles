@@ -125,6 +125,15 @@ bool Interwebs::wifiReconnect(void) {
   return status == INTERWEBS_STATUS_WIFI_CONNECTED;
 }
 
+void Interwebs::setBirthLWTtopic(String topic) {
+  birth_lwt_topic = topic;
+  if (topic != "") {
+    mqttClient->setWill(topic.c_str(), "offline");
+  } else {
+    mqttClient->clearWill();
+  }
+}
+
 bool Interwebs::mqttInit(void) {
   Serial.print("MQTT connecting...");
   mqttClient->begin(mqttBroker, wifiClient);
@@ -148,6 +157,9 @@ bool Interwebs::mqttInit(void) {
   status = INTERWEBS_STATUS_MQTT_CONNECTED;
 
   mqttSubscribe();
+  if (birth_lwt_topic != "") {
+    mqttPublish(birth_lwt_topic, "online"); // Birth
+  }
 
   return true;
 }
@@ -163,6 +175,9 @@ bool Interwebs::mqttReconnect(void) {
     }
     else {
       mqttSubscribe();
+      if (birth_lwt_topic != "") {
+        mqttPublish(birth_lwt_topic, "online"); // Birth
+      }
       return status == INTERWEBS_STATUS_MQTT_CONNECTED;
     }
   }
@@ -258,6 +273,9 @@ bool Interwebs::mqttReconnect(void) {
     return false;
   }
 
+  if (status == INTERWEBS_STATUS_MQTT_CONNECTED && birth_lwt_topic != "") {
+    mqttPublish(birth_lwt_topic, "online"); // Birth
+  }
   return status == INTERWEBS_STATUS_MQTT_CONNECTED;
 }
 

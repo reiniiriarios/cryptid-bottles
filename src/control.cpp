@@ -5,6 +5,8 @@ Control::Control(Pxl8 *pxl8, Interwebs *interwebs, Bottle *bottles, uint8_t num_
 
 void Control::initMQTT(void) {
   Serial.println("Setting up MQTT control...");
+  // Enable birth and last will and testament.
+  interwebs->setBirthLWTtopic("cryptid/bottles/status");
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
