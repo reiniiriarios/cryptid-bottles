@@ -33,12 +33,21 @@ void setup(void) {
   // Seed by reading unused anolog pin.
   randomSeed(analogRead(A0));
 
+  // Start bottles with random hue ranges.
+  uint16_t hs[NUM_BOTTLES] = {};
+  uint16_t he[NUM_BOTTLES] = {};
+  allBottles([&](int i){
+    hs[i] = random(0, 360);
+    he[i] = hs[i] + random(30, 40);
+  });
+
+  // Bottles !! Config pin, start, and length according to hardware !!
   Serial.println("Setting up LEDs...");
-  // Create bottles.        id start end <hue >hue
-  bottles[0] = Bottle(&pxl8, 0,   0,  25,   0,  25);
-  bottles[1] = Bottle(&pxl8, 0,  25,  25,  40,  80);
-  bottles[2] = Bottle(&pxl8, 1,   0,  20,  90, 120);
-  bottles[3] = Bottle(&pxl8, 1,  20,  30, 130, 160);
+  //                        pin  1st  len
+  bottles[0] = Bottle(&pxl8,  0,   0,  25, hs[0], he[0]);
+  bottles[1] = Bottle(&pxl8,  0,  25,  25, hs[1], he[1]);
+  bottles[2] = Bottle(&pxl8,  1,   0,  20, hs[2], he[2]);
+  bottles[3] = Bottle(&pxl8,  1,  20,  30, hs[3], he[3]);
 
   // Start pixel driver.
   if (!pxl8.init()) {
@@ -101,7 +110,7 @@ void spawnFaeries(void) {
     if (faerieBottle == -1) {
       faerieBottle = randBottleId();
       Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
-      bottles[faerieBottle].spawnFaerie();
+      bottles[faerieBottle].spawnFaerie(random(8, 14) * 0.1);
     }
     faerieFlying = bottles[faerieBottle].showFaerie();
     // After animation, reset bottle and log time.
