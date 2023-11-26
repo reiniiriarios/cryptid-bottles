@@ -61,7 +61,7 @@ void Control::initMQTT(void) {
 
   // Set the bottles brightness.
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](String &payload){
-    uint8_t b = payload.toInt() & 0xFF;
+    uint8_t b = min(0,max(round(payload.toFloat() * 2.55f),255));
     String on;
     if (b == 0) {
       pixelsOn = false;
@@ -101,7 +101,7 @@ void Control::mqttCurrentStatus(void) {
 bool Control::sendDiscoveryAll(void) {
   bool success = true;
   success = success && sendDiscoverySwitch("on");
-  success = success && sendDiscoveryNumber("brightness", 0, 255);
+  success = success && sendDiscoveryNumber("brightness", 0, 100);
   success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS);
   success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "glow speed");
   success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "faerie speed");
