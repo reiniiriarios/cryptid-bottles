@@ -12,6 +12,26 @@
 // Number of bottles.
 #define NUM_BOTTLES 4
 
+const rgb_t prettyWhiteColors[] = {
+  rgb_t{ 255, 175,  10 }, // ~2k
+  rgb_t{ 255, 195,  35 }, // ~2.25k
+  rgb_t{ 255, 210,  50 }, // ~2.5k
+  rgb_t{ 255, 225,  70 }, // ~2.75k
+  rgb_t{ 255, 245, 150 }, // ~3.5k
+  rgb_t{ 255, 255, 160 }, // ~3.75k
+  rgb_t{ 255, 255, 175 }, // mid---
+  rgb_t{ 255, 255, 206 }, // mid--
+  rgb_t{ 255, 255, 225 }, // mid-
+  rgb_t{ 255, 255, 255 }, // mid
+  rgb_t{ 225, 255, 255 }, // mid+
+  rgb_t{ 206, 255, 255 }, // ~5.5k
+  rgb_t{ 175, 255, 255 }, // ~6.5k
+  rgb_t{ 150, 250, 255 }, // ~7.5k
+  rgb_t{ 135, 225, 255 }, // ~8.5k
+  rgb_t{ 127, 220, 225 }, // ~9k
+  rgb_t{ 125, 215, 225 }  // ~9.5k
+};
+
 /**
  * @brief Loop all bottles.
  */
@@ -29,14 +49,19 @@ static inline uint8_t randBottleId(void) {
 }
 
 /**
- * @brief Whether to change a bottle's hue.
+ * @brief Whether to change a bottle's glow color.
  */
-bool shouldChangeHue(void);
+bool shouldChangeGlow(void);
 
 /**
  * @brief Update bottle hues.
  */
 void updateBottleHues(void);
+
+/**
+ * @brief Update bottle white balances.
+ */
+void updateBottleWhiteBalance(void);
 
 /**
  * @brief Whether to render a faerie.

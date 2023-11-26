@@ -51,6 +51,21 @@ class Bottle {
     void setHue(uint16_t start, uint16_t end, uint32_t ms);
 
     /**
+     * @brief Set the color of the bottle.
+     * 
+     * @param newColor RGB 
+     */
+    void setColor(rgb_t newColor);
+
+    /**
+     * @brief Set the color of the bottle.
+     * 
+     * @param newColor RGB
+     * @param ms fade time in millis
+     */
+    void setColor(rgb_t newColor, uint32_t ms);
+
+    /**
      * @brief Glow animation.
      *
      * @param glowFrequency Speed of brightness pulse.
@@ -58,6 +73,13 @@ class Bottle {
      * @param waveShape Waveshape. SINE will produce a smooth glow while SAWTOOTH will make the bottle sparkly.
      */
     void glow(float glowFrequency = 1.25, float colorFrequency = 1, waveshape_t waveShape = SINE);
+
+    /**
+     * @brief Glow a specific color.
+     *
+     * @param glowFrequency Speed of brightness pulse.
+     */
+    void glowColor(float glowFrequency = 1.25);
 
     /**
      * @brief Rain animation.
@@ -179,6 +201,31 @@ class Bottle {
     uint32_t hueFadeStartTime = 0;
 
     /**
+     * @brief Color.
+     */
+    rgb_t color = { 255, 255, 255 };
+
+    /**
+     * @brief Starting color.
+     */
+    rgb_t startColor = { 255, 255, 255 };
+
+    /**
+     * @brief Ending color.
+     */
+    rgb_t endColor = { 255, 255, 255 };
+
+    /**
+     * @brief Color fade time in ms.
+     */
+    uint32_t colorFadeSpeed = 0;
+
+    /**
+     * @brief If fading color, this is the start time.
+     */
+    uint32_t colorFadeStartTime = 0;
+
+    /**
      * @brief Faerie keyframe timing.
      */
     uint32_t faerieKeyframes[5] = {};
@@ -196,7 +243,12 @@ class Bottle {
     /**
      * @brief Update hue step between start and end range, if different.
      */
-    void updateHue();
+    void updateHue(void);
+
+    /**
+     * @brief Update color step between start and end, if different.
+     */
+    void updateColor(void);
 
     /**
      * @brief Whether a given pixel is out of bounds for this bottle.

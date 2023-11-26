@@ -66,23 +66,33 @@ void setup(void) {
 // ANIMATION HELPERS -------------------------------------------------------------------------------
 
 // Last time a bottle changed hues.
-uint32_t lastHueChange = millis();
+uint32_t lastGlowChange = millis();
 
-bool shouldChangeHue(void) {
-  if (millis() - lastHueChange < 2500) return false; // Don't change too often.
+bool shouldChangeGlow(void) {
+  if (millis() - lastGlowChange < 2500) return false; // Don't change too often.
   if (random(0, 15000) == 0) return true;
-  if (millis() - lastHueChange > control.glowSpeed) return true;
+  if (millis() - lastGlowChange > control.glowSpeed) return true;
   return false;
 }
 
 void updateBottleHues(void) {
-  if (shouldChangeHue()) {
+  if (shouldChangeGlow()) {
     uint8_t id = randBottleId();
     uint16_t hueStart = random(0, 360);
     uint16_t hueEnd = hueStart + random(30, 40);
     Serial.println("Updating hue for bottle " + String(id) + " to " + String(hueStart) + "-" + String(hueEnd));
     bottles[id].setHue(hueStart, hueEnd, random(1500, 2500));
-    lastHueChange = millis();
+    lastGlowChange = millis();
+  }
+}
+
+void updateBottleWhiteBalance(void) {
+  if (shouldChangeGlow()) {
+    uint8_t id = randBottleId();
+    rgb_t c = prettyWhiteColors[random(0, sizeof(prettyWhiteColors))];
+    Serial.println("Updating white balance for bottle " + String(id));
+    bottles[id].setColor(c, random(1500, 2500));
+    lastGlowChange = millis();
   }
 }
 
@@ -100,7 +110,6 @@ bool shouldShowFaerie(void) {
   if (random(0, 10000) == 0) return true;
   // Timeout for spawning a faerie has been reached.
   if (millis() - lastFaerieFly > control.faerieSpeed) return true;
-
   return false;
 }
 
@@ -153,6 +162,12 @@ void loop(void) {
         updateBottleHues();
         allBottles([](int i){
           bottles[i].glow();
+        });
+        break;
+      case BOTTLE_ANIMATION_GLOW_W:
+        updateBottleWhiteBalance();
+        allBottles([](int i){
+          bottles[i].glowColor();
         });
         break;
       case BOTTLE_ANIMATION_RAIN:

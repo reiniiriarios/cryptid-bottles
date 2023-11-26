@@ -21,9 +21,25 @@ void Bottle::setHue(uint16_t start, uint16_t end, uint32_t ms) {
   endHueRange = { normalizeHue(start), normalizeHue(end) };
 }
 
+void Bottle::setColor(rgb_t newColor) {
+  color = newColor;
+  endColor = newColor;
+}
+
+void Bottle::setColor(rgb_t newColor, uint32_t ms) {
+  colorFadeStartTime = millis();
+  colorFadeSpeed = ms;
+  startColor = newColor;
+  endColor = newColor;
+}
+
 void Bottle::updateHue() {
   if (hueRange.first != endHueRange.first || hueRange.second != endHueRange.second) {
     float percent = float(millis() - hueFadeStartTime) / hueFadeSpeed;
+    if (percent >= 1) {
+      hueRange = endHueRange;
+      return;
+    }
     float s1 = startHueRange.first;
     float s2 = startHueRange.second;
     float e1 = endHueRange.first;
@@ -41,6 +57,19 @@ void Bottle::updateHue() {
     }
     hueRange.first = normalizeHue(s1 + (e1 - s1) * percent);
     hueRange.second = normalizeHue(s2 + (e2 - s2) * percent);
+  }
+}
+
+void Bottle::updateColor() {
+  if (color.r != endColor.r || color.g != endColor.g || color.b != endColor.b) {
+    float percent = float(millis() - colorFadeStartTime) / colorFadeSpeed;
+    if (percent >= 1) {
+      color = endColor;
+      return;
+    }
+    color.r = normalizeRGB(startColor.r + float(endColor.r - startColor.r) * percent);
+    color.g = normalizeRGB(startColor.g + float(endColor.g - startColor.g) * percent);
+    color.b = normalizeRGB(startColor.b + float(endColor.b - startColor.b) * percent);
   }
 }
 
@@ -76,6 +105,24 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
     }
     uint32_t c = pxl8->colorHSV(normalizeHue16(h), 255U, l);
     setPixelColor(p, c);
+  }
+}
+
+void Bottle::glowColor(float glowFrequency) {
+  updateColor();
+  // sin(frequency * time * PI + pin_adjustment + pixel_adjustment * frequency* fluctuation_amount + lift)
+  // pin_adjustment: adjustment per pin to misalign animations
+  // pixel_adjustment: adjustment per pixel to misalign pixels
+  // 0 < fluctuation_amount < 1 (%)
+  // lift = 1 - fluctuation_amount (%)
+  float t = glowFrequency * millis() * 0.0004 * PI + pin * 1000;
+  float pgf = 2000 * glowFrequency;
+  for (uint16_t p = startPixel; p <= lastPixel; p++) {
+    float adj = sin(t + p * pgf) * 0.4 + 0.6;
+    uint8_t r = max((float)color.r * adj, 255);
+    uint8_t g = max((float)color.g * adj, 255);
+    uint8_t b = max((float)color.b * adj, 255);
+    setPixelColor(p, r, g, b);
   }
 }
 

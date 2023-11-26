@@ -18,6 +18,8 @@ typedef enum {
   BOTTLE_ANIMATION_RAINBOW = 4,
   // Gentle glow.
   BOTTLE_ANIMATION_GLOW = 3,
+  // Random white glow.
+  BOTTLE_ANIMATION_GLOW_W = 6,
   // Bright white.
   BOTTLE_ANIMATION_ILLUM = 5,
   // Test animation.
@@ -35,6 +37,7 @@ const static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
   { "rain",       BOTTLE_ANIMATION_RAIN    },
   { "rainbow",    BOTTLE_ANIMATION_RAINBOW },
   { "glow",       BOTTLE_ANIMATION_GLOW    },
+  { "glow-white", BOTTLE_ANIMATION_GLOW_W  },
   { "illuminate", BOTTLE_ANIMATION_ILLUM   },
   { "test",       BOTTLE_ANIMATION_TEST    },
   { "warning",    BOTTLE_ANIMATION_WARNING },
