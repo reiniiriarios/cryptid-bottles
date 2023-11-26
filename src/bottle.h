@@ -30,8 +30,10 @@ class Bottle {
      * @param length Number of pixels on strand.
      * @param startHue Hue range lower bound.
      * @param endHue Hue range upper bound.
+     * @param color RGB
      */
-    Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length, uint16_t startHue, uint16_t endHue);
+    Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length,
+      uint16_t startHue, uint16_t endHue, rgb_t color);
 
     /**
      * @brief Set the hue range of the bottle in degrees.

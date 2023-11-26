@@ -3,6 +3,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #include "cryptid-bottles.h"
+#include "src/color.h"
 #include "src/control.h"
 #include "src/pxl8.h"
 #include "src/interwebs.h"
@@ -36,18 +37,20 @@ void setup(void) {
   // Start bottles with random hue ranges.
   uint16_t hs[NUM_BOTTLES] = {};
   uint16_t he[NUM_BOTTLES] = {};
+  rgb_t* color[NUM_BOTTLES] = {};
   allBottles([&](int i){
     hs[i] = random(0, 360);
     he[i] = hs[i] + random(30, 40);
+    color[i] = prettyWhiteColors[random(0, sizeof(prettyWhiteColors))];
   });
 
   // Bottles !! Config pin, start, and length according to hardware !!
   Serial.println("Setting up LEDs...");
   //                        pin  1st  len
-  bottles[0] = Bottle(&pxl8,  0,   0,  25, hs[0], he[0]);
-  bottles[1] = Bottle(&pxl8,  0,  25,  25, hs[1], he[1]);
-  bottles[2] = Bottle(&pxl8,  1,   0,  20, hs[2], he[2]);
-  bottles[3] = Bottle(&pxl8,  1,  20,  30, hs[3], he[3]);
+  bottles[0] = Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]);
+  bottles[1] = Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]);
+  bottles[2] = Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]);
+  bottles[3] = Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]);
 
   // Start pixel driver.
   if (!pxl8.init()) {
