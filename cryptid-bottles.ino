@@ -50,7 +50,8 @@ void setup(void) {
   // WiFi, MQTT, etc.
   // setupInterwebs();
   // if (interwebs.connect()) {
-  //   mqttCurrentStatus();
+  //   control.sendDiscoveryAll();
+  //   control.mqttCurrentStatus();
   // }
 }
 
@@ -176,7 +177,8 @@ void loop(void) {
   // else if (!interwebs.mqttIsConnected()) {
   //   bottles[0]->warningMQTT();
   //   if (interwebs.mqttReconnect()) {
-  //     mqttCurrentStatus();
+  //     control.sendDiscoveryAll();
+  //     control.mqttCurrentStatus();
   //   }
   // }
 
@@ -184,7 +186,7 @@ void loop(void) {
 
   // At max FPS, every 30 seconds.
   if (loopCounter % (MAX_FPS * 30) == 0) {
-    // mqttCurrentStatus();
+    // control.mqttCurrentStatus();
     loopCounter = 0;
   }
   loopCounter++;

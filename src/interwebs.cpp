@@ -148,7 +148,6 @@ bool Interwebs::mqttInit(void) {
   status = INTERWEBS_STATUS_MQTT_CONNECTED;
 
   mqttSubscribe();
-  mqttSendDiscovery();
 
   return true;
 }
@@ -261,26 +260,6 @@ bool Interwebs::mqttReconnect(void) {
   return status == INTERWEBS_STATUS_MQTT_CONNECTED;
 }
 
-bool Interwebs::verifyConnection() {
-  if (!wifiIsConnected()) {
-    status = INTERWEBS_STATUS_WIFI_OFFLINE;
-    Serial.println("WiFi disconnected...");
-    if (!wifiReconnect()) {
-      Serial.println("Error reconnecting WiFi");
-      return false;
-    }
-  }
-  if (!mqttIsConnected()) {
-    Serial.println("MQTT disconnected...");
-    if (!mqttReconnect()) {
-      mqttSendDiscovery();
-      return false;
-    }
-  }
-
-  return true;
-}
-
 void Interwebs::mqttLoop(void) {
   mqttClient->loop();
 }
@@ -349,22 +328,7 @@ void Interwebs::mqttMessageReceived(String &topic, String &payload) {
   mqttSubs[topic](payload);
 }
 
-// ------------ DISCOVERY ------------
-// https://www.home-assistant.io/integrations/mqtt#discovery-messages
-// <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
-
-bool Interwebs::mqttSendDiscovery(void) {
-  String topic = "homeassistant/switch/display/"+String(MQTT_CLIENT_ID)+"/config";
-  String payload = "{";
-  payload += "\"name\":\"display\",";
-  payload += "\"state_topic\":\"cryptid/bottles/state\",";
-  payload += "\"command_topic\":\"cryptid/bottles/set\",";
-  payload += "\"unique_id\":\""+String(MQTT_CLIENT_ID)+"Set\",";
-  payload += "\"device\":{";
-  payload += "\"identifiers\":[\""+String(MQTT_CLIENT_ID)+"\"],";
-  payload += "\"name\":\"Cryptid Bottles\"";
-  payload += "}}";
-
+bool Interwebs::mqttPublish(String topic, String payload) {
   if (!mqttClient->publish(topic, payload)) {
     Serial.println("Error publishing discovery for on/off toggle.");
     Serial.println("Error: " + String(mqttClient->lastError()));

@@ -144,6 +144,57 @@ class Control {
      */
     void initMQTT(void);
 
+    /**
+     * @brief Send all MQTT discovery messages.
+     * 
+     * @return success
+     */
+    bool sendDiscoveryAll(void);
+
+    /**
+     * @brief Send MQTT discovery message.
+     *
+     * @param type device type
+     * @param name device name
+     * @param id device unique id
+     * @param addl additional JSON
+     * @return success
+     */
+    bool sendDiscovery(String type, String name, String id, String addl);
+
+    /**
+     * @brief Send MQTT discovery message for select option.
+     * 
+     * @tparam T map.first
+     * @tparam R map.second
+     * @param id unique id
+     * @param options map of options (mqtt value as first (string))
+     * @param name device name if different from id
+     * @return success
+     */
+    template<typename T>
+    bool sendDiscoverySelect(String id, std::map<String, T> options, String name = "");
+
+    /**
+     * @brief Send MQTT discovery message for number option.
+     * 
+     * @param id unique id
+     * @param min minimum value
+     * @param max maximum value
+     * @param name device name if different from id
+     * @return success
+     */
+    bool sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String name = "");
+
+    /**
+     * @brief Send MQTT discovery message for boolean switch.
+     * 
+     * @param id unique id
+     * @param name device name if different from id
+     * @return success
+     */
+    bool sendDiscoverySwitch(String id, String name = "");
+
   private:
     /**
      * @brief Pointer to Pxl8 object.

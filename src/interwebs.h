@@ -161,13 +161,6 @@ class Interwebs {
     bool mqttIsConnected(void);
 
     /**
-     * @brief Verify connection to WiFi and MQTT.
-     * 
-     * @return Connected
-     */
-    bool verifyConnection(void);
-
-    /**
      * @brief Main MQTT client loop. Run on main loop.
      */
     void mqttLoop(void);
@@ -183,18 +176,20 @@ class Interwebs {
     void mqttSendMessage(String topic, String payload);
 
     /**
-     * @brief Send all discoveries.
-     *
-     * @return Success
-     */
-    bool mqttSendDiscovery(void);
-
-    /**
      * @brief Connect MQTT subscriptions.
      *
      * @return All subscribed.
      */
     bool mqttSubscribe(void);
+
+    /**
+     * @brief Publish a MQTT message.
+     * 
+     * @param topic 
+     * @param payload 
+     * @return success
+     */
+    bool mqttPublish(String topic, String payload);
 
   private:
     /**

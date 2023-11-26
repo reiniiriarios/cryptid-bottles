@@ -3,33 +3,23 @@
 Control::Control(Pxl8 *pxl8, Interwebs *interwebs, Bottle *bottles, uint8_t num_bottles)
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles), num_bottles(num_bottles) {}
 
-void Control::mqttCurrentStatus(void) {
-  String on = "ON";
-  if (!pixelsOn) on = "OFF";
-  interwebs->mqttSendMessage("cryptid/bottles/status", on);
-  interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
-  interwebs->mqttSendMessage("cryptid/bottles/glow-speed/status", GLOW_SPEED_INV.at(glowSpeed));
-  interwebs->mqttSendMessage("cryptid/bottles/faerie-speed/status", FAERIE_SPEED_INV.at(faerieSpeed));
-  interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
-}
-
 void Control::initMQTT(void) {
   Serial.println("Setting up MQTT control...");
   // Turn lights on or off.
-  interwebs->onMqtt("cryptid/bottles/set", [&](String &payload){
+  interwebs->onMqtt("cryptid/bottles/on/set", [&](String &payload){
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
       pixelsOn = true;
       if (brightness == 0) {
         brightness = 127;
       }
-      interwebs->mqttSendMessage("cryptid/bottles/status", "ON");
+      interwebs->mqttSendMessage("cryptid/bottles/on/status", "ON");
     }
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
       pixelsOn = false;
       for (int i = 0; i < num_bottles; i++) {
         bottles[i].blank();
       };
-      interwebs->mqttSendMessage("cryptid/bottles/status", "OFF");
+      interwebs->mqttSendMessage("cryptid/bottles/on/status", "OFF");
     }
   });
 
@@ -83,15 +73,72 @@ void Control::initMQTT(void) {
     }
     pxl8->setBrightness(b);
     brightness = b;
-    interwebs->mqttSendMessage("cryptid/bottles/status", on);
+    interwebs->mqttSendMessage("cryptid/bottles/on/status", on);
     interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
   });
 
   // Send discovery when Home Assistant notifies it's online.
   interwebs->onMqtt("homeassistant/status", [&](String &payload){
     if (payload == "online") {
-      interwebs->mqttSendDiscovery();
+      sendDiscoveryAll();
       mqttCurrentStatus();
     }
   });
+}
+
+void Control::mqttCurrentStatus(void) {
+  String on = "ON";
+  if (!pixelsOn) on = "OFF";
+  interwebs->mqttSendMessage("cryptid/bottles/on/status", on);
+  interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
+  interwebs->mqttSendMessage("cryptid/bottles/glow-speed/status", GLOW_SPEED_INV.at(glowSpeed));
+  interwebs->mqttSendMessage("cryptid/bottles/faerie-speed/status", FAERIE_SPEED_INV.at(faerieSpeed));
+  interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
+}
+
+bool Control::sendDiscoveryAll(void) {
+  bool success = true;
+  success = success && sendDiscoverySwitch("on");
+  success = success && sendDiscoveryNumber("brightness", 0, 255);
+  success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS);
+  success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "glow speed");
+  success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "faerie speed");
+  return success;
+}
+
+bool Control::sendDiscoverySwitch(String id, String name = "") {
+  return sendDiscovery("switch", name, id, "");
+}
+
+bool Control::sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String name = "") {
+  String addl = "\"min\":"+String(min)+",\"max\":"+String(max)+",\"mode\":\"slider\",";
+  return sendDiscovery("number", name, id, addl);
+}
+
+template<typename T>
+bool Control::sendDiscoverySelect(String id, std::map<String, T> options, String name = "") {
+  String addl = "\"options\":[";
+  for (auto const& x : options) {
+    addl += "\"" + x.first + "\",";
+  }
+  addl += "],";
+  return sendDiscovery("select", name, id, addl);
+}
+
+bool Control::sendDiscovery(String type, String name, String id, String addl) {
+  Serial.println("Sending MQTT discovery for '" + id + "'");
+  if (name == "") name = id;
+  // Manually building this here makes more sense than including a JSON library.
+  String topic = "homeassistant/" + type + "/" + id + "/cryptidBottles/config";
+  String payload = "{";
+  payload += "\"name\":\"" + name + "\",";
+  payload += "\"state_topic\":\"cryptid/bottles/animation/state\",";
+  payload += "\"command_topic\":\"cryptid/bottles/animation/set\",";
+  payload += addl;
+  payload += "\"unique_id\":\"cryptid-bottles-" + id + "\",";
+  payload += "\"device\":{";
+  payload += "\"identifiers\":[\"cryptidBottles\"],";
+  payload += "\"name\":\"Cryptid Bottles\"";
+  payload += "}}";
+  return interwebs->mqttPublish(topic, payload);
 }

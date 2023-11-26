@@ -44,7 +44,9 @@
     "stdexcept": "cpp",
     "streambuf": "cpp",
     "cinttypes": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "bitset": "cpp",
+    "iostream": "cpp"
   },
   "C_Cpp.files.exclude": {
     "**/build": true,
