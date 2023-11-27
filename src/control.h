@@ -196,16 +196,6 @@ const static String discoveryJson = []() -> String {
 }();
 
 /**
- * @brief Discovery JSON for Glow Speed.
- */
-const static String discoveryJsonGlowSpeed = discoverySelect("glow_speed", "Glow Speed", GLOW_SPEED);
-
-/**
- * @brief Discovery JSON for Faerie Speed.
- */
-const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "Faerie Speed", FAERIE_SPEED);
-
-/**
  * @brief Get discovery JSON for Select setting.
  * 
  * @tparam T map setting
@@ -224,6 +214,16 @@ const static String discoverySelect(String id, String name, std::map<String, T> 
          "\"options\":" + jsonStr(options) + ","
          "\"device\":{\"identifiers\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
 }
+
+/**
+ * @brief Discovery JSON for Glow Speed.
+ */
+const static String discoveryJsonGlowSpeed = discoverySelect("glow_speed", "Glow Speed", GLOW_SPEED);
+
+/**
+ * @brief Discovery JSON for Faerie Speed.
+ */
+const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "Faerie Speed", FAERIE_SPEED);
 
 /**
  * @brief Round mired value to the nearest value that has an enum.
