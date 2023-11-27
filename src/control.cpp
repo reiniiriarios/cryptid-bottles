@@ -109,7 +109,7 @@ void Control::mqttCurrentStatus(void) {
   if (!pixelsOn) on = "OFF";
   String payload = "{";
   payload += "\"on\":\"" + on + "\",";
-  payload += "\"brightness\":\"" + String(brightness) + "\",";
+  payload += "\"brightness\":\"" + String(round(brightness / 2.55)) + "\",";
   payload += "\"white-balance\":\"" + String((int8_t)white_balance) + "\",";
   payload += "\"animation\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
   payload += "\"glow-speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
