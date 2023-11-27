@@ -80,11 +80,11 @@ void setup(void) {
   pxl8.setBrightness(control.brightness);
 
   // WiFi, MQTT, etc.
-  // control.initMQTT();
-  // if (interwebs.connect()) {
-  //   control.sendDiscoveryAll();
-  //   control.mqttCurrentStatus();
-  // }
+  control.initMQTT();
+  if (interwebs.connect()) {
+    control.sendDiscoveryAll();
+    control.mqttCurrentStatus();
+  }
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ uint32_t lastGlowChange = millis();
 
 bool shouldChangeGlow(void) {
   if (millis() - lastGlowChange < 2500) return false; // Don't change too often.
-  if (random(0, 15000) == 0) return true;
+  if (random(0, control.glowSpeed - 1000) == 0) return true;
   if (millis() - lastGlowChange > control.glowSpeed) return true;
   return false;
 }
@@ -131,7 +131,7 @@ bool shouldShowFaerie(void) {
   // If a faerie is already flying, keep displaying animation.
   if (faerieFlying) return true;
   // Randomly spawn a faerie.
-  if (random(0, 10000) == 0) return true;
+  if (random(0, control.faerieSpeed - 1000) == 0) return true;
   // Timeout for spawning a faerie has been reached.
   if (millis() - lastFaerieFly > control.faerieSpeed) return true;
   return false;
@@ -169,7 +169,7 @@ void loop(void) {
   prevMicros = t;
 
   // Run main MQTT loop every loop.
-  // interwebs.mqttLoop();
+  interwebs.mqttLoop();
 
   // Main animation processing.
   if (control.pixelsOn) {
@@ -222,24 +222,26 @@ void loop(void) {
     }
   }
 
-  // Check and repair interwebs connections.
-  // if (!interwebs.wifiIsConnected()) {
-  //   bottles[0]->warningWiFi();
-  //   interwebs.wifiReconnect();
-  // }
-  // else if (!interwebs.mqttIsConnected()) {
-  //   bottles[0]->warningMQTT();
-  //   if (interwebs.mqttReconnect()) {
-  //     control.sendDiscoveryAll();
-  //     control.mqttCurrentStatus();
-  //   }
-  // }
-
   // Push all pixel changes to bottles.
   pxl8.show();
 
+
+  if (loopCounter % (MAX_FPS * 15) == 0) {
+    // Check and repair interwebs connections.
+    if (!interwebs.wifiIsConnected()) {
+      bottles[0]->warningWiFi();
+      interwebs.wifiReconnect();
+    }
+    else if (!interwebs.mqttIsConnected()) {
+      bottles[0]->warningMQTT();
+      if (interwebs.mqttReconnect()) {
+        control.sendDiscoveryAll();
+        control.mqttCurrentStatus();
+      }
+    }
+  }
   // At max FPS, every 30 seconds.
-  if (loopCounter % (MAX_FPS * 30) == 0) {
+  if (loopCounter % (MAX_FPS * 60) == 0) {
     // control.mqttCurrentStatus();
     loopCounter = 0;
   }
