@@ -35,10 +35,13 @@ void Control::initMQTT(void) {
   interwebs->onMqtt("cryptid/bottles/effect/set", [&](String &payload){
     pixelsOn = true;
     if (BOTTLE_ANIMATIONS.find(payload) == BOTTLE_ANIMATIONS.end()) {
-      payload = "warning"; // not found
+      Serial.println("Effect '" + payload + "' not found");
+      bottleAnimation = BOTTLE_ANIMATION_WARNING;
     }
-    Serial.println("Setting effect to " + payload);
-    bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
+    else {
+      Serial.println("Setting effect to " + payload);
+      bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
+    }
     mqttCurrentStatus();
   });
 

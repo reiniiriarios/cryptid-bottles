@@ -35,16 +35,16 @@ typedef enum {
  * @brief Map of strings for MQTT commands to bottle animations.
  */
 const static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
-  { "default",    BOTTLE_ANIMATION_DEFAULT },
-  { "faeries",    BOTTLE_ANIMATION_FAERIES },
-  { "rain",       BOTTLE_ANIMATION_RAIN    },
-  { "rainbow",    BOTTLE_ANIMATION_RAINBOW },
-  { "glow",       BOTTLE_ANIMATION_GLOW    },
-  { "glow-white", BOTTLE_ANIMATION_GLOW_W  },
-  { "illuminate", BOTTLE_ANIMATION_ILLUM   },
-  { "test",       BOTTLE_ANIMATION_TEST    },
-  { "test-white", BOTTLE_ANIMATION_TEST_WB },
-  { "warning",    BOTTLE_ANIMATION_WARNING },
+  { "Default",    BOTTLE_ANIMATION_DEFAULT },
+  { "Faeries",    BOTTLE_ANIMATION_FAERIES },
+  { "Rain",       BOTTLE_ANIMATION_RAIN    },
+  { "Rainbow",    BOTTLE_ANIMATION_RAINBOW },
+  { "Glow",       BOTTLE_ANIMATION_GLOW    },
+  { "Glow White", BOTTLE_ANIMATION_GLOW_W  },
+  { "Illuminate", BOTTLE_ANIMATION_ILLUM   },
+  { "Test",       BOTTLE_ANIMATION_TEST    },
+  { "Test White", BOTTLE_ANIMATION_TEST_WB },
+  { "Warning",    BOTTLE_ANIMATION_WARNING },
 };
 
 /**
@@ -69,18 +69,18 @@ typedef enum {
  * @brief Faerie animation timeout MQTT values.
  */
 const static std::map<String, faerie_speed_t> FAERIE_SPEED = {
-  { "slow",   FAERIE_SPEED_SLOW   },
-  { "medium", FAERIE_SPEED_MEDIUM },
-  { "fast",   FAERIE_SPEED_FAST   },
+  { "Slow",   FAERIE_SPEED_SLOW   },
+  { "Medium", FAERIE_SPEED_MEDIUM },
+  { "Fast",   FAERIE_SPEED_FAST   },
 };
 
 /**
  * @brief Faerie animation timeout MQTT values (INV).
  */
 const static std::map<faerie_speed_t, String> FAERIE_SPEED_INV = {
-  { FAERIE_SPEED_SLOW,   "slow"   },
-  { FAERIE_SPEED_MEDIUM, "medium" },
-  { FAERIE_SPEED_FAST,   "fast"   },
+  { FAERIE_SPEED_SLOW,   "Slow"   },
+  { FAERIE_SPEED_MEDIUM, "Medium" },
+  { FAERIE_SPEED_FAST,   "Fast"   },
 };
 
 /**
@@ -96,18 +96,18 @@ typedef enum {
  * @brief Glow animation timeout MQTT values.
  */
 const static std::map<String, glow_speed_t> GLOW_SPEED = {
-  { "slow",   GLOW_SPEED_SLOW   },
-  { "medium", GLOW_SPEED_MEDIUM },
-  { "fast",   GLOW_SPEED_FAST   },
+  { "Slow",   GLOW_SPEED_SLOW   },
+  { "Medium", GLOW_SPEED_MEDIUM },
+  { "Fast",   GLOW_SPEED_FAST   },
 };
 
 /**
  * @brief Glow animation timeout MQTT values (INV).
  */
 const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
-  { GLOW_SPEED_SLOW,   "slow"   },
-  { GLOW_SPEED_MEDIUM, "medium" },
-  { GLOW_SPEED_FAST,   "fast"   },
+  { GLOW_SPEED_SLOW,   "Slow"   },
+  { GLOW_SPEED_MEDIUM, "Medium" },
+  { GLOW_SPEED_FAST,   "Fast"   },
 };
 
 // Minimum mired value for white balance.
@@ -192,7 +192,7 @@ const static String discoveryJson = []() -> String {
   //  white_command_topic
   //  white_scale (255)
   json.replace("\n    ",""); // shrink data
-return json;
+  return json;
 }();
 
 /**
