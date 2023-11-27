@@ -1,6 +1,6 @@
 #include "control.h"
 
-Control::Control(Pxl8 *pxl8, Interwebs *interwebs, Bottle *bottles, uint8_t num_bottles)
+Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle>* bottles, uint8_t num_bottles)
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles), num_bottles(num_bottles) {}
 
 void Control::initMQTT(void) {
@@ -22,7 +22,7 @@ void Control::initMQTT(void) {
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
       pixelsOn = false;
       for (int i = 0; i < num_bottles; i++) {
-        bottles[i].blank();
+        bottles->at(i).blank();
       };
       interwebs->mqttSendMessage("cryptid/bottles/on/status", "OFF");
     }
@@ -67,14 +67,14 @@ void Control::initMQTT(void) {
 
   // Set the bottles brightness.
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](String &payload){
-    uint8_t b = min(0,max(round(payload.toFloat() * 2.55f),255));
+    uint8_t b = min(max(0, round(payload.toFloat() * 2.55f)), 255);
     Serial.println("Setting brightness to " + String(b));
     String on;
     if (b == 0) {
       pixelsOn = false;
       on = "OFF";
       for (int i = 0; i < num_bottles; i++) {
-        bottles[i].blank();
+        bottles->at(i).blank();
       };
     } else {
       pixelsOn = true;
@@ -88,7 +88,7 @@ void Control::initMQTT(void) {
 
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
-    uint16_t k = min(1000,max(round(payload.toInt()),10000));
+    uint16_t k = min(max(1000, round(payload.toInt())), 10000);
     Serial.println("Setting white balance to " + String(k));
     white_kelvin = k;
     rgb_t c = kelvin2rgb(k);

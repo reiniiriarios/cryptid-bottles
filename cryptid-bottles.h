@@ -13,13 +13,6 @@
 #define NUM_BOTTLES 4
 
 /**
- * @brief Loop all bottles.
- */
-inline void allBottles(std::function<void(int)> f) {
-  for (int i = 0; i < NUM_BOTTLES; ++i) f(i);
-}
-
-/**
  * @brief Random bottle index.
  * 
  * @return index

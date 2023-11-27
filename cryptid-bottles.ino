@@ -13,8 +13,8 @@
 
 Pxl8 pxl8;
 Interwebs interwebs;
-Bottle *bottles[NUM_BOTTLES];
-Control control(&pxl8, &interwebs, *bottles, NUM_BOTTLES);
+std::vector<Bottle> bottles = {};
+Control control(&pxl8, &interwebs, &bottles, NUM_BOTTLES);
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -59,19 +59,19 @@ void setup(void) {
   uint16_t hs[NUM_BOTTLES] = {};
   uint16_t he[NUM_BOTTLES] = {};
   rgb_t* color[NUM_BOTTLES] = {};
-  allBottles([&](int i){
+  for (int i = 0; i < NUM_BOTTLES; i++) {
     hs[i] = random(0, 360);
     he[i] = hs[i] + random(30, 40);
     color[i] = &prettyWhiteColors[random(0, 17)];
-  });
+  };
 
   // Bottles !! Config pin, start, and length according to hardware !!
   Serial.println("Setting up LEDs...");
-  //                        pin  1st  len
-  bottles[0] = new Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]);
-  bottles[1] = new Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]);
-  bottles[2] = new Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]);
-  bottles[3] = new Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]);
+  //                             pin  1st  len
+  bottles.push_back(Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]));
+  bottles.push_back(Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]));
+  bottles.push_back(Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]));
+  bottles.push_back(Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]));
 
   // Start pixel driver.
   if (!pxl8.init()) {
@@ -105,7 +105,7 @@ void updateBottleHues(void) {
     uint16_t hueStart = random(0, 360);
     uint16_t hueEnd = hueStart + random(30, 40);
     Serial.println("Updating hue for bottle " + String(id) + " to " + String(hueStart) + "-" + String(hueEnd));
-    bottles[id]->setHue(hueStart, hueEnd, random(1500, 2500));
+    bottles.at(id).setHue(hueStart, hueEnd, random(1500, 2500));
     lastGlowChange = millis();
   }
 }
@@ -115,7 +115,7 @@ void updateBottleWhiteBalance(void) {
     uint8_t id = randBottleId();
     rgb_t c = prettyWhiteColors[random(0, 17)];
     Serial.println("Updating white balance for bottle " + String(id));
-    bottles[id]->setColor(c, random(1500, 2500));
+    bottles.at(id).setColor(c, random(1500, 2500));
     lastGlowChange = millis();
   }
 }
@@ -143,9 +143,9 @@ void spawnFaeries(void) {
     if (faerieBottle == -1) {
       faerieBottle = randBottleId();
       Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
-      bottles[faerieBottle]->spawnFaerie(random(8, 14) * 0.1);
+      bottles.at(faerieBottle).spawnFaerie(random(8, 14) * 0.1);
     }
-    faerieFlying = bottles[faerieBottle]->showFaerie();
+    faerieFlying = bottles.at(faerieBottle).showFaerie();
     // After animation, reset bottle and log time.
     if (!faerieFlying) {
       Serial.println("Faerie has flown away from bottle " + String(faerieBottle));
@@ -177,48 +177,48 @@ void loop(void) {
       case BOTTLE_ANIMATION_DEFAULT:
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
-        allBottles([](int i){
-          bottles[i]->glow();
-        });
+        for (auto & bottle : bottles) {
+          bottle.glow();
+        };
         spawnFaeries();
         break;
       case BOTTLE_ANIMATION_GLOW:
         updateBottleHues();
-        allBottles([](int i){
-          bottles[i]->glow();
-        });
+        for (auto & bottle : bottles) {
+          bottle.glow();
+        };
         break;
       case BOTTLE_ANIMATION_GLOW_W:
         updateBottleWhiteBalance();
-        allBottles([](int i){
-          bottles[i]->glowColor();
-        });
+        for (auto & bottle : bottles) {
+          bottle.glowColor();
+        };
         break;
       case BOTTLE_ANIMATION_RAIN:
-        allBottles([](int i){
-          bottles[i]->rain();
-        });
+        for (auto & bottle : bottles) {
+          bottle.rain();
+        };
         break;
       case BOTTLE_ANIMATION_RAINBOW:
-        allBottles([](int i){
-          bottles[i]->rainbow();
-        });
+        for (auto & bottle : bottles) {
+          bottle.rainbow();
+        };
         break;
       case BOTTLE_ANIMATION_ILLUM:
-        allBottles([](int i){
-          bottles[i]->illuminate(control.white_color);
-        });
+        for (auto & bottle : bottles) {
+          bottle.illuminate(control.white_color);
+        };
         break;
       case BOTTLE_ANIMATION_TEST:
-        allBottles([](int i){
-          bottles[i]->testBlink();
-        });
+        for (auto & bottle : bottles) {
+          bottle.testBlink();
+        };
         break;
       case BOTTLE_ANIMATION_WARNING:
       default:
-        allBottles([](int i){
-          bottles[i]->warning();
-        });
+        for (auto & bottle : bottles) {
+          bottle.warning();
+        };
     }
   }
 
@@ -229,11 +229,11 @@ void loop(void) {
   if (loopCounter % (MAX_FPS * 15) == 0) {
     // Check and repair interwebs connections.
     if (!interwebs.wifiIsConnected()) {
-      bottles[0]->warningWiFi();
+      bottles.at(0).warningWiFi();
       interwebs.wifiReconnect();
     }
     else if (!interwebs.mqttIsConnected()) {
-      bottles[0]->warningMQTT();
+      bottles.at(0).warningMQTT();
       if (interwebs.mqttReconnect()) {
         control.sendDiscoveryAll();
         control.mqttCurrentStatus();

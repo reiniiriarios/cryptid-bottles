@@ -116,7 +116,7 @@ class Control {
      *
      * @param interwebs Pointer to Interwebs object.
      */
-    Control(Pxl8 *pxl8, Interwebs *interwebs, Bottle *bottles, uint8_t num_bottles);
+    Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle>* bottles, uint8_t num_bottles);
 
     /**
      * @brief Whether to display pixels.
@@ -218,17 +218,17 @@ class Control {
     /**
      * @brief Pointer to Pxl8 object.
      */
-    Pxl8 *pxl8;
+    Pxl8* pxl8;
 
     /**
      * @brief Pointer to Interwebs object.
      */
-    Interwebs *interwebs;
+    Interwebs* interwebs;
 
     /**
      * @brief Pointer to Bottle objects array.
      */
-    Bottle *bottles;
+    std::vector<Bottle>* bottles;
 
     /**
      * @brief How many bottles there are.
