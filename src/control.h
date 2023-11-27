@@ -162,6 +162,70 @@ const std::vector<const rgb_t*> WHITE_TEMPERATURES_VECTOR = []() -> std::vector<
 }();
 
 /**
+ * @brief Discovery JSON for light.
+ */
+const static String discoveryJson = []() -> String {
+  String json = R"JSON({
+    "name": "Cryptid Bottles",
+    "unique_id": "cryptid-bottles",
+    "icon": "mdi:bottle-tonic-outline",
+    "state_topic": "cryptid/bottles/state",
+    "state_value_template": "{{ value_json.on }}",
+    "command_topic":"cryptid/bottles/on/set",
+    "brightness_command_topic": "cryptid/bottles/brightness/set",
+    "brightness_value_template": "{{ value_json.brightness }}",
+    "brightness_scale": 255,
+    "color_temp_command_topic": "cryptid/bottles/white_balance/set",
+    "color_temp_value_template": "{{ value_json.white_balance }}",
+    "min_mireds": )JSON" + String(MIN_WB_MIRED) + R"JSON(,
+    "max_mireds": )JSON" + String(MAX_WB_MIRED) + R"JSON(,
+    "effect_command_topic": "cryptid/bottles/effect/set",
+    "effect_list": )JSON" + jsonStr(BOTTLE_ANIMATIONS) + R"JSON(,
+    "effect_value_template": "{{ value_json.effect }}",
+    "device": {
+      "identifiers": ["cryptidBottles"],
+      "name": "Cryptid Bottles"
+    }
+  })JSON";
+  //  rgb_command_topic
+  //  rgb_value_template
+  //  white_command_topic
+  //  white_scale (255)
+  json.replace("\n    ",""); // shrink data
+return json;
+}();
+
+/**
+ * @brief Discovery JSON for Glow Speed.
+ */
+const static String discoveryJsonGlowSpeed = discoverySelect("glow_speed", "Glow Speed", GLOW_SPEED);
+
+/**
+ * @brief Discovery JSON for Faerie Speed.
+ */
+const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "Faerie Speed", FAERIE_SPEED);
+
+/**
+ * @brief Get discovery JSON for Select setting.
+ * 
+ * @tparam T map setting
+ * @param id
+ * @param name 
+ * @param options map<String value, enum setting>
+ * @return const String 
+ */
+template<typename T>
+const static String discoverySelect(String id, String name, std::map<String, T> options) {
+  return "{\"name\":\"" + name + "\","
+         "\"unique_id\":\"cryptid-bottles-" + id + "\","
+         "\"state_topic\":\"cryptid/bottles/state\","
+         "\"command_topic\":\"cryptid/bottles/" + id + "/set\","
+         "\"value_template\":\"{{ value_json." + id + " }}\","
+         "\"options\":" + jsonStr(options) + ","
+         "\"device\":{\"identifiers\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
+}
+
+/**
  * @brief Round mired value to the nearest value that has an enum.
  *
  * @param n mireds

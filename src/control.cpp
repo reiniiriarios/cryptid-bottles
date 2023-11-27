@@ -104,68 +104,20 @@ void Control::initMQTT(void) {
 void Control::mqttCurrentStatus(void) {
   String on = "ON";
   if (!pixelsOn) on = "OFF";
-  String payload = "{";
-  payload += "\"on\":\"" + on + "\",";
+  String payload = "{\"on\":\"" + on + "\",";
   payload += "\"brightness\":\"" + String(brightness) + "\",";
   payload += "\"white_balance\":\"" + String((int8_t)white_balance) + "\",";
   payload += "\"effect\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
   payload += "\"glow_speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
-  payload += "\"faerie_speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"",
-  payload += "}";
+  payload += "\"faerie_speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"}";
   interwebs->mqttSendMessage("cryptid/bottles/state", payload);
 }
 
 bool Control::sendDiscovery() {
   Serial.println("Sending MQTT discovery for HASS");
-
-const String payload = R"JSON({
-"name":"Cryptid Bottles",
-"unique_id":"cryptid-bottles",
-"icon":"mdi:bottle-tonic-outline",
-"state_topic":"cryptid/bottles/state",
-"state_value_template":"{{ value_json.on }}",
-"command_topic":"cryptid/bottles/on/set",
-"brightness_command_topic":"cryptid/bottles/brightness/set",
-"brightness_value_template":"{{ value_json.brightness }}",
-"brightness_scale":255,
-"color_temp_command_topic":"cryptid/bottles/white_balance/set",
-"color_temp_value_template":"{{ value_json.white_balance }}",
-"min_mireds":)JSON" + String(MIN_WB_MIRED) + R"JSON(,
-"max_mireds":)JSON" + String(MAX_WB_MIRED) + R"JSON(,
-"effect_command_topic":"cryptid/bottles/effect/set",
-"effect_list":)JSON" + jsonStr(BOTTLE_ANIMATIONS) + R"JSON(,
-"effect_value_template":"{{ value_json.effect }}",
-"device":{"identifiers":["cryptidBottles"],"name":"Cryptid Bottles"}
-})JSON";
-//  rgb_command_topic
-//  rgb_value_template
-//  white_command_topic
-//  white_scale (255)
-
-  return interwebs->mqttPublish("homeassistant/light/cryptid-bottles/cryptidBottles/config", payload);
-
+  bool success = interwebs->mqttPublish("homeassistant/light/cryptid-bottles/cryptidBottles/config", discoveryJson);
   // Addl controls that don't fall under "light":
-  sendDiscoverySelect("glow_speed", "Glow Speed", GLOW_SPEED);
-  sendDiscoverySelect("faerie_speed", "Faerie Speed", FAERIE_SPEED);
-}
-
-template<typename T>
-bool Control::sendDiscoverySelect(String id, String name, std::map<String, T> options) {
-  Serial.println("Sending MQTT discovery for '" + id + "'");
-  // Manually building this here makes more sense than including a JSON library.
-  String topic = "homeassistant/select/" + id + "/cryptidBottles/config";
-  String payload = "{\"name\":\"" + name + "\","
-                   "\"unique_id\":\"cryptid-bottles-" + id + "\","
-                   "\"state_topic\":\"cryptid/bottles/state\","
-                   "\"command_topic\":\"cryptid/bottles/" + id + "/set\","
-                   "\"value_template\":\"{{ value_json." + id + " }}\","
-                   "\"options\":[";
-  bool f = true;
-  for (auto const& x : options) {
-    if (!f) payload += ",";
-    payload += "\"" + x.first + "\"";
-    f = false;
-  }
-  payload += "],\"device\":{\"identifiers\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
-  return interwebs->mqttPublish(topic, payload);
+  success = success && interwebs->mqttPublish("homeassistant/select/glow_speed/cryptidBottles/config", discoveryJsonGlowSpeed);
+  success = success && interwebs->mqttPublish("homeassistant/select/faerie_speed/cryptidBottles/config", discoveryJsonFaerieSpeed);
+  return success;
 }
