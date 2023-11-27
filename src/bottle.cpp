@@ -1,22 +1,7 @@
 #include "bottle.h"
 
-Bottle::Bottle(
-  Pxl8 *pxl8,
-  uint8_t pin,
-  uint16_t startPixel,
-  uint16_t length,
-  uint16_t hueStart,
-  uint16_t hueEnd,
-  rgb_t color
-) :
-  pxl8(pxl8),
-  pin(pin),
-  startPixel(startPixel),
-  length(length),
-  color(color),
-  lastPixel(startPixel + length - 1)
-{
-  setHue(hueStart, hueEnd);
+Bottle::Bottle(Pxl8 *pxl8, uint8_t pin, uint16_t startPixel, uint16_t length)
+  : pxl8(pxl8), pin(pin), startPixel(startPixel), length(length), lastPixel(startPixel + length - 1) {
   pxl8->addStrand(pin, length);
   Serial.println("Bottle of " + String(length) + " pixels on pin " + String(pin) + " added.");
 }

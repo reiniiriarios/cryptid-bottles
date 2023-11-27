@@ -15,18 +15,6 @@
 // Max frames per second.
 #define MAX_FPS 120
 
-// Number of bottles.
-#define NUM_BOTTLES 4
-
-/**
- * @brief Random bottle index.
- * 
- * @return index
- */
-static inline uint8_t randBottleId(void) {
-  return (uint8_t)random(0, NUM_BOTTLES);
-}
-
 /**
  * @brief Get a white RGB value at a random color temperature.
  * 

@@ -32,7 +32,7 @@ bool shouldChangeGlow(void) {
 
 void updateBottleHues(void) {
   if (shouldChangeGlow()) {
-    uint8_t id = randBottleId();
+    uint8_t id = random(0, bottles.size());
     uint16_t hueStart = random(0, 360);
     uint16_t hueEnd = hueStart + random(30, 40);
     Serial.println("Updating hue for bottle " + String(id) +
@@ -50,7 +50,7 @@ rgb_t randomWhiteBalance(void) {
 
 void updateBottleWhiteBalance(void) {
   if (shouldChangeGlow()) {
-    uint8_t id = randBottleId();
+    uint8_t id = random(0, bottles.size());
     rgb_t c = randomWhiteBalance();
     Serial.println("Updating white balance for bottle " + String(id) +
       " to " + String(c.r) + " " + String(c.g) + " " + String(c.b));
@@ -80,7 +80,7 @@ void spawnFaeries(void) {
   if (shouldShowFaerie()) {
     // If a new faerie, pick a random bottle.
     if (faerieBottle == -1) {
-      faerieBottle = randBottleId();
+      faerieBottle = random(0, bottles.size());
       Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
       bottles.at(faerieBottle)->spawnFaerie(random(8, 14) * 0.1);
     }
@@ -106,23 +106,18 @@ void setup(void) {
   // Seed by reading unused anolog pin.
   randomSeed(analogRead(A0));
 
-  // Start bottles with random hue ranges.
-  uint16_t hs[NUM_BOTTLES] = {};
-  uint16_t he[NUM_BOTTLES] = {};
-  rgb_t* color[NUM_BOTTLES] = {};
-  for (int i = 0; i < NUM_BOTTLES; i++) {
-    hs[i] = random(0, 360);
-    he[i] = hs[i] + random(30, 40);
-    color[i] = &randomWhiteBalance();
-  };
-
   // Bottles !! Config pin, start, and length according to hardware !!
   Serial.println("Setting up LEDs...");
-  //                             pin  1st  len
-  bottles.push_back(new Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]));
-  bottles.push_back(new Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]));
-  bottles.push_back(new Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]));
-  bottles.push_back(new Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]));
+  //                                 pin  1st  len
+  bottles.push_back(new Bottle(&pxl8,  0,   0,  25));
+  bottles.push_back(new Bottle(&pxl8,  0,  25,  25));
+  bottles.push_back(new Bottle(&pxl8,  1,   0,  20));
+  bottles.push_back(new Bottle(&pxl8,  1,  20,  30));
+  for (auto & bottle : bottles) {
+    uint16_t hs = random(0, 360);
+    bottle->setHue(hs, hs + random(30, 40));
+    bottle->setColor(randomWhiteBalance());
+  };
 
   // Start pixel driver.
   if (!pxl8.init()) {
