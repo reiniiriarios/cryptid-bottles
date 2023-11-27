@@ -117,12 +117,12 @@ void Control::mqttCurrentStatus(void) {
 
 bool Control::sendDiscoveryAll(void) {
   bool success = true;
-  success = success && sendDiscoverySwitch("on");
-  success = success && sendDiscoveryNumber("brightness", 0, 100);
-  success = success && sendDiscoveryNumber("white-balance", 1000, 10000);
-  success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS);
-  success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "glow speed");
-  success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "faerie speed");
+  success = success && sendDiscoverySwitch("on", "On/Off");
+  success = success && sendDiscoveryNumber("brightness", 0, 100, "Brightness");
+  success = success && sendDiscoveryNumber("white-balance", 1000, 10000, "White Balance");
+  success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS, "Animation");
+  success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "Glow Speed");
+  success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "Faerie Speed");
   return success;
 }
 
