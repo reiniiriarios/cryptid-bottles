@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <map>
+#include <vector>
 #include "src/color.h"
 #include "src/control.h"
 #include "src/pxl8.h"

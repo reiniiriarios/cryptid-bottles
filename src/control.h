@@ -1,6 +1,7 @@
 #ifndef CRYPTID_CONTROL_H
 #define CRYPTID_CONTROL_H
 
+#include <vector>
 #include "interwebs.h"
 #include "bottle.h"
 
@@ -161,14 +162,16 @@ class Control {
     faerie_speed_t faerieSpeed = FAERIE_SPEED_MEDIUM;
 
     /**
-     * @brief White balance in degrees kelvin.
-     */
-    uint16_t white_kelvin = 3000;
-
-    /**
      * @brief White balance in packed RGB.
      */
-    uint32_t white_color = 0xFFEE5F;
+    String white_balance = "bright";
+
+    /**
+     * @brief Get the RGB value for the current white balance.
+     * 
+     * @return RGB
+     */
+    rgb_t getWhiteBalanceRGB(void);
 
     /**
      * @brief Send all current MQTT status.

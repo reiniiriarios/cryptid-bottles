@@ -3,6 +3,10 @@
 Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle>* bottles, uint8_t num_bottles)
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles), num_bottles(num_bottles) {}
 
+rgb_t Control::getWhiteBalanceRGB(void) {
+  return WHITE_TEMPERATURES.at(white_balance);
+}
+
 void Control::initMQTT(void) {
   Serial.println("Setting up MQTT control...");
 
@@ -84,12 +88,11 @@ void Control::initMQTT(void) {
 
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
-    uint16_t k = min(max(1000, payload.toInt()), 10000);
-    Serial.print("Setting white balance to " + String(k) + "...");
-    white_kelvin = k;
-    rgb_t c = kelvin2rgb(k);
-    white_color = pxl8->color(c.r, c.g, c.b);
-    Serial.println(String(c.r) + " " + String(c.g) + " " + String(c.b));
+    if (WHITE_TEMPERATURES.find(payload) == WHITE_TEMPERATURES.end()) {
+      payload = "bright"; // default
+    }
+    white_balance = payload;
+    Serial.print("Setting white balance to '" + white_balance + "'...");
     mqttCurrentStatus();
   });
 
@@ -108,9 +111,9 @@ void Control::mqttCurrentStatus(void) {
   String payload = "{";
   payload += "\"on\":\"" + on + "\",";
   payload += "\"brightness\":\"" + String(brightness) + "\",";
-  payload += "\"white-balance\":\"" + String(white_kelvin) + "\",";
-  payload += "\"animation\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\"",
-  payload += "\"glow-speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\"",
+  payload += "\"white-balance\":\"" + white_balance + "\",";
+  payload += "\"animation\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
+  payload += "\"glow-speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
   payload += "\"faerie-speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"",
   payload += "}";
   interwebs->mqttSendMessage("cryptid/bottles/state", payload);
@@ -120,7 +123,7 @@ bool Control::sendDiscoveryAll(void) {
   bool success = true;
   success = success && sendDiscoverySwitch("on", "On/Off");
   success = success && sendDiscoveryNumber("brightness", 0, 100, "Brightness");
-  success = success && sendDiscoveryNumber("white-balance", 1000, 10000, "White Balance");
+  success = success && sendDiscoverySelect("white-balance", WHITE_TEMPERATURES, "White Balance");
   success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS, "Animation");
   success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "Glow Speed");
   success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "Faerie Speed");

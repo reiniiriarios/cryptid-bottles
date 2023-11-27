@@ -1,8 +1,6 @@
 #ifndef CRYPTID_COLOR_H
 #define CRYPTID_COLOR_H
 
-#include "color-data.h"
-
 /**
  * @brief Normalize hue between 0 and 360. Useful for cases when hue calculations may escape range.
  * 
@@ -189,88 +187,6 @@ static inline rgb_t blendRGB(rgb_t current, rgb_t target, float amount) {
     blendValue(current.g, target.g, amount),
     blendValue(current.b, target.b, amount),
   };
-}
-
-/**
- * @brief Convert a color temperature in Kelvin to RGB.
- *        Adapted from 'RGB VALUES FOR HOT OBJECTS' by William T. Bridgman, NASA, 2000
- *        http://www.physics.sfasu.edu/astro/color/blackbodyc.txt
- *        A black body approximation is used where the temperature, T, is given in
- *        Kelvin.  The XYZ values are determined by "integrating" the product of the
- *        wavelength distribution of energy and the XYZ functions for a uniform source.
- *
- * @param k Degrees kelvin.
- */
-static inline rgb_t kelvin2rgb(uint16_t k) {
-  float xx, yy, zz,
-        con = 14390158.988f;
-
-  // loop over wavelength bands
-  // integration by trapezoid method
-  for (int band = 0; band < KELVIN_VECTORS_SIZE; band++) {
-    float weight = 1.f;
-    if (band == 0 || band == KELVIN_VECTORS_SIZE - 1) weight = 0.5f;
-
-    float wavelength = 380 + band * 5;
-
-    // generate a black body spectrum
-    float dis = (0.000000000000000374183f * (1.f / pow(wavelength, 5.f))) / (exp(con / (wavelength * (float)k)) - 1.f);
-
-    // simple integration over bands
-    xx += weight * dis * KELVIN_VECTORS[band].at(0);
-    yy += weight * dis * KELVIN_VECTORS[band].at(1);
-    zz += weight * dis * KELVIN_VECTORS[band].at(2);
-  }
-
-  // re-normalize
-  float xxyyzzMax = max(xx, max(yy, zz));
-  float x = xx / xxyyzzMax,
-        y = yy / xxyyzzMax,
-        z = zz / xxyyzzMax;
-
-  // x*, y* are chromaticity coordinates
-  // white: 0.3127, 0.3291
-  float xr = 0.64f, yr = 0.33f,
-        xg = 0.29f, yg = 0.60f,
-        xb = 0.15f, yb = 0.06f;
-  float zr = 1.f - xr - yr,
-        zg = 1.f - xg - yg,
-        zb = 1.f - xb - yb;
-
-  // convert to rgb
-  float denominator = (xr * yg - xg * yr) * zb +
-                      (xb * yr - xr * yb) * zg +
-                      (xg * yb - xb * yg) * zr;
-
-  float r = ((x * yg - xg * y) * zb +
-             (xg * yb - xb * yg) * z +
-             (xb * y - x * yb) * zg) /
-            denominator,
-        g = ((xr * y - x * yr) * zb +
-             (xb * yr - xr * yb) * z +
-             (x * yb - xb * y) * zr) /
-            denominator,
-        b = ((xr * yg - xg * yr) * z +
-             (x * yr - xr * y) * zg +
-             (xg * y - x * yg) * zr) /
-            denominator;
-
-  r = min(max(r, 0), 1);
-  g = min(max(g, 0), 1);
-  b = min(max(b, 0), 1);
-
-  // adjust gamma
-  float rangeMax = max(0.00000000010f,max(r,max(g,b)));
-  r = pow(r / rangeMax, 0.8f); // gamma = 0.8
-  g = pow(g / rangeMax, 0.8f);
-  b = pow(b / rangeMax, 0.8f);
-
-  // adjust to 8-bit
-  uint8_t r8 = min(round(r * 255), 255),
-          g8 = min(round(g * 255), 255),
-          b8 = min(round(b * 255), 255);
-
-  return rgb_t{ r8, g8, b8 };
 }
 
 #endif

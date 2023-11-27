@@ -188,7 +188,7 @@ void loop(void) {
         break;
       case BOTTLE_ANIMATION_ILLUM:
         for (auto & bottle : bottles) {
-          bottle.illuminate(control.white_color);
+          bottle.illuminate(control.getWhiteBalanceRGB());
         };
         break;
       case BOTTLE_ANIMATION_TEST:

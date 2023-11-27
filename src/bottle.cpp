@@ -248,7 +248,7 @@ void Bottle::blank(void) {
   }
 }
 
-void Bottle::illuminate(uint32_t staticColor) {
+void Bottle::illuminate(rgb_t staticColor) {
   for (uint16_t p = startPixel; p <= lastPixel; p++) {
     setPixelColor(p, staticColor);
   }
