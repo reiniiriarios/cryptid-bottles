@@ -17,15 +17,14 @@ void Control::initMQTT(void) {
       if (brightness == 0) {
         brightness = 127;
       }
-      interwebs->mqttSendMessage("cryptid/bottles/on/status", "ON");
     }
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
       pixelsOn = false;
       for (int i = 0; i < num_bottles; i++) {
         bottles->at(i).blank();
       };
-      interwebs->mqttSendMessage("cryptid/bottles/on/status", "OFF");
     }
+    mqttCurrentStatus();
   });
 
   // Set the bottles animation.
@@ -36,7 +35,7 @@ void Control::initMQTT(void) {
     }
     Serial.println("Setting animation to " + payload);
     bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
-    interwebs->mqttSendMessage("cryptid/bottles/animation/status", payload);
+    mqttCurrentStatus();
   });
 
   // Set the glow animation speed.
@@ -49,8 +48,7 @@ void Control::initMQTT(void) {
     }
     Serial.println("Setting glow speed to " + payload);
     glowSpeed = GLOW_SPEED.at(payload);
-    interwebs->mqttSendMessage("cryptid/bottles/glow-speed/status", payload);
-    interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
+    mqttCurrentStatus();
   });
 
   // Set the faerie animation speed.
@@ -61,8 +59,7 @@ void Control::initMQTT(void) {
     }
     Serial.println("Setting faerie speed to " + payload);
     faerieSpeed = FAERIE_SPEED.at(payload);
-    interwebs->mqttSendMessage("cryptid/bottles/faerie-speed/status", payload);
-    interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(BOTTLE_ANIMATION_FAERIES));
+    mqttCurrentStatus();
   });
 
   // Set the bottles brightness.
@@ -82,17 +79,18 @@ void Control::initMQTT(void) {
     }
     pxl8->setBrightness(b);
     brightness = b;
-    interwebs->mqttSendMessage("cryptid/bottles/on/status", on);
-    interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
+    mqttCurrentStatus();
   });
 
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
-    uint16_t k = min(max(1000, round(payload.toInt())), 10000);
-    Serial.println("Setting white balance to " + String(k));
+    uint16_t k = min(max(1000, payload.toInt()), 10000);
+    Serial.print("Setting white balance to " + String(k) + "...");
     white_kelvin = k;
     rgb_t c = kelvin2rgb(k);
     white_color = pxl8->color(c.r, c.g, c.b);
+    Serial.println(String(c.r) + " " + String(c.g) + " " + String(c.b));
+    mqttCurrentStatus();
   });
 
   // Send discovery when Home Assistant notifies it's online.
@@ -107,12 +105,15 @@ void Control::initMQTT(void) {
 void Control::mqttCurrentStatus(void) {
   String on = "ON";
   if (!pixelsOn) on = "OFF";
-  interwebs->mqttSendMessage("cryptid/bottles/on/status", on);
-  interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
-  interwebs->mqttSendMessage("cryptid/bottles/glow-speed/status", GLOW_SPEED_INV.at(glowSpeed));
-  interwebs->mqttSendMessage("cryptid/bottles/faerie-speed/status", FAERIE_SPEED_INV.at(faerieSpeed));
-  interwebs->mqttSendMessage("cryptid/bottles/brightness/status", String(brightness));
-  interwebs->mqttSendMessage("cryptid/bottles/white-balance/status", String(white_kelvin));
+  String payload = "{";
+  payload += "\"on\":\"" + on + "\",";
+  payload += "\"brightness\":\"" + String(brightness) + "\",";
+  payload += "\"white-balance\":\"" + String(white_kelvin) + "\",";
+  payload += "\"animation\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\"",
+  payload += "\"glow-speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\"",
+  payload += "\"faerie-speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"",
+  payload += "}";
+  interwebs->mqttSendMessage("cryptid/bottles/state", payload);
 }
 
 bool Control::sendDiscoveryAll(void) {
@@ -138,8 +139,11 @@ bool Control::sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String 
 template<typename T>
 bool Control::sendDiscoverySelect(String id, std::map<String, T> options, String name) {
   String addl = "\"options\":[";
+  bool f = true;
   for (auto const& x : options) {
-    addl += "\"" + x.first + "\",";
+    if (!f) addl += ",";
+    addl += "\"" + x.first + "\"";
+    f = false;
   }
   addl += "],";
   return sendDiscovery("select", name, id, addl);
@@ -152,8 +156,9 @@ bool Control::sendDiscovery(String type, String name, String id, String addl) {
   String topic = "homeassistant/" + type + "/" + id + "/cryptidBottles/config";
   String payload = "{";
   payload += "\"name\":\"" + name + "\",";
-  payload += "\"state_topic\":\"cryptid/bottles/" + id + "/state\",";
+  payload += "\"state_topic\":\"cryptid/bottles/state\",";
   payload += "\"command_topic\":\"cryptid/bottles/" + id + "/set\",";
+  payload += "\"value_template\":\"{{ value_json." + id + " }}\",",
   payload += addl;
   payload += "\"unique_id\":\"cryptid-bottles-" + id + "\",";
   payload += "\"device\":{";

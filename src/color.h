@@ -203,23 +203,23 @@ static inline rgb_t blendRGB(rgb_t current, rgb_t target, float amount) {
  */
 static inline rgb_t kelvin2rgb(uint16_t k) {
   float xx, yy, zz,
-        con = 1240.0 / 8.617e-5;
+        con = 14390158.988f;
 
   // loop over wavelength bands
   // integration by trapezoid method
   for (int band = 0; band < KELVIN_VECTORS_SIZE; band++) {
-    float weight = 1;
-    if (band == 0 || band == KELVIN_VECTORS_SIZE - 1) weight = 0.5;
+    float weight = 1.f;
+    if (band == 0 || band == KELVIN_VECTORS_SIZE - 1) weight = 0.5f;
 
     float wavelength = 380 + band * 5;
 
     // generate a black body spectrum
-    float dis = (3.74183e-16 * (1 / pow(wavelength, 5))) / (exp(con / (wavelength * k)) - 1);
+    float dis = (0.000000000000000374183f * (1.f / pow(wavelength, 5.f))) / (exp(con / (wavelength * (float)k)) - 1.f);
 
     // simple integration over bands
-    xx += weight * dis * KELVIN_VECTORS[band][0];
-    yy += weight * dis * KELVIN_VECTORS[band][1];
-    zz += weight * dis * KELVIN_VECTORS[band][2];
+    xx += weight * dis * KELVIN_VECTORS[band].at(0);
+    yy += weight * dis * KELVIN_VECTORS[band].at(1);
+    zz += weight * dis * KELVIN_VECTORS[band].at(2);
   }
 
   // re-normalize
@@ -233,9 +233,9 @@ static inline rgb_t kelvin2rgb(uint16_t k) {
   float xr = 0.64f, yr = 0.33f,
         xg = 0.29f, yg = 0.60f,
         xb = 0.15f, yb = 0.06f;
-  float zr = 1 - xr - yr,
-        zg = 1 - xg - yg,
-        zb = 1 - xb - yb;
+  float zr = 1.f - xr - yr,
+        zg = 1.f - xg - yg,
+        zb = 1.f - xb - yb;
 
   // convert to rgb
   float denominator = (xr * yg - xg * yr) * zb +
@@ -260,7 +260,7 @@ static inline rgb_t kelvin2rgb(uint16_t k) {
   b = min(max(b, 0), 1);
 
   // adjust gamma
-  float rangeMax = max(1.0e-10,max(r,max(g,b)));
+  float rangeMax = max(0.00000000010f,max(r,max(g,b)));
   r = pow(r / rangeMax, 0.8f); // gamma = 0.8
   g = pow(g / rangeMax, 0.8f);
   b = pow(b / rangeMax, 0.8f);

@@ -43,13 +43,14 @@ void Bottle::setColor(rgb_t newColor) {
 void Bottle::setColor(rgb_t newColor, uint32_t ms) {
   colorFadeStartTime = millis();
   colorFadeSpeed = ms;
-  startColor = newColor;
+  startColor = color;
   endColor = newColor;
 }
 
 void Bottle::updateHue() {
   if (hueRange.first != endHueRange.first || hueRange.second != endHueRange.second) {
-    float percent = float(millis() - hueFadeStartTime) / hueFadeSpeed;
+    uint32_t d = millis() - hueFadeStartTime;
+    float percent = float(d) / hueFadeSpeed;
     if (percent >= 1) {
       hueRange = endHueRange;
       return;
@@ -76,7 +77,8 @@ void Bottle::updateHue() {
 
 void Bottle::updateColor() {
   if (color.r != endColor.r || color.g != endColor.g || color.b != endColor.b) {
-    float percent = float(millis() - colorFadeStartTime) / colorFadeSpeed;
+    uint32_t d = millis() - colorFadeStartTime;
+    float percent = float(d) / colorFadeSpeed;
     if (percent >= 1) {
       color = endColor;
       return;
@@ -133,9 +135,9 @@ void Bottle::glowColor(float glowFrequency) {
   float pgf = 2000 * glowFrequency;
   for (uint16_t p = startPixel; p <= lastPixel; p++) {
     float adj = sin(t + p * pgf) * 0.4 + 0.6;
-    uint8_t r = max((float)color.r * adj, 255);
-    uint8_t g = max((float)color.g * adj, 255);
-    uint8_t b = max((float)color.b * adj, 255);
+    uint8_t r = min((float)color.r * adj, 255);
+    uint8_t g = min((float)color.g * adj, 255);
+    uint8_t b = min((float)color.b * adj, 255);
     setPixelColor(p, r, g, b);
   }
 }

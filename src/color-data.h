@@ -8,7 +8,7 @@
  *        Adapted from 'RGB VALUES FOR HOT OBJECTS' by William T. Bridgman, NASA, 2000
  *        http://www.physics.sfasu.edu/astro/color/blackbodyc.txt
  */
-const std::vector<float> KELVIN_VECTORS[] = {
+const std::vector<float> KELVIN_VECTORS[81] = {
   {0.0014, 0.0, 0.0065},
   {0.0022, 0.0001, 0.0105},
   {0.0042, 0.0001, 0.0201},
@@ -93,6 +93,6 @@ const std::vector<float> KELVIN_VECTORS[] = {
 };
 
 // Size of xyz vector.
-const uint16_t KELVIN_VECTORS_SIZE = sizeof(KELVIN_VECTORS);
+const uint16_t KELVIN_VECTORS_SIZE = 81;
 
 #endif
