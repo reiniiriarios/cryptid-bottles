@@ -2,6 +2,7 @@
 #define CRYPTID_CONTROL_H
 
 #include <vector>
+#include <sstream>
 #include "interwebs.h"
 #include "bottle.h"
 
@@ -21,7 +22,7 @@ typedef enum {
   BOTTLE_ANIMATION_GLOW = 3,
   // Random white glow.
   BOTTLE_ANIMATION_GLOW_W = 6,
-  // Bright white.
+  // Static color.
   BOTTLE_ANIMATION_ILLUM = 5,
   // Test animation.
   BOTTLE_ANIMATION_TEST = 10,
@@ -175,6 +176,10 @@ const static String discoveryJson = []() -> String {
     "brightness_command_topic": "cryptid/bottles/brightness/set",
     "brightness_value_template": "{{ value_json.brightness }}",
     "brightness_scale": 255,
+    "rgb_command_topic": "cryptid/bottles/rgb/set",
+    "rgb_value_template": "{{ value_json.rgb }}",
+    "white_command_topic": "cryptid/bottles/white/set",
+    "white_scale": 255,
     "color_temp_command_topic": "cryptid/bottles/white_balance/set",
     "color_temp_value_template": "{{ value_json.white_balance }}",
     "min_mireds": )JSON" + String(MIN_WB_MIRED) + R"JSON(,
@@ -187,10 +192,6 @@ const static String discoveryJson = []() -> String {
       "name": "Cryptid Bottles"
     }
   })JSON";
-  //  rgb_command_topic
-  //  rgb_value_template
-  //  white_command_topic
-  //  white_scale (255)
   json.replace("\n    ",""); // shrink data
   return json;
 }();
@@ -289,6 +290,11 @@ class Control {
      * @brief Global white balance.
      */
     white_balance_t white_balance = WB_BRIGHT;
+
+    /**
+     * @brief Global color.
+     */
+    rgb_t static_color = rgb_t{ 255, 255, 255 };
 
     /**
      * @brief Get the RGB value for the current white balance.

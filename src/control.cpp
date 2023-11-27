@@ -3,10 +3,6 @@
 Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle*>* bottles)
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
 
-rgb_t Control::getWhiteBalanceRGB(void) {
-  return WHITE_TEMPERATURES.at(white_balance);
-}
-
 void Control::initMQTT(void) {
   Serial.println("Setting up MQTT control...");
 
@@ -73,18 +69,53 @@ void Control::initMQTT(void) {
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](String &payload){
     brightness = min(max(0, payload.toInt()), 255);
     Serial.println("Setting brightness to " + String(brightness));
-    String on;
     if (brightness == 0) {
       pixelsOn = false;
-      on = "OFF";
       for (auto & bottle : *bottles) {
         bottle->blank();
       };
     } else {
       pixelsOn = true;
-      on = "ON";
     }
     pxl8->setBrightness(brightness);
+    mqttCurrentStatus();
+  });
+
+  // Set white balance in degrees kelvin.
+  interwebs->onMqtt("cryptid/bottles/rgb/set", [&](String &payload){
+    stringstream ss(payload.c_str());
+    vector<uint8_t> rgb;
+    while (ss.good()) {
+      string substr;
+      getline(ss, substr, ',');
+      rgb.push_back(atoi(substr.c_str()));
+    }
+    if (rgb.size() != 3) {
+      Serial.print("Invalid color '" + String(payload) + "'");
+      static_color = rgb_t{ 255, 255, 255 };
+    } else {
+      Serial.print("Setting color to " + String(payload));
+      static_color = rgb_t{ rgb.at(0), rgb.at(1), rgb.at(2) };
+    }
+    bottleAnimation = BOTTLE_ANIMATION_ILLUM;
+    mqttCurrentStatus();
+  });
+
+  // Set to a given brightness at the current white balance.
+  interwebs->onMqtt("cryptid/bottles/white/set", [&](String &payload){
+    brightness = min(max(0, payload.toInt()), 255);
+    Serial.print("Setting illumination to " + String(white_balance) + " at " + String(brightness));
+    static_color = WHITE_TEMPERATURES.at(white_balance);
+    if (brightness == 0) {
+      pixelsOn = false;
+      for (auto & bottle : *bottles) {
+        bottle->blank();
+      };
+    } else {
+      pixelsOn = true;
+    }
+    pxl8->setBrightness(brightness);
+    bottleAnimation = BOTTLE_ANIMATION_ILLUM;
     mqttCurrentStatus();
   });
 
@@ -92,6 +123,8 @@ void Control::initMQTT(void) {
   interwebs->onMqtt("cryptid/bottles/white_balance/set", [&](String &payload){
     white_balance = white_balance_t(min(max(MIN_WB_MIRED, roundmired(payload.toInt())), MAX_WB_MIRED));
     Serial.print("Setting white balance to " + String(white_balance) + "...");
+    static_color = WHITE_TEMPERATURES.at(white_balance);
+    bottleAnimation = BOTTLE_ANIMATION_ILLUM;
     mqttCurrentStatus();
   });
 
@@ -109,6 +142,7 @@ void Control::mqttCurrentStatus(void) {
   if (!pixelsOn) on = "OFF";
   String payload = "{\"on\":\"" + on + "\",";
   payload += "\"brightness\":\"" + String(brightness) + "\",";
+  payload += "\"rgb\":\"" + String(static_color.r) + "," + String(static_color.g) + "," + String(static_color.b) + "\",";
   payload += "\"white_balance\":\"" + String((int8_t)white_balance) + "\",";
   payload += "\"effect\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
   payload += "\"glow_speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
