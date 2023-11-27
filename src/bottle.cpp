@@ -140,8 +140,8 @@ void Bottle::glowColor(float glowFrequency) {
   }
 }
 
-void Bottle::spawnFaerie(float speed, rgb_t color) {
-  faerieColor = color;
+void Bottle::spawnFaerie(float speed, rgb_t c) {
+  faerieColor = c;
   faerieKeyframes[0] = 300 / speed;
   faerieKeyframes[1] = 600 / speed + faerieKeyframes[0];
   faerieKeyframes[2] = 200 / speed + faerieKeyframes[1];
@@ -293,8 +293,8 @@ void Bottle::testBlink(void) {
   }
 }
 
-void Bottle::setPixelColor(uint16_t pixel, uint32_t color) {
-  pxl8->setPixelColor(pin, pixel, color);
+void Bottle::setPixelColor(uint16_t pixel, uint32_t c) {
+  pxl8->setPixelColor(pin, pixel, c);
 }
 
 void Bottle::setPixelColor(uint16_t pixel, uint8_t r, uint8_t g, uint8_t b) {

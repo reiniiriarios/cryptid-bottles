@@ -146,9 +146,9 @@ class Bottle {
      * @brief Spawn a new faerie.
      * 
      * @param speed animation speed multiplier
-     * @param color RGB faerie color
+     * @param c RGB faerie color
      */
-    void spawnFaerie(float speed = 1, rgb_t color = { 255, 255, 255 });
+    void spawnFaerie(float speed = 1, rgb_t c = { 255, 255, 255 });
 
   private:
     /**
@@ -288,9 +288,9 @@ class Bottle {
      * @brief Set a pixel a specific color.
      * 
      * @param pixel Number of pixel on strand (zero-indexed).
-     * @param color Packed color.
+     * @param c Packed color.
      */
-    void setPixelColor(uint16_t pixel, uint32_t color);
+    void setPixelColor(uint16_t pixel, uint32_t c);
 
     /**
      * @brief Set a pixel a specific color.

@@ -11,6 +11,7 @@ void Control::initMQTT(void) {
 
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](String &payload){
+    Serial.println("Setting on/off to " + payload);
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
       pixelsOn = true;
       if (brightness == 0) {
@@ -33,6 +34,7 @@ void Control::initMQTT(void) {
     if (BOTTLE_ANIMATIONS.find(payload) == BOTTLE_ANIMATIONS.end()) {
       payload = "warning"; // not found
     }
+    Serial.println("Setting animation to " + payload);
     bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
     interwebs->mqttSendMessage("cryptid/bottles/animation/status", payload);
   });
@@ -45,6 +47,7 @@ void Control::initMQTT(void) {
     if (GLOW_SPEED.find(payload) == GLOW_SPEED.end()) {
       payload = "medium"; // default
     }
+    Serial.println("Setting glow speed to " + payload);
     glowSpeed = GLOW_SPEED.at(payload);
     interwebs->mqttSendMessage("cryptid/bottles/glow-speed/status", payload);
     interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(bottleAnimation));
@@ -56,6 +59,7 @@ void Control::initMQTT(void) {
     if (FAERIE_SPEED.find(payload) == FAERIE_SPEED.end()) {
       payload = "medium"; // default
     }
+    Serial.println("Setting faerie speed to " + payload);
     faerieSpeed = FAERIE_SPEED.at(payload);
     interwebs->mqttSendMessage("cryptid/bottles/faerie-speed/status", payload);
     interwebs->mqttSendMessage("cryptid/bottles/animation/status", BOTTLE_ANIMATIONS_INV.at(BOTTLE_ANIMATION_FAERIES));
@@ -64,6 +68,7 @@ void Control::initMQTT(void) {
   // Set the bottles brightness.
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](String &payload){
     uint8_t b = min(0,max(round(payload.toFloat() * 2.55f),255));
+    Serial.println("Setting brightness to " + String(b));
     String on;
     if (b == 0) {
       pixelsOn = false;
@@ -84,6 +89,7 @@ void Control::initMQTT(void) {
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
     uint16_t k = min(1000,max(round(payload.toInt()),10000));
+    Serial.println("Setting white balance to " + String(k));
     white_kelvin = k;
     rgb_t c = kelvin2rgb(k);
     white_color = pxl8->color(c.r, c.g, c.b);
@@ -120,17 +126,17 @@ bool Control::sendDiscoveryAll(void) {
   return success;
 }
 
-bool Control::sendDiscoverySwitch(String id, String name = "") {
+bool Control::sendDiscoverySwitch(String id, String name) {
   return sendDiscovery("switch", name, id, "");
 }
 
-bool Control::sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String name = "") {
+bool Control::sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String name) {
   String addl = "\"min\":"+String(min)+",\"max\":"+String(max)+",\"mode\":\"slider\",";
   return sendDiscovery("number", name, id, addl);
 }
 
 template<typename T>
-bool Control::sendDiscoverySelect(String id, std::map<String, T> options, String name = "") {
+bool Control::sendDiscoverySelect(String id, std::map<String, T> options, String name) {
   String addl = "\"options\":[";
   for (auto const& x : options) {
     addl += "\"" + x.first + "\",";
