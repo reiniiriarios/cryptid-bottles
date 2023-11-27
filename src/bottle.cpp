@@ -270,6 +270,14 @@ void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
   }
 }
 
+void Bottle::loopColors(const std::vector<const rgb_t*>* colors) {
+  uint16_t interval = millis() % 10000 * colors->size() * 0.0001;
+  for (uint16_t p = startPixel; p <= lastPixel; p++) {
+    rgb_t c = *colors->at(interval);
+    setPixelColor(p, c.r, c.g, c.b);
+  }
+}
+
 void Bottle::testBlink(void) {
   uint32_t c = pxl8->color(0, 0, 0);
   if (millis() / 500 & 1) {

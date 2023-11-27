@@ -186,6 +186,11 @@ void loop(void) {
           bottle->illuminate(control.getWhiteBalanceRGB());
         };
         break;
+      case BOTTLE_ANIMATION_TEST_WB:
+        for (auto & bottle : bottles) {
+          bottle->loopColors(&WHITE_TEMPERATURES_VECTOR);
+        };
+        break;
       case BOTTLE_ANIMATION_TEST:
         for (auto & bottle : bottles) {
           bottle->testBlink();

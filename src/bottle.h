@@ -2,6 +2,7 @@
 #define CRYPTID_BOTTLE_H
 
 #include <utility>
+#include <vector>
 using namespace std;
 
 #include "pxl8.h"
@@ -125,6 +126,13 @@ class Bottle {
      * @brief Warning animation at specific color.
      */
     void warning(uint8_t r, uint8_t g, uint8_t b);
+
+    /**
+     * @brief Loop a series of colors.
+     *
+     * @param colors pointer to vector of RGB colors
+     */
+    void loopColors(const std::vector<const rgb_t*>* colors);
 
     /**
      * @brief Test blink animation.

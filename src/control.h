@@ -25,6 +25,8 @@ typedef enum {
   BOTTLE_ANIMATION_ILLUM = 5,
   // Test animation.
   BOTTLE_ANIMATION_TEST = 10,
+  // Loop through white balance colors.
+  BOTTLE_ANIMATION_TEST_WB = 12,
   // Special animation if something goes wrong.
   BOTTLE_ANIMATION_WARNING = 11,
 } bottle_animation_t;
@@ -41,6 +43,7 @@ const static std::map<String, bottle_animation_t> BOTTLE_ANIMATIONS = {
   { "glow-white", BOTTLE_ANIMATION_GLOW_W  },
   { "illuminate", BOTTLE_ANIMATION_ILLUM   },
   { "test",       BOTTLE_ANIMATION_TEST    },
+  { "test-white", BOTTLE_ANIMATION_TEST_WB },
   { "warning",    BOTTLE_ANIMATION_WARNING },
 };
 
@@ -108,7 +111,7 @@ const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
 };
 
 typedef enum {
-  WB_RED         = -5,
+  WB_HOTTEST     = -5,
   WB_HOT         = -4,
   WB_WARMER      = -3,
   WB_WARM        = -2,
@@ -118,25 +121,34 @@ typedef enum {
   WB_COOL        =  2,
   WB_COOLER      =  3,
   WB_COLD        =  4,
-  WB_BLUE        =  5
+  WB_COLDEST     =  5
 } white_balance_t;
 
 /**
  * @brief Color temperatures for various whites.
  */
 const std::map<white_balance_t, rgb_t> WHITE_TEMPERATURES = {
-  { WB_RED,         rgb_t{ 255, 230, 155 } },
-  { WB_HOT,         rgb_t{ 255, 235, 175 } },
-  { WB_WARMER,      rgb_t{ 255, 240, 195 } },
-  { WB_WARM,        rgb_t{ 255, 245, 215 } },
-  { WB_WARM_BRIGHT, rgb_t{ 255, 250, 235 } },
+  { WB_HOTTEST,     rgb_t{ 255, 200, 150 } },
+  { WB_HOT,         rgb_t{ 255, 211, 171 } },
+  { WB_WARMER,      rgb_t{ 255, 222, 192 } },
+  { WB_WARM,        rgb_t{ 255, 233, 213 } },
+  { WB_WARM_BRIGHT, rgb_t{ 255, 244, 234 } },
   { WB_BRIGHT,      rgb_t{ 255, 255, 255 } },
-  { WB_COOL_BRIGHT, rgb_t{ 235, 250, 255 } },
-  { WB_COOL,        rgb_t{ 215, 245, 255 } },
-  { WB_COOLER,      rgb_t{ 195, 240, 255 } },
-  { WB_COLD,        rgb_t{ 175, 235, 255 } },
-  { WB_BLUE,        rgb_t{ 155, 230, 255 } }
+  { WB_COOL_BRIGHT, rgb_t{ 246, 255, 255 } },
+  { WB_COOL,        rgb_t{ 232, 252, 255 } },
+  { WB_COOLER,      rgb_t{ 218, 248, 255 } },
+  { WB_COLD,        rgb_t{ 204, 244, 255 } },
+  { WB_COLDEST,     rgb_t{ 190, 240, 255 } }
 };
+
+/**
+ * @brief Vector of pointers to white colors.
+ */
+const std::vector<const rgb_t*> WHITE_TEMPERATURES_VECTOR = []() -> std::vector<const rgb_t*> {
+  std::vector<const rgb_t*> t;
+  for (auto const& x : WHITE_TEMPERATURES) t.push_back(&x.second);
+  return t;
+}();
 
 /**
  * @brief This class provides control via MQTT for various settings/options.
