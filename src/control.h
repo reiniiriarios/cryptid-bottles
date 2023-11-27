@@ -110,18 +110,29 @@ const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
   { GLOW_SPEED_FAST,   "fast"   },
 };
 
+// Minimum mired value for white balance.
+#define MIN_WB_MIRED 40
+
+// Maximum mired value for white balance.
+#define MAX_WB_MIRED 90
+
+/**
+ * @brief Color temperature list. Values in (very) approximate mireds.
+ *
+ * @see https://en.wikipedia.org/wiki/Mired
+ */
 typedef enum {
-  WB_HOTTEST     = -5,
-  WB_HOT         = -4,
-  WB_WARMER      = -3,
-  WB_WARM        = -2,
-  WB_WARM_BRIGHT = -1,
-  WB_BRIGHT      =  0,
-  WB_COOL_BRIGHT =  1,
-  WB_COOL        =  2,
-  WB_COOLER      =  3,
-  WB_COLD        =  4,
-  WB_COLDEST     =  5
+  WB_HOTTEST     = 40,
+  WB_HOT         = 45,
+  WB_WARMER      = 50,
+  WB_WARM        = 55,
+  WB_WARM_BRIGHT = 60,
+  WB_BRIGHT      = 65,
+  WB_COOL_BRIGHT = 70,
+  WB_COOL        = 75,
+  WB_COOLER      = 80,
+  WB_COLD        = 85,
+  WB_COLDEST     = 90
 } white_balance_t;
 
 /**
@@ -149,6 +160,16 @@ const std::vector<const rgb_t*> WHITE_TEMPERATURES_VECTOR = []() -> std::vector<
   for (auto const& x : WHITE_TEMPERATURES) t.push_back(&x.second);
   return t;
 }();
+
+/**
+ * @brief Round mired value to the nearest value that has an enum.
+ *
+ * @param n mireds
+ * @return mired, rounded
+ */
+constexpr int roundmired(int n) {
+  return n + abs((n % 5) - 5);
+}
 
 /**
  * @brief This class provides control via MQTT for various settings/options.
