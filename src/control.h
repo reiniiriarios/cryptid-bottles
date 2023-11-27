@@ -256,32 +256,12 @@ class Control {
      * @tparam T map.first
      * @tparam R map.second
      * @param id unique id
-     * @param options map of options (mqtt value as first (string))
      * @param name device name if different from id
+     * @param options map of options (mqtt value as first (string))
      * @return success
      */
     template<typename T>
-    bool sendDiscoverySelect(String id, std::map<String, T> options, String name = "");
-
-    /**
-     * @brief Send MQTT discovery message for number option.
-     * 
-     * @param id unique id
-     * @param min minimum value
-     * @param max maximum value
-     * @param name device name if different from id
-     * @return success
-     */
-    bool sendDiscoveryNumber(String id, int32_t min, int32_t max, String name = "");
-
-    /**
-     * @brief Send MQTT discovery message for boolean switch.
-     * 
-     * @param id unique id
-     * @param name device name if different from id
-     * @return success
-     */
-    bool sendDiscoverySwitch(String id, String name = "");
+    bool sendDiscoverySelect(String id, String name, std::map<String, T> options);
 
   private:
     /**

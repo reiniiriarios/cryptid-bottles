@@ -117,6 +117,7 @@ void Control::mqttCurrentStatus(void) {
 
 bool Control::sendDiscovery() {
   Serial.println("Sending MQTT discovery for HASS");
+
 const String payload = R"JSON({
 "name":"Cryptid Bottles",
 "unique_id":"cryptid-bottles",
@@ -140,5 +141,31 @@ const String payload = R"JSON({
 //  rgb_value_template
 //  white_command_topic
 //  white_scale (255)
+
   return interwebs->mqttPublish("homeassistant/light/cryptid-bottles/cryptidBottles/config", payload);
+
+  // Addl controls that don't fall under "light":
+  sendDiscoverySelect("glow_speed", "Glow Speed", GLOW_SPEED);
+  sendDiscoverySelect("faerie_speed", "Faerie Speed", FAERIE_SPEED);
+}
+
+template<typename T>
+bool Control::sendDiscoverySelect(String id, String name, std::map<String, T> options) {
+  Serial.println("Sending MQTT discovery for '" + id + "'");
+  // Manually building this here makes more sense than including a JSON library.
+  String topic = "homeassistant/select/" + id + "/cryptidBottles/config";
+  String payload = "{\"name\":\"" + name + "\","
+                   "\"unique_id\":\"cryptid-bottles-" + id + "\","
+                   "\"state_topic\":\"cryptid/bottles/state\","
+                   "\"command_topic\":\"cryptid/bottles/" + id + "/set\","
+                   "\"value_template\":\"{{ value_json." + id + " }}\","
+                   "\"options\":[";
+  bool f = true;
+  for (auto const& x : options) {
+    if (!f) payload += ",";
+    payload += "\"" + x.first + "\"";
+    f = false;
+  }
+  payload += "],\"device\":{\"identifiers\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
+  return interwebs->mqttPublish(topic, payload);
 }
