@@ -107,21 +107,35 @@ const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
   { GLOW_SPEED_FAST,   "fast"   },
 };
 
+typedef enum {
+  WB_RED         = -5,
+  WB_HOT         = -4,
+  WB_WARMER      = -3,
+  WB_WARM        = -2,
+  WB_WARM_BRIGHT = -1,
+  WB_BRIGHT      =  0,
+  WB_COOL_BRIGHT =  1,
+  WB_COOL        =  2,
+  WB_COOLER      =  3,
+  WB_COLD        =  4,
+  WB_BLUE        =  5
+} white_balance_t;
+
 /**
  * @brief Color temperatures for various whites.
  */
-const std::map<String, rgb_t> WHITE_TEMPERATURES = {
-  { "red",         rgb_t{ 255, 230, 155 } },
-  { "hot",         rgb_t{ 255, 235, 175 } },
-  { "warmer",      rgb_t{ 255, 240, 195 } },
-  { "warm",        rgb_t{ 255, 245, 215 } },
-  { "warm bright", rgb_t{ 255, 250, 235 } },
-  { "bright",      rgb_t{ 255, 255, 255 } },
-  { "cool bright", rgb_t{ 235, 250, 255 } },
-  { "cool",        rgb_t{ 215, 245, 255 } },
-  { "cooler",      rgb_t{ 195, 240, 255 } },
-  { "cold",        rgb_t{ 175, 235, 255 } },
-  { "blue",        rgb_t{ 155, 230, 255 } }
+const std::map<white_balance_t, rgb_t> WHITE_TEMPERATURES = {
+  { WB_RED,         rgb_t{ 255, 230, 155 } },
+  { WB_HOT,         rgb_t{ 255, 235, 175 } },
+  { WB_WARMER,      rgb_t{ 255, 240, 195 } },
+  { WB_WARM,        rgb_t{ 255, 245, 215 } },
+  { WB_WARM_BRIGHT, rgb_t{ 255, 250, 235 } },
+  { WB_BRIGHT,      rgb_t{ 255, 255, 255 } },
+  { WB_COOL_BRIGHT, rgb_t{ 235, 250, 255 } },
+  { WB_COOL,        rgb_t{ 215, 245, 255 } },
+  { WB_COOLER,      rgb_t{ 195, 240, 255 } },
+  { WB_COLD,        rgb_t{ 175, 235, 255 } },
+  { WB_BLUE,        rgb_t{ 155, 230, 255 } }
 };
 
 /**
@@ -162,9 +176,9 @@ class Control {
     faerie_speed_t faerieSpeed = FAERIE_SPEED_MEDIUM;
 
     /**
-     * @brief White balance in packed RGB.
+     * @brief Global white balance.
      */
-    String white_balance = "bright";
+    white_balance_t white_balance = WB_BRIGHT;
 
     /**
      * @brief Get the RGB value for the current white balance.

@@ -88,11 +88,10 @@ void Control::initMQTT(void) {
 
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
-    if (WHITE_TEMPERATURES.find(payload) == WHITE_TEMPERATURES.end()) {
-      payload = "bright"; // default
-    }
-    white_balance = payload;
-    Serial.print("Setting white balance to '" + white_balance + "'...");
+    int8_t wb = payload.toInt();
+    if (wb < -5 || wb > 5) wb = 0; // default
+    white_balance = (white_balance_t)wb;
+    Serial.print("Setting white balance to " + String(wb) + "...");
     mqttCurrentStatus();
   });
 
@@ -111,7 +110,7 @@ void Control::mqttCurrentStatus(void) {
   String payload = "{";
   payload += "\"on\":\"" + on + "\",";
   payload += "\"brightness\":\"" + String(brightness) + "\",";
-  payload += "\"white-balance\":\"" + white_balance + "\",";
+  payload += "\"white-balance\":\"" + String((int8_t)white_balance) + "\",";
   payload += "\"animation\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
   payload += "\"glow-speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
   payload += "\"faerie-speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"",
@@ -123,7 +122,7 @@ bool Control::sendDiscoveryAll(void) {
   bool success = true;
   success = success && sendDiscoverySwitch("on", "On/Off");
   success = success && sendDiscoveryNumber("brightness", 0, 100, "Brightness");
-  success = success && sendDiscoverySelect("white-balance", WHITE_TEMPERATURES, "White Balance");
+  success = success && sendDiscoveryNumber("white-balance", -5, 5, "White Balance");
   success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS, "Animation");
   success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "Glow Speed");
   success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "Faerie Speed");
