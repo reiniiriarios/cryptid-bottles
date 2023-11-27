@@ -7,7 +7,7 @@ using namespace std;
 
 Interwebs::Interwebs() {
   mqttBroker = IPAddress(MQTT_SERVER);
-  mqttClient = new MQTTClient(1024);
+  mqttClient = new MQTTClient(2048);
   WiFi.setPins(SPIWIFI_SS, SPIWIFI_ACK, ESP32_RESETN, ESP32_GPIO0, &SPIWIFI);
 }
 
@@ -349,7 +349,6 @@ void Interwebs::mqttMessageReceived(String &topic, String &payload) {
 
 bool Interwebs::mqttPublish(String topic, String payload) {
   if (!mqttClient->publish(topic, payload)) {
-    Serial.println("Error publishing discovery for on/off toggle.");
     Serial.println("Error: " + String(mqttClient->lastError()));
     return false;
   }

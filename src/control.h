@@ -163,6 +163,26 @@ const std::vector<const rgb_t*> WHITE_TEMPERATURES_VECTOR = []() -> std::vector<
 }();
 
 /**
+ * @brief Convert map values to a JSON string array.
+ *
+ * @tparam T 
+ * @param v 
+ * @return const String 
+ */
+template<typename T>
+const inline String jsonStr(std::map<String, T> v) {
+  String s = "[";
+  bool f = true;
+  for (auto const& x : v) {
+    if (!f) s += ",";
+    s += "\"" + x.first + "\"";
+    f = false;
+  }
+  s += "]";
+  return s;
+}
+
+/**
  * @brief Discovery JSON for light.
  */
 const static String discoveryJson = []() -> String {
@@ -234,19 +254,6 @@ const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "
  */
 constexpr int roundmired(int n) {
   return n + abs((n % 5) - 5);
-}
-
-template<typename T>
-const inline String jsonStr(std::map<String, T> v) {
-  String s = "[";
-  bool f = true;
-  for (auto const& x : v) {
-    if (!f) s += ",";
-    s += "\"" + x.first + "\"";
-    f = false;
-  }
-  s += "]";
-  return s;
 }
 
 /**
