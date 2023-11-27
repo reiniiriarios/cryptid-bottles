@@ -133,7 +133,7 @@ bool Control::sendDiscoverySwitch(String id, String name) {
   return sendDiscovery("switch", name, id, "");
 }
 
-bool Control::sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String name) {
+bool Control::sendDiscoveryNumber(String id, int32_t min, int32_t max, String name) {
   String addl = "\"min\":"+String(min)+",\"max\":"+String(max)+",\"mode\":\"slider\",";
   return sendDiscovery("number", name, id, addl);
 }

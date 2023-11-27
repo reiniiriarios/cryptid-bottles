@@ -249,7 +249,7 @@ class Control {
      * @param name device name if different from id
      * @return success
      */
-    bool sendDiscoveryNumber(String id, uint32_t min, uint32_t max, String name = "");
+    bool sendDiscoveryNumber(String id, int32_t min, int32_t max, String name = "");
 
     /**
      * @brief Send MQTT discovery message for boolean switch.
