@@ -3,11 +3,6 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #include "cryptid-bottles.h"
-#include "src/color.h"
-#include "src/control.h"
-#include "src/pxl8.h"
-#include "src/interwebs.h"
-#include "src/bottle.h"
 
 // GLOBALS -----------------------------------------------------------------------------------------
 
@@ -21,70 +16,6 @@ Control control(&pxl8, &interwebs, &bottles, NUM_BOTTLES);
 void err(void) {
   Serial.println("FATAL ERROR");
   for (;;) digitalWrite(LED_BUILTIN, (millis() / 500) & 1);
-}
-
-// SETUP -------------------------------------------------------------------------------------------
-
-// @todo MOVE THIS
-rgb_t prettyWhiteColors[17] = {
-  rgb_t{ 255, 175,  10 }, // ~2k
-  rgb_t{ 255, 195,  35 }, // ~2.25k
-  rgb_t{ 255, 210,  50 }, // ~2.5k
-  rgb_t{ 255, 225,  70 }, // ~2.75k
-  rgb_t{ 255, 245, 150 }, // ~3.5k
-  rgb_t{ 255, 255, 160 }, // ~3.75k
-  rgb_t{ 255, 255, 175 }, // mid---
-  rgb_t{ 255, 255, 206 }, // mid--
-  rgb_t{ 255, 255, 225 }, // mid-
-  rgb_t{ 255, 255, 255 }, // mid
-  rgb_t{ 225, 255, 255 }, // mid+
-  rgb_t{ 206, 255, 255 }, // ~5.5k
-  rgb_t{ 175, 255, 255 }, // ~6.5k
-  rgb_t{ 150, 250, 255 }, // ~7.5k
-  rgb_t{ 135, 225, 255 }, // ~8.5k
-  rgb_t{ 127, 220, 225 }, // ~9k
-  rgb_t{ 125, 215, 225 }  // ~9.5k
-};
-
-void setup(void) {
-  Serial.begin(9600);
-  // Wait for serial port to open.
-  while (!Serial) delay(10);
-  Serial.println("Starting...");
-
-  // Seed by reading unused anolog pin.
-  randomSeed(analogRead(A0));
-
-  // Start bottles with random hue ranges.
-  uint16_t hs[NUM_BOTTLES] = {};
-  uint16_t he[NUM_BOTTLES] = {};
-  rgb_t* color[NUM_BOTTLES] = {};
-  for (int i = 0; i < NUM_BOTTLES; i++) {
-    hs[i] = random(0, 360);
-    he[i] = hs[i] + random(30, 40);
-    color[i] = &prettyWhiteColors[random(0, 17)];
-  };
-
-  // Bottles !! Config pin, start, and length according to hardware !!
-  Serial.println("Setting up LEDs...");
-  //                             pin  1st  len
-  bottles.push_back(Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]));
-  bottles.push_back(Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]));
-  bottles.push_back(Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]));
-  bottles.push_back(Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]));
-
-  // Start pixel driver.
-  if (!pxl8.init()) {
-    err();
-  }
-  pxl8.setBrightness(control.brightness);
-
-  // WiFi, MQTT, etc.
-  control.initMQTT();
-  if (interwebs.connect()) {
-    control.sendDiscoveryAll();
-    control.mqttCurrentStatus();
-  }
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------
@@ -111,10 +42,16 @@ void updateBottleHues(void) {
   }
 }
 
+rgb_t randomWhiteBalance(void) {
+  auto it = WHITE_TEMPERATURES.begin();
+  std::advance(it, rand() % WHITE_TEMPERATURES.size());
+  return it->second;
+}
+
 void updateBottleWhiteBalance(void) {
   if (shouldChangeGlow()) {
     uint8_t id = randBottleId();
-    rgb_t c = prettyWhiteColors[random(0, 17)];
+    rgb_t c = randomWhiteBalance();
     Serial.println("Updating white balance for bottle " + String(id) +
       " to " + String(c.r) + " " + String(c.g) + " " + String(c.b));
     bottles.at(id).setColor(c, random(1500, 2500));
@@ -155,6 +92,49 @@ void spawnFaeries(void) {
       lastFaerieFly = millis();
       faerieFlying = false;
     }
+  }
+}
+
+// SETUP -------------------------------------------------------------------------------------------
+
+void setup(void) {
+  Serial.begin(9600);
+  // Wait for serial port to open.
+  while (!Serial) delay(10);
+  Serial.println("Starting...");
+
+  // Seed by reading unused anolog pin.
+  randomSeed(analogRead(A0));
+
+  // Start bottles with random hue ranges.
+  uint16_t hs[NUM_BOTTLES] = {};
+  uint16_t he[NUM_BOTTLES] = {};
+  rgb_t* color[NUM_BOTTLES] = {};
+  for (int i = 0; i < NUM_BOTTLES; i++) {
+    hs[i] = random(0, 360);
+    he[i] = hs[i] + random(30, 40);
+    color[i] = &randomWhiteBalance();
+  };
+
+  // Bottles !! Config pin, start, and length according to hardware !!
+  Serial.println("Setting up LEDs...");
+  //                             pin  1st  len
+  bottles.push_back(Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]));
+  bottles.push_back(Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]));
+  bottles.push_back(Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]));
+  bottles.push_back(Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]));
+
+  // Start pixel driver.
+  if (!pxl8.init()) {
+    err();
+  }
+  pxl8.setBrightness(control.brightness);
+
+  // WiFi, MQTT, etc.
+  control.initMQTT();
+  if (interwebs.connect()) {
+    control.sendDiscoveryAll();
+    control.mqttCurrentStatus();
   }
 }
 

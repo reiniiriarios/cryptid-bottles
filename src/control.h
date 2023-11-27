@@ -107,6 +107,23 @@ const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
 };
 
 /**
+ * @brief Color temperatures for various whites.
+ */
+const std::map<String, rgb_t> WHITE_TEMPERATURES = {
+  { "red",         rgb_t{ 255, 230, 155 } },
+  { "hot",         rgb_t{ 255, 235, 175 } },
+  { "warmer",      rgb_t{ 255, 240, 195 } },
+  { "warm",        rgb_t{ 255, 245, 215 } },
+  { "warm bright", rgb_t{ 255, 250, 235 } },
+  { "bright",      rgb_t{ 255, 255, 255 } },
+  { "cool bright", rgb_t{ 235, 250, 255 } },
+  { "cool",        rgb_t{ 215, 245, 255 } },
+  { "cooler",      rgb_t{ 195, 240, 255 } },
+  { "cold",        rgb_t{ 175, 235, 255 } },
+  { "blue",        rgb_t{ 155, 230, 255 } }
+};
+
+/**
  * @brief This class provides control via MQTT for various settings/options.
  */
 class Control {

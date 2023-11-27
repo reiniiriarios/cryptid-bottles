@@ -3,6 +3,11 @@
 
 #include <functional>
 #include <map>
+#include "src/color.h"
+#include "src/control.h"
+#include "src/pxl8.h"
+#include "src/interwebs.h"
+#include "src/bottle.h"
 
 // !! @see src/pxl8.h for more gfx config !!
 
@@ -20,6 +25,13 @@
 static inline uint8_t randBottleId(void) {
   return (uint8_t)random(0, NUM_BOTTLES);
 }
+
+/**
+ * @brief Get a white RGB value at a random color temperature.
+ * 
+ * @return RGB
+ */
+rgb_t randomWhiteBalance(void);
 
 /**
  * @brief Whether to change a bottle's glow color.
