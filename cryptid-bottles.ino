@@ -128,7 +128,7 @@ void setup(void) {
   // WiFi, MQTT, etc.
   control.initMQTT();
   if (interwebs.connect()) {
-    control.sendDiscoveryAll();
+    control.sendDiscovery();
     control.mqttCurrentStatus();
   }
 }
@@ -217,7 +217,7 @@ void loop(void) {
     else if (!interwebs.mqttIsConnected()) {
       bottles.at(0)->warningMQTT();
       if (interwebs.mqttReconnect()) {
-        control.sendDiscoveryAll();
+        control.sendDiscovery();
         control.mqttCurrentStatus();
       }
     }

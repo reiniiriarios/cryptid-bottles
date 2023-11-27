@@ -32,18 +32,18 @@ void Control::initMQTT(void) {
   });
 
   // Set the bottles animation.
-  interwebs->onMqtt("cryptid/bottles/animation/set", [&](String &payload){
+  interwebs->onMqtt("cryptid/bottles/effect/set", [&](String &payload){
     pixelsOn = true;
     if (BOTTLE_ANIMATIONS.find(payload) == BOTTLE_ANIMATIONS.end()) {
       payload = "warning"; // not found
     }
-    Serial.println("Setting animation to " + payload);
+    Serial.println("Setting effect to " + payload);
     bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
     mqttCurrentStatus();
   });
 
   // Set the glow animation speed.
-  interwebs->onMqtt("cryptid/bottles/glow-speed/set", [&](String &payload){
+  interwebs->onMqtt("cryptid/bottles/glow_speed/set", [&](String &payload){
     if (bottleAnimation != BOTTLE_ANIMATION_GLOW) {
       bottleAnimation = BOTTLE_ANIMATION_FAERIES;
     }
@@ -56,7 +56,7 @@ void Control::initMQTT(void) {
   });
 
   // Set the faerie animation speed.
-  interwebs->onMqtt("cryptid/bottles/faerie-speed/set", [&](String &payload){
+  interwebs->onMqtt("cryptid/bottles/faerie_speed/set", [&](String &payload){
     bottleAnimation = BOTTLE_ANIMATION_FAERIES;
     if (FAERIE_SPEED.find(payload) == FAERIE_SPEED.end()) {
       payload = "medium"; // default
@@ -68,10 +68,10 @@ void Control::initMQTT(void) {
 
   // Set the bottles brightness.
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](String &payload){
-    uint8_t b = min(max(0, round(payload.toFloat() * 2.55f)), 255);
-    Serial.println("Setting brightness to " + String(b));
+    brightness = min(max(0, payload.toInt()), 255);
+    Serial.println("Setting brightness to " + String(brightness));
     String on;
-    if (b == 0) {
+    if (brightness == 0) {
       pixelsOn = false;
       on = "OFF";
       for (auto & bottle : *bottles) {
@@ -81,13 +81,12 @@ void Control::initMQTT(void) {
       pixelsOn = true;
       on = "ON";
     }
-    pxl8->setBrightness(b);
-    brightness = b;
+    pxl8->setBrightness(brightness);
     mqttCurrentStatus();
   });
 
   // Set white balance in degrees kelvin.
-  interwebs->onMqtt("cryptid/bottles/white-balance/set", [&](String &payload){
+  interwebs->onMqtt("cryptid/bottles/white_balance/set", [&](String &payload){
     white_balance = white_balance_t(min(max(MIN_WB_MIRED, roundmired(payload.toInt())), MAX_WB_MIRED));
     Serial.print("Setting white balance to " + String(white_balance) + "...");
     mqttCurrentStatus();
@@ -96,7 +95,7 @@ void Control::initMQTT(void) {
   // Send discovery when Home Assistant notifies it's online.
   interwebs->onMqtt("homeassistant/status", [&](String &payload){
     if (payload == "online") {
-      sendDiscoveryAll();
+      sendDiscovery();
       mqttCurrentStatus();
     }
   });
@@ -107,63 +106,39 @@ void Control::mqttCurrentStatus(void) {
   if (!pixelsOn) on = "OFF";
   String payload = "{";
   payload += "\"on\":\"" + on + "\",";
-  payload += "\"brightness\":\"" + String(round(brightness / 2.55)) + "\",";
-  payload += "\"white-balance\":\"" + String((int8_t)white_balance) + "\",";
-  payload += "\"animation\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
-  payload += "\"glow-speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
-  payload += "\"faerie-speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"",
+  payload += "\"brightness\":\"" + String(brightness) + "\",";
+  payload += "\"white_balance\":\"" + String((int8_t)white_balance) + "\",";
+  payload += "\"effect\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\",",
+  payload += "\"glow_speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\",",
+  payload += "\"faerie_speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"",
   payload += "}";
   interwebs->mqttSendMessage("cryptid/bottles/state", payload);
 }
 
-bool Control::sendDiscoveryAll(void) {
-  bool success = true;
-  success = success && sendDiscoverySwitch("on", "On/Off");
-  success = success && sendDiscoveryNumber("brightness", 0, 100, "Brightness");
-  success = success && sendDiscoveryNumber("white-balance", MIN_WB_MIRED, MAX_WB_MIRED, "White Balance");
-  success = success && sendDiscoverySelect("animation", BOTTLE_ANIMATIONS, "Animation");
-  success = success && sendDiscoverySelect("glow-speed", GLOW_SPEED, "Glow Speed");
-  success = success && sendDiscoverySelect("faerie-speed", FAERIE_SPEED, "Faerie Speed");
-  return success;
-}
-
-bool Control::sendDiscoverySwitch(String id, String name) {
-  return sendDiscovery("switch", name, id, "");
-}
-
-bool Control::sendDiscoveryNumber(String id, int32_t min, int32_t max, String name) {
-  String addl = "\"min\":"+String(min)+",\"max\":"+String(max)+",\"mode\":\"slider\",";
-  return sendDiscovery("number", name, id, addl);
-}
-
-template<typename T>
-bool Control::sendDiscoverySelect(String id, std::map<String, T> options, String name) {
-  String addl = "\"options\":[";
-  bool f = true;
-  for (auto const& x : options) {
-    if (!f) addl += ",";
-    addl += "\"" + x.first + "\"";
-    f = false;
-  }
-  addl += "],";
-  return sendDiscovery("select", name, id, addl);
-}
-
-bool Control::sendDiscovery(String type, String name, String id, String addl) {
-  Serial.println("Sending MQTT discovery for '" + id + "'");
-  if (name == "") name = id;
-  // Manually building this here makes more sense than including a JSON library.
-  String topic = "homeassistant/" + type + "/" + id + "/cryptidBottles/config";
-  String payload = "{";
-  payload += "\"name\":\"" + name + "\",";
-  payload += "\"state_topic\":\"cryptid/bottles/state\",";
-  payload += "\"command_topic\":\"cryptid/bottles/" + id + "/set\",";
-  payload += "\"value_template\":\"{{ value_json." + id + " }}\",",
-  payload += addl;
-  payload += "\"unique_id\":\"cryptid-bottles-" + id + "\",";
-  payload += "\"device\":{";
-  payload += "\"identifiers\":[\"cryptidBottles\"],";
-  payload += "\"name\":\"Cryptid Bottles\"";
-  payload += "}}";
-  return interwebs->mqttPublish(topic, payload);
+bool Control::sendDiscovery() {
+  Serial.println("Sending MQTT discovery for HASS");
+const String payload = R"JSON({
+"name":"Cryptid Bottles",
+"unique_id":"cryptid-bottles",
+"icon":"mdi:bottle-tonic-outline",
+"state_topic":"cryptid/bottles/state",
+"state_value_template":"{{ value_json.on }}",
+"command_topic":"cryptid/bottles/on/set",
+"brightness_command_topic":"cryptid/bottles/brightness/set",
+"brightness_value_template":"{{ value_json.brightness }}",
+"brightness_scale":255,
+"color_temp_command_topic":"cryptid/bottles/white_balance/set",
+"color_temp_value_template":"{{ value_json.white_balance }}",
+"min_mireds":)JSON" + String(MIN_WB_MIRED) + R"JSON(,
+"max_mireds":)JSON" + String(MAX_WB_MIRED) + R"JSON(,
+"effect_command_topic":"cryptid/bottles/effect/set",
+"effect_list":)JSON" + jsonStr(BOTTLE_ANIMATIONS) + R"JSON(,
+"effect_value_template":"{{ value_json.effect }}",
+"device":{"identifiers":["cryptidBottles"],"name":"Cryptid Bottles"}
+})JSON";
+//  rgb_command_topic
+//  rgb_value_template
+//  white_command_topic
+//  white_scale (255)
+  return interwebs->mqttPublish("homeassistant/light/cryptid-bottles/cryptidBottles/config", payload);
 }

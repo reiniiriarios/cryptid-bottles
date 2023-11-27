@@ -171,6 +171,19 @@ constexpr int roundmired(int n) {
   return n + abs((n % 5) - 5);
 }
 
+template<typename T>
+const inline String jsonStr(std::map<String, T> v) {
+  String s = "[";
+  bool f = true;
+  for (auto const& x : v) {
+    if (!f) s += ",";
+    s += "\"" + x.first + "\"";
+    f = false;
+  }
+  s += "]";
+  return s;
+}
+
 /**
  * @brief This class provides control via MQTT for various settings/options.
  */
@@ -231,22 +244,11 @@ class Control {
     void initMQTT(void);
 
     /**
-     * @brief Send all MQTT discovery messages.
-     * 
-     * @return success
-     */
-    bool sendDiscoveryAll(void);
-
-    /**
      * @brief Send MQTT discovery message.
      *
-     * @param type device type
-     * @param name device name
-     * @param id device unique id
-     * @param addl additional JSON
      * @return success
      */
-    bool sendDiscovery(String type, String name, String id, String addl);
+    bool sendDiscovery();
 
     /**
      * @brief Send MQTT discovery message for select option.
