@@ -1,7 +1,7 @@
 #include "control.h"
 
-Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle>* bottles, uint8_t num_bottles)
-  : pxl8(pxl8), interwebs(interwebs), bottles(bottles), num_bottles(num_bottles) {}
+Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle*>* bottles)
+  : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
 
 rgb_t Control::getWhiteBalanceRGB(void) {
   return WHITE_TEMPERATURES.at(white_balance);
@@ -24,8 +24,8 @@ void Control::initMQTT(void) {
     }
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
       pixelsOn = false;
-      for (int i = 0; i < num_bottles; i++) {
-        bottles->at(i).blank();
+      for (auto & bottle : *bottles) {
+        bottle->blank();
       };
     }
     mqttCurrentStatus();
@@ -74,8 +74,8 @@ void Control::initMQTT(void) {
     if (b == 0) {
       pixelsOn = false;
       on = "OFF";
-      for (int i = 0; i < num_bottles; i++) {
-        bottles->at(i).blank();
+      for (auto & bottle : *bottles) {
+        bottle->blank();
       };
     } else {
       pixelsOn = true;

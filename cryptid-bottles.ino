@@ -8,8 +8,8 @@
 
 Pxl8 pxl8;
 Interwebs interwebs;
-std::vector<Bottle> bottles = {};
-Control control(&pxl8, &interwebs, &bottles, NUM_BOTTLES);
+std::vector<Bottle*> bottles = {};
+Control control(&pxl8, &interwebs, &bottles);
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ void updateBottleHues(void) {
     uint16_t hueEnd = hueStart + random(30, 40);
     Serial.println("Updating hue for bottle " + String(id) +
       " to " + String(hueStart) + "-" + String(hueEnd));
-    bottles.at(id).setHue(hueStart, hueEnd, random(1500, 2500));
+    bottles.at(id)->setHue(hueStart, hueEnd, random(1500, 2500));
     lastGlowChange = millis();
   }
 }
@@ -54,7 +54,7 @@ void updateBottleWhiteBalance(void) {
     rgb_t c = randomWhiteBalance();
     Serial.println("Updating white balance for bottle " + String(id) +
       " to " + String(c.r) + " " + String(c.g) + " " + String(c.b));
-    bottles.at(id).setColor(c, random(1500, 2500));
+    bottles.at(id)->setColor(c, random(1500, 2500));
     lastGlowChange = millis();
   }
 }
@@ -82,9 +82,9 @@ void spawnFaeries(void) {
     if (faerieBottle == -1) {
       faerieBottle = randBottleId();
       Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
-      bottles.at(faerieBottle).spawnFaerie(random(8, 14) * 0.1);
+      bottles.at(faerieBottle)->spawnFaerie(random(8, 14) * 0.1);
     }
-    faerieFlying = bottles.at(faerieBottle).showFaerie();
+    faerieFlying = bottles.at(faerieBottle)->showFaerie();
     // After animation, reset bottle and log time.
     if (!faerieFlying) {
       Serial.println("Faerie has flown away from bottle " + String(faerieBottle));
@@ -119,10 +119,10 @@ void setup(void) {
   // Bottles !! Config pin, start, and length according to hardware !!
   Serial.println("Setting up LEDs...");
   //                             pin  1st  len
-  bottles.push_back(Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]));
-  bottles.push_back(Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]));
-  bottles.push_back(Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]));
-  bottles.push_back(Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]));
+  bottles.push_back(new Bottle(&pxl8,  0,   0,  25, hs[0], he[0], *color[0]));
+  bottles.push_back(new Bottle(&pxl8,  0,  25,  25, hs[1], he[1], *color[1]));
+  bottles.push_back(new Bottle(&pxl8,  1,   0,  20, hs[2], he[2], *color[2]));
+  bottles.push_back(new Bottle(&pxl8,  1,  20,  30, hs[3], he[3], *color[3]));
 
   // Start pixel driver.
   if (!pxl8.init()) {
@@ -160,46 +160,46 @@ void loop(void) {
       case BOTTLE_ANIMATION_FAERIES:
         updateBottleHues();
         for (auto & bottle : bottles) {
-          bottle.glow();
+          bottle->glow();
         };
         spawnFaeries();
         break;
       case BOTTLE_ANIMATION_GLOW:
         updateBottleHues();
         for (auto & bottle : bottles) {
-          bottle.glow();
+          bottle->glow();
         };
         break;
       case BOTTLE_ANIMATION_GLOW_W:
         updateBottleWhiteBalance();
         for (auto & bottle : bottles) {
-          bottle.glowColor();
+          bottle->glowColor();
         };
         break;
       case BOTTLE_ANIMATION_RAIN:
         for (auto & bottle : bottles) {
-          bottle.rain();
+          bottle->rain();
         };
         break;
       case BOTTLE_ANIMATION_RAINBOW:
         for (auto & bottle : bottles) {
-          bottle.rainbow();
+          bottle->rainbow();
         };
         break;
       case BOTTLE_ANIMATION_ILLUM:
         for (auto & bottle : bottles) {
-          bottle.illuminate(control.getWhiteBalanceRGB());
+          bottle->illuminate(control.getWhiteBalanceRGB());
         };
         break;
       case BOTTLE_ANIMATION_TEST:
         for (auto & bottle : bottles) {
-          bottle.testBlink();
+          bottle->testBlink();
         };
         break;
       case BOTTLE_ANIMATION_WARNING:
       default:
         for (auto & bottle : bottles) {
-          bottle.warning();
+          bottle->warning();
         };
     }
   }
@@ -211,11 +211,11 @@ void loop(void) {
   if (loopCounter % (MAX_FPS * 15) == 0) {
     // Check and repair interwebs connections.
     if (!interwebs.wifiIsConnected()) {
-      bottles.at(0).warningWiFi();
+      bottles.at(0)->warningWiFi();
       interwebs.wifiReconnect();
     }
     else if (!interwebs.mqttIsConnected()) {
-      bottles.at(0).warningMQTT();
+      bottles.at(0)->warningMQTT();
       if (interwebs.mqttReconnect()) {
         control.sendDiscoveryAll();
         control.mqttCurrentStatus();
