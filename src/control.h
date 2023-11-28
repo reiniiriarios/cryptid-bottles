@@ -33,7 +33,7 @@ const inline String jsonStr(std::map<String, T> v) {
  * @see https://www.home-assistant.io/integrations/mqtt
  */
 const static String discoveryJson = []() -> String {
-  String json = R"JSON({
+  String json = F(R"JSON({
     "~":"cryptid/bottles",
     "name":"Cryptid Bottles",
     "uniq_id":"cryptid-bottles",
@@ -50,12 +50,18 @@ const static String discoveryJson = []() -> String {
     "whit_scl":255,
     "clr_temp_cmd_t":"~/white_balance/set",
     "clr_temp_val_tpl":"{{ value_json.white_balance }}",
-    "min_mirs":)JSON" + String(MIN_WB_MIRED) + R"JSON(,
-    "max_mirs":)JSON" + String(MAX_WB_MIRED) + R"JSON(,
+    "min_mirs":)JSON");
+  json += String(MIN_WB_MIRED);
+  json += F(R"JSON(,
+    "max_mirs":)JSON");
+  json += String(MAX_WB_MIRED);
+  json += F(R"JSON(,
     "fx_cmd_t":"~/effect/set",
-    "fx_list":)JSON" + jsonStr(BOTTLE_ANIMATIONS) + R"JSON(,
+    "fx_list":)JSON");
+  json += jsonStr(BOTTLE_ANIMATIONS);
+  json += F(R"JSON(,
     "fx_val_tpl":"{{ value_json.effect }}",
-    "dev":{"ids":["cryptidBottles"],"name":"Cryptid Bottles"}})JSON";
+    "dev":{"ids":["cryptidBottles"],"name":"Cryptid Bottles"}})JSON");
   json.replace("\n    ",""); // shrink data
   return json;
 }();

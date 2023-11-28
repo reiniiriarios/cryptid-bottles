@@ -4,14 +4,15 @@ Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle*>* bottles
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
 
 void Control::initMQTT(void) {
-  Serial.println("Setting up MQTT control...");
+  Serial.println(F("Setting up MQTT control..."));
 
   // Enable birth and last will and testament.
   interwebs->setBirthLWTtopic("cryptid/bottles/status");
 
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](String &payload){
-    Serial.println("Setting on/off to " + payload);
+    Serial.print(F("Setting on/off to "));
+    Serial.println(payload);
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
       pixelsOn = true;
       if (brightness == 0) {
@@ -31,11 +32,13 @@ void Control::initMQTT(void) {
   interwebs->onMqtt("cryptid/bottles/effect/set", [&](String &payload){
     pixelsOn = true;
     if (BOTTLE_ANIMATIONS.find(payload) == BOTTLE_ANIMATIONS.end()) {
-      Serial.println("Effect '" + payload + "' not found");
+      Serial.print(F("Effect not found: "));
+      Serial.println(payload);
       bottleAnimation = BOTTLE_ANIMATION_WARNING;
     }
     else {
-      Serial.println("Setting effect to " + payload);
+      Serial.print(F("Setting effect to "));
+      Serial.println(payload);
       bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
     }
     mqttCurrentStatus();
@@ -49,7 +52,8 @@ void Control::initMQTT(void) {
     if (GLOW_SPEED.find(payload) == GLOW_SPEED.end()) {
       payload = "medium"; // default
     }
-    Serial.println("Setting glow speed to " + payload);
+    Serial.print(F("Setting glow speed to "));
+    Serial.println(payload);
     glowSpeed = GLOW_SPEED.at(payload);
     mqttCurrentStatus();
   });
@@ -60,7 +64,8 @@ void Control::initMQTT(void) {
     if (FAERIE_SPEED.find(payload) == FAERIE_SPEED.end()) {
       payload = "medium"; // default
     }
-    Serial.println("Setting faerie speed to " + payload);
+    Serial.print(F("Setting faerie speed to "));
+    Serial.println(payload);
     faerieSpeed = FAERIE_SPEED.at(payload);
     mqttCurrentStatus();
   });
@@ -68,7 +73,8 @@ void Control::initMQTT(void) {
   // Set the bottles brightness.
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](String &payload){
     brightness = min(max(0, payload.toInt()), 255);
-    Serial.println("Setting brightness to " + String(brightness));
+    Serial.print(F("Setting brightness to "));
+    Serial.println(String(brightness));
     if (brightness == 0) {
       pixelsOn = false;
       for (auto & bottle : *bottles) {
@@ -91,10 +97,12 @@ void Control::initMQTT(void) {
       rgb.push_back(atoi(substr.c_str()));
     }
     if (rgb.size() != 3) {
-      Serial.println("Invalid color '" + String(payload) + "'");
+      Serial.print(F("Invalid color: "));
+      Serial.println(payload);
       static_color = rgb_t{ 255, 255, 255 };
     } else {
-      Serial.println("Setting color to " + String(payload));
+      Serial.print(F("Setting color to "));
+      Serial.println(payload);
       static_color = rgb_t{ rgb.at(0), rgb.at(1), rgb.at(2) };
     }
     bottleAnimation = BOTTLE_ANIMATION_ILLUM;
@@ -104,7 +112,8 @@ void Control::initMQTT(void) {
   // Set to a given brightness at the current white balance.
   interwebs->onMqtt("cryptid/bottles/white/set", [&](String &payload){
     brightness = min(max(0, payload.toInt()), 255);
-    Serial.println("Setting illumination to " + String(white_balance) + " at " + String(brightness));
+    Serial.print(F("Setting illumination to "));
+    Serial.println(String(white_balance) + "@" + String(brightness));
     static_color = WHITE_TEMPERATURES.at(white_balance);
     if (brightness == 0) {
       pixelsOn = false;
@@ -122,7 +131,8 @@ void Control::initMQTT(void) {
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white_balance/set", [&](String &payload){
     white_balance = white_balance_t(min(max(MIN_WB_MIRED, roundmired(payload.toInt())), MAX_WB_MIRED));
-    Serial.println("Setting white balance to " + String(white_balance) + "...");
+    Serial.print(F("Setting white balance to "));
+    Serial.println(String(white_balance));
     static_color = WHITE_TEMPERATURES.at(white_balance);
     bottleAnimation = BOTTLE_ANIMATION_ILLUM;
     mqttCurrentStatus();
@@ -151,7 +161,7 @@ void Control::mqttCurrentStatus(void) {
 }
 
 bool Control::sendDiscovery() {
-  Serial.println("Sending MQTT discovery for HASS");
+  Serial.println(F("Sending MQTT discovery for HASS"));
   bool success = interwebs->mqttPublish("homeassistant/light/cryptid-bottles/cryptidBottles/config", discoveryJson);
   // Addl controls that don't fall under "light":
   success = success && interwebs->mqttPublish("homeassistant/select/glow_speed/cryptidBottles/config", discoveryJsonGlowSpeed);

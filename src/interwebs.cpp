@@ -19,24 +19,24 @@ void Interwebs::setLED(uint8_t r, uint8_t g, uint8_t b) {
 
 bool Interwebs::connect(loading_callback_t loading_callback) {
   if (WiFi.status() == WL_NO_MODULE) {
-    Serial.println("Communication with WiFi module failed");
+    Serial.println(F("Communication with WiFi module failed"));
     return false;
   }
 
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("WiFi firmware upgrade available");
+    Serial.println(F("WiFi firmware upgrade available"));
   }
   loading_callback(STATUS_LOADING);
 
   if (!wifiInit(loading_callback)) {
-    Serial.println("Connection failed");
+    Serial.println(F("Connection failed"));
     loading_callback(STATUS_LOADING_WIFI_ERR);
     return false;
   }
   loading_callback(STATUS_LOADING);
 
-  Serial.print("Waiting for connection");
+  Serial.print(F("Waiting for connection"));
   for (uint8_t i = 0; i < 5; i++) {
     loading_callback(STATUS_LOADING);
     delay(500);
@@ -58,7 +58,7 @@ bool Interwebs::connect(loading_callback_t loading_callback) {
 }
 
 bool Interwebs::wifiInit(loading_callback_t loading_callback) {
-  Serial.print("Attempting to connect to SSID: ");
+  Serial.print(F("Attempting to connect to SSID: "));
   Serial.println(WIFI_SSID);
 
   status = INTERWEBS_STATUS_WIFI_CONNECTING;
@@ -68,7 +68,7 @@ bool Interwebs::wifiInit(loading_callback_t loading_callback) {
     loading_callback(STATUS_LOADING);
     wifiStatus = WiFiDrv::wifiSetPassphrase(WIFI_SSID, strlen(WIFI_SSID), WIFI_PASS, strlen(WIFI_PASS));
     if (wifiStatus != WL_FAILURE) {
-      Serial.print("Connecting");
+      Serial.print(F("Connecting"));
       uint8_t attempts = 5;
       do {
         loading_callback(STATUS_LOADING);
@@ -97,7 +97,7 @@ bool Interwebs::wifiReconnect(void) {
 
   // step 1, initiate connection
   if (status == INTERWEBS_STATUS_WIFI_OFFLINE) {
-    Serial.print("Reconnecting WiFi: ");
+    Serial.print(F("Reconnecting WiFi: "));
     Serial.println(WIFI_SSID);
     uint8_t wifiStatus = WiFiDrv::wifiSetPassphrase(WIFI_SSID, strlen(WIFI_SSID), WIFI_PASS, strlen(WIFI_PASS));
     status = INTERWEBS_STATUS_WIFI_CONNECTING;
@@ -114,26 +114,27 @@ bool Interwebs::wifiReconnect(void) {
     }
     else if (wifiStatus == WL_IDLE_STATUS) {
       // keep waiting...
-      Serial.println("Connection idle...");
+      Serial.println(F("Connection idle..."));
     }
     else if (wifiStatus == WL_SCAN_COMPLETED) {
       // keep waiting...
-      Serial.println("Connection scan complete...");
+      Serial.println(F("Connection scan complete..."));
     }
     else if (wifiStatus == WL_NO_SSID_AVAIL) {
       // fail
       status = INTERWEBS_STATUS_WIFI_OFFLINE;
-      Serial.println("Connection failure, no SSID available");
+      Serial.println(F("Connection failure, no SSID available"));
     }
     else if (wifiStatus == WL_FAILURE) {
       // fail
       status = INTERWEBS_STATUS_WIFI_OFFLINE;
-      Serial.println("Connection failure");
+      Serial.println(F("Connection failure"));
     }
     else {
       // fail (unknown)
       status = INTERWEBS_STATUS_WIFI_OFFLINE;
-      Serial.println("Connection failure, unknown failure (" + String(wifiStatus) + ")");
+      Serial.print(F("Connection failure, unknown failure: "));
+      Serial.println(String(wifiStatus));
     }
     return false;
   }
@@ -151,7 +152,7 @@ void Interwebs::setBirthLWTtopic(String topic) {
 }
 
 bool Interwebs::mqttInit(loading_callback_t loading_callback) {
-  Serial.print("MQTT connecting...");
+  Serial.print(F("MQTT connecting..."));
   loading_callback(STATUS_LOADING);
   mqttClient->begin(mqttBroker, wifiClient);
   loading_callback(STATUS_LOADING);
@@ -170,7 +171,7 @@ bool Interwebs::mqttInit(loading_callback_t loading_callback) {
   }
   loading_callback(STATUS_LOADING);
   if (!connected) {
-    Serial.println("Error connecting to MQTT broker.");
+    Serial.println(F("Error connecting to MQTT broker."));
     loading_callback(STATUS_LOADING_MQTT_ERR);
     return false;
   }
@@ -222,11 +223,11 @@ bool Interwebs::mqttReconnect(void) {
 
   // step 1 copied from WiFiClient::connect()
   if (status == INTERWEBS_STATUS_MQTT_OFFLINE || status == INTERWEBS_STATUS_MQTT_CONNECTING) {
-    Serial.println("Reconnecting MQTT...");
+    Serial.println(F("Reconnecting MQTT..."));
     status = INTERWEBS_STATUS_MQTT_CONNECTING;
 
     if (!mqttNetClient->connected()) {
-      Serial.println("Connecting via network client...");
+      Serial.println(F("Connecting via network client..."));
 
       // step 1a copied from WiFiClient::stop()
       // If the socket isn't closed, close it and wait for the next loop.
@@ -239,7 +240,7 @@ bool Interwebs::mqttReconnect(void) {
       mqttNetClient->*robbed<WiFiClientSock>::ptr = ServerDrv::getSocket();
       if (mqttNetClient->*robbed<WiFiClientSock>::ptr == NO_SOCKET_AVAIL) {
         // failure, flag to start over
-        Serial.println("No Socket available");
+        Serial.println(F("No Socket available"));
         mqttClient->*robbed<MQTTClientLastError>::ptr = LWMQTT_NETWORK_FAILED_CONNECT;
         status = INTERWEBS_STATUS_MQTT_OFFLINE;
         return false;
@@ -261,7 +262,7 @@ bool Interwebs::mqttReconnect(void) {
       return false;
     }
 
-    Serial.println("MQTT connecting to broker...");
+    Serial.println(F("MQTT connecting to broker..."));
     // prepare options
     lwmqtt_options_t options = lwmqtt_default_options;
     options.keep_alive = 60;
@@ -280,7 +281,7 @@ bool Interwebs::mqttReconnect(void) {
       750 // default = 1000, will err LWMQTT_NETWORK_TIMEOUT if reached
     );
     if (mqttClient->*robbed<MQTTClientLastError>::ptr != LWMQTT_SUCCESS) {
-      Serial.println("MQTT broker connection failed.");
+      Serial.println(F("MQTT broker connection failed."));
       mqttClient->*robbed<MQTTClientConnected>::ptr = false;
       // modified mqttNetClient->stop(), without delay
       if (mqttNetClient->*robbed<WiFiClientSock>::ptr != 255) {
@@ -289,7 +290,7 @@ bool Interwebs::mqttReconnect(void) {
       }
       return false;
     }
-    Serial.println("MQTT connected to broker.");
+    Serial.println(F("MQTT connected to broker."));
     status = INTERWEBS_STATUS_MQTT_CONNECTION_SUCCESS;
     mqttClient->*robbed<MQTTClientConnected>::ptr = true;
     // success, but still need subscriptions
@@ -316,36 +317,38 @@ bool Interwebs::wifiIsConnected(void) {
 
 void Interwebs::printWifiStatus(void) {
   // print the SSID of the network you're attached to
-  Serial.print("SSID: ");
+  Serial.print(F("SSID: "));
   Serial.println(WiFi.SSID());
   // print the board's IP address
   IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
+  Serial.print(F("IP Address: "));
   Serial.println(ip);
   // print the received signal strength
   long rssi = WiFi.RSSI();
-  Serial.print("Signal strength (RSSI): ");
+  Serial.print(F("Signal strength (RSSI): "));
   Serial.print(rssi);
-  Serial.println(" dBm");
+  Serial.println(F(" dBm"));
 }
 
 // ------------ MESSAGING ------------
 
 void Interwebs::mqttSendMessage(String topic, String payload) {
   if (wifiIsConnected() && mqttIsConnected()) {
-    Serial.println("MQTT publishing to " + topic);
+    Serial.print(F("MQTT publishing to "));
+    Serial.println(topic);
     if (!mqttClient->publish(topic, payload, true, 1)) {
-      Serial.println("Error publishing");
+      Serial.println(F("Error publishing"));
     }
   }
 }
 
 bool Interwebs::mqttSubscribe(void) {
-  Serial.println("MQTT subscribing...");
+  Serial.println(F("MQTT subscribing..."));
   bool success = true;
   for (auto sub : mqttSubs) {
     if (!mqttClient->subscribe(sub.first)) {
-      Serial.println("Error subscribing to " + sub.first);
+      Serial.print(F("Error subscribing to "));
+      Serial.println(sub.first);
       success = false;
     }
   }
@@ -362,9 +365,11 @@ void Interwebs::onMqtt(String topic, mqttcallback_t callback) {
 }
 
 void Interwebs::mqttMessageReceived(String &topic, String &payload) {
-  Serial.println("MQTT receipt: " + topic + " = " + payload);
+  Serial.print(F("MQTT receipt: "));
+  Serial.println(topic + "=" + payload);
   if (mqttSubs.find(topic) == mqttSubs.end()) {
-    Serial.println("Unrecognized MQTT topic: " + topic);
+    Serial.print(F("Unrecognized MQTT topic: "));
+    Serial.println(topic);
     return;
   }
   mqttSubs[topic](payload);
@@ -372,7 +377,8 @@ void Interwebs::mqttMessageReceived(String &topic, String &payload) {
 
 bool Interwebs::mqttPublish(String topic, String payload) {
   if (!mqttClient->publish(topic, payload)) {
-    Serial.println("Error: " + String(mqttClient->lastError()));
+    Serial.print(F("Publish error: "));
+    Serial.println(String(mqttClient->lastError()));
     return false;
   }
   return true;

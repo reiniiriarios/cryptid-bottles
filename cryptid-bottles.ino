@@ -15,7 +15,7 @@ Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
 void err(void) {
-  Serial.println("FATAL ERROR");
+  Serial.println(F("FATAL ERROR"));
   uint32_t c;
   for (;;) {
     c = 0;
@@ -157,7 +157,7 @@ void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
   // while (!Serial) delay(10);
-  Serial.println("Starting...");
+  Serial.println(F("Starting..."));
 
   // Seed by reading unused anolog pin.
   randomSeed(analogRead(A0));
@@ -166,7 +166,7 @@ void setup(void) {
   statusLED.setBrightness(64);
 
   // Bottles !! Config pin, start, and length according to hardware !!
-  Serial.println("Setting up LEDs...");
+  Serial.println(F("Setting up LEDs..."));
   //                                 pin  1st  len
   bottles.push_back(new Bottle(&pxl8,  0,   0,  25));
   bottles.push_back(new Bottle(&pxl8,  0,  25,  25));
@@ -191,8 +191,7 @@ void setup(void) {
   if (interwebs.connect(loading)) {
     loading(STATUS_MQTT_SENDING);
     control.sendDiscovery();
-    loading(STATUS_MQTT_SENDING);
-    control.mqttCurrentStatus();
+    // status sent at end of first loop
     loading(STATUS_OK);
   }
 }
@@ -288,7 +287,7 @@ void loop(void) {
     }
   }
   // At max FPS, every n seconds.
-  if (loopCounter % (MAX_FPS * 240) == 0) {
+  if (loopCounter % (MAX_FPS * 240) == 0) { // also runs on startup
     ledStatus(STATUS_MQTT_SENDING);
     control.mqttCurrentStatus();
     ledStatus(STATUS_OK);
@@ -304,7 +303,8 @@ void loop(void) {
   if (prevMillis != 0 && m > prevMillis) { // skips first, ignores millis() overflow
     uint32_t s = m - prevMillis;
     if (s > 10) {
-      Serial.println("Slow frame at " + String(s) + " ms.");
+      Serial.print(F("Slow frame (ms):"));
+      Serial.println(String(s));
     }
   }
   prevMillis = m;

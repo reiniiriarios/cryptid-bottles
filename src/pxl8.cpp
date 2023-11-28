@@ -4,11 +4,11 @@ Pxl8::Pxl8(void) {}
 
 void Pxl8::addStrand(uint8_t pin, uint16_t length) {
   if (neopxl8 != nullptr) {
-    Serial.println("ERROR: Cannot add strands after init.");
+    Serial.println(F("Pxl8 Error: Cannot add strands after init."));
     return;
   }
   if (pin > NEOPIXEL_NUM_PINS) {
-    Serial.println("ERROR: Pin out of range.");
+    Serial.println(F("Pxl8 Error: Pin out of range."));
     return;
   }
   if (strands[pin] == 0) {
@@ -20,22 +20,24 @@ void Pxl8::addStrand(uint8_t pin, uint16_t length) {
   }
   num_pixels += length;
   num_calc_pixels = longest_strand * num_strands;
-  Serial.println("Added strand of " + String(length) + " on " + String(pin) +
-    ", leds: " + String(num_pixels) + " (" + String(num_calc_pixels) + ")");
+  Serial.print(F("Added strand of "));
+  Serial.println(String(length) + "@" + String(pin) + ",leds:" + String(num_pixels) + "/" + String(num_calc_pixels));
 }
 
 bool Pxl8::init(void) {
   for (uint8_t i = 0; i < num_strands; i++) {
-    Serial.println("Strand " + String(i) + ": " + String(strands[i]) + " pixels");
+    Serial.print(F("Strand: "));
+    Serial.println(String(i) + ":" + String(strands[i]));
   };
-  Serial.println("Longest strand = " + String(longest_strand));
+  Serial.print(F("Longest strand = "));
+  Serial.println(String(longest_strand));
   neopxl8 = new Adafruit_NeoPXL8(longest_strand, pins, (neoPixelType)NEOPIXEL_FORMAT);
-  Serial.print("Starting pixels...");
+  Serial.print(F("Starting pixels..."));
   if (!neopxl8->begin()) {
-    Serial.println("fail");
+    Serial.println(F("fail"));
     return false;
   }
-  Serial.println("success");
+  Serial.println(F("success"));
   return true;
 }
 
@@ -58,7 +60,8 @@ void Pxl8::show(void) {
 }
 
 void Pxl8::setBrightness(uint8_t b) {
-  Serial.println("Changing brightness to " + String(b));
+  Serial.print(F("Changing brightness to "));
+  Serial.println(String(b));
   neopxl8->setBrightness(b);
 }
 
