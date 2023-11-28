@@ -100,7 +100,7 @@ void spawnFaeries(void) {
 uint8_t loading_step = 0;
 void loading(void) {
   for (auto & bottle : bottles) {
-    bottle->illuminate(rgb_t{ 0, loading_step * 15, 255 });
+    bottle->illuminate(rgb_t{ loading_step * 2, loading_step * 15, 255 });
   };
   pxl8.show();
   loading_step++;
