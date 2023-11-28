@@ -87,8 +87,8 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
   float hLower = (hrSecond - hueRange.first) / 2;
   float hUpper = hrSecond - hLower;
   // lightness amplitude adjustments
-  // lLower < l < 255
-  uint8_t lLower = 86;
+  // (255 - lLower) < l < 255
+  uint8_t lLower = 120;
   uint8_t lUpper = 255 - lLower;
 
   for (uint16_t p = startPixel; p <= lastPixel; p++) {
@@ -101,7 +101,7 @@ void Bottle::glow(float glowFrequency, float colorFrequency, waveshape_t waveSha
       case SINE:
       default:
         h = hLower * sin(colorFrequency * t + p * 2000 * colorFrequency) + hUpper;
-        l = lLower * sin(glowFrequency * t + p * 2000 * glowFrequency + pin * 1000) + lUpper;
+        l = lLower * sin(glowFrequency * t + p * 2000 * glowFrequency) + lUpper;
         break;
     }
     uint32_t c = pxl8->colorHSV(normalizeHue16(h), 255U, l);
