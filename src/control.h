@@ -112,45 +112,35 @@ const static std::map<glow_speed_t, String> GLOW_SPEED_INV = {
 };
 
 // Minimum mired value for white balance.
-#define MIN_WB_MIRED 40
+#define MIN_WB_MIRED 30
 
 // Maximum mired value for white balance.
 #define MAX_WB_MIRED 90
 
 /**
- * @brief Color temperature list. Values in (very) approximate mireds.
+ * @brief Color temperature in mireds.
  *
  * @see https://en.wikipedia.org/wiki/Mired
  */
-typedef enum {
-  WB_HOTTEST     = 40,
-  WB_HOT         = 45,
-  WB_WARMER      = 50,
-  WB_WARM        = 55,
-  WB_WARM_BRIGHT = 60,
-  WB_BRIGHT      = 65,
-  WB_COOL_BRIGHT = 70,
-  WB_COOL        = 75,
-  WB_COOLER      = 80,
-  WB_COLD        = 85,
-  WB_COLDEST     = 90
-} white_balance_t;
+typedef uint8_t white_balance_t;
 
 /**
  * @brief Color temperatures for various whites.
  */
 const std::map<white_balance_t, rgb_t> WHITE_TEMPERATURES = {
-  { WB_HOTTEST,     rgb_t{ 255, 200, 150 } },
-  { WB_HOT,         rgb_t{ 255, 211, 171 } },
-  { WB_WARMER,      rgb_t{ 255, 222, 192 } },
-  { WB_WARM,        rgb_t{ 255, 233, 213 } },
-  { WB_WARM_BRIGHT, rgb_t{ 255, 244, 234 } },
-  { WB_BRIGHT,      rgb_t{ 255, 255, 255 } },
-  { WB_COOL_BRIGHT, rgb_t{ 246, 255, 255 } },
-  { WB_COOL,        rgb_t{ 232, 252, 255 } },
-  { WB_COOLER,      rgb_t{ 218, 248, 255 } },
-  { WB_COLD,        rgb_t{ 204, 244, 255 } },
-  { WB_COLDEST,     rgb_t{ 190, 240, 255 } }
+  { 30, rgb_t{ 255, 164,  87 } },
+  { 35, rgb_t{ 255, 177, 111 } },
+  { 40, rgb_t{ 255, 190, 135 } },
+  { 45, rgb_t{ 255, 203, 159 } },
+  { 50, rgb_t{ 255, 216, 183 } },
+  { 55, rgb_t{ 255, 227, 207 } },
+  { 60, rgb_t{ 255, 241, 231 } },
+  { 65, rgb_t{ 255, 255, 255 } },
+  { 70, rgb_t{ 246, 255, 255 } },
+  { 75, rgb_t{ 232, 252, 255 } },
+  { 80, rgb_t{ 218, 248, 255 } },
+  { 85, rgb_t{ 204, 244, 255 } },
+  { 90, rgb_t{ 190, 240, 255 } }
 };
 
 /**
@@ -300,7 +290,7 @@ class Control {
     /**
      * @brief Global white balance.
      */
-    white_balance_t white_balance = WB_BRIGHT;
+    white_balance_t white_balance = 65;
 
     /**
      * @brief Global color.

@@ -237,7 +237,7 @@ void loop(void) {
     }
   }
   // At max FPS, every n seconds.
-  if (loopCounter % (MAX_FPS * 60) == 0) {
+  if (loopCounter % (MAX_FPS * 240) == 0) {
     control.mqttCurrentStatus();
     loopCounter = 0;
   }
