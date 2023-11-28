@@ -7,20 +7,7 @@
 #include <utility/server_drv.h>
 #include <utility/WiFiSocketBuffer.h>
 #include <MQTT.h>
-
-// Note: These pin definitions leave the the ESP32's `GPIO0` pin undefined (-1). If you wish to use
-// this pin - solder the pad on the bottom of the FeatherWing and set `#define ESP32_GPIO0` to the
-// correct pin for your microcontroller.
-// @see https://learn.adafruit.com/adafruit-airlift-featherwing-esp32-wifi-co-processor-featherwing/arduino
-#define SPIWIFI       SPI  // The SPI port
-#define SPIWIFI_SS    13   // Chip select pin
-#define ESP32_RESETN  12   // Reset pin
-#define SPIWIFI_ACK   11   // a.k.a BUSY or READY pin
-#define ESP32_GPIO0   -1
-
-#define MQTT_CLIENT_ID "cryptidBottles"
-#define MQTT_USER "cryptid"
-#define MQTT_PASS "public"
+#include "def.h"
 
 //-------- Rob MQTTClient Private Methods/Properties --------
 
@@ -126,7 +113,7 @@ class Interwebs {
      * @param loading_callback callback to loading function to display status
      * @return Whether the connection was successful.
      */
-    bool connect(std::function<void(void)> loading_callback);
+    bool connect(loading_callback_t loading_callback);
 
     /**
      * @brief Connect to the given WiFi network, using password.
@@ -134,7 +121,7 @@ class Interwebs {
      * @param loading_callback callback to loading function to display status
      * @return bool 
      */
-    bool wifiInit(std::function<void(void)> loading_callback);
+    bool wifiInit(loading_callback_t loading_callback);
 
     /**
      * @brief Reconnect to WiFi. This method operates step-by-step, continuing each call.
@@ -159,7 +146,7 @@ class Interwebs {
      * @param loading_callback callback to loading function to display status
      * @return Success
      */
-    bool mqttInit(std::function<void(void)> loading_callback);
+    bool mqttInit(loading_callback_t loading_callback);
 
     /**
      * @brief Reconnect to MQTT broker. This method operates step-by-step, continuing each call.

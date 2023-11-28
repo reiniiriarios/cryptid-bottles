@@ -2,22 +2,7 @@
 #define CRYPTID_PXL8_H
 
 #include <Adafruit_NeoPXL8.h>
-#include "color.h"
-
-// Pixel type flags, add together as needed:
-//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
-//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
-//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
-//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-//   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-#define NEOPIXEL_FORMAT NEO_GRB
-
-// @see docs/neopxl8-m4.md
-// 13, 12, 11 are unavailable
-#define PINS PIN_SERIAL1_RX, PIN_SERIAL1_TX, 9, 6, 10
-
-// Number of pins wired.
-#define NUM_PINS 5
+#include "def.h"
 
 /**
  * @brief Driver for NeoPixels.
@@ -127,12 +112,12 @@ class Pxl8 {
     /**
      * @brief Pinouts for pixel LEDs on board.
      */
-    int8_t pins[NUM_PINS] = { PINS };
+    int8_t pins[NEOPIXEL_NUM_PINS] = { NEOPIXEL_PINS };
 
     /**
      * @brief Pixel strands. Limited to 5 pins.
      */
-    uint16_t strands[NUM_PINS] = { 0, 0, 0, 0, 0 };
+    uint16_t strands[NEOPIXEL_NUM_PINS] = { 0, 0, 0, 0, 0 };
 
     /**
      * @brief Length of longest strand of pixels.

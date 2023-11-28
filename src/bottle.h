@@ -3,19 +3,8 @@
 
 #include <utility>
 #include <vector>
-using namespace std;
-
 #include "pxl8.h"
-#include "color.h"
-
-/**
- * @brief Waveshapes.
- * 
- */
-typedef enum {
-  SINE = 0,
-  SAWTOOTH = 1,
-} waveshape_t;
+#include "def.h"
 
 /**
  * @brief A strip of LEDs. In a bottle.

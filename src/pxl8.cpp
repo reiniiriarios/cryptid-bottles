@@ -7,7 +7,7 @@ void Pxl8::addStrand(uint8_t pin, uint16_t length) {
     Serial.println("ERROR: Cannot add strands after init.");
     return;
   }
-  if (pin > NUM_PINS) {
+  if (pin > NEOPIXEL_NUM_PINS) {
     Serial.println("ERROR: Pin out of range.");
     return;
   }

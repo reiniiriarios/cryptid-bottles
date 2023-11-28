@@ -4,16 +4,12 @@
 #include <functional>
 #include <map>
 #include <vector>
+#include "src/def.h"
 #include "src/color.h"
 #include "src/control.h"
 #include "src/pxl8.h"
 #include "src/interwebs.h"
 #include "src/bottle.h"
-
-// !! @see src/pxl8.h for more gfx config !!
-
-// Max frames per second.
-#define MAX_FPS 120
 
 /**
  * @brief Get a white RGB value at a random color temperature.
@@ -55,7 +51,12 @@ void err(void);
 /**
  * @brief Callback to display loading progress.
  */
-void loading(void);
+void loading(status_t status = STATUS_LOADING);
+
+/**
+ * @brief Set LEDs for a specific status.
+ */
+void ledStatus(status_t status);
 
 void setup(void);
 void loop(void);

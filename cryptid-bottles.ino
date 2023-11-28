@@ -16,7 +16,14 @@ Adafruit_NeoPixel statusLED(1, 8, NEO_GRB);
 
 void err(void) {
   Serial.println("FATAL ERROR");
-  for (;;) digitalWrite(LED_BUILTIN, (millis() / 500) & 1);
+  uint32_t c;
+  for (;;) {
+    c = 0;
+    if ((millis() / 500) & 1) {
+      c = 0xFF0000;
+    }
+    statusLED.setPixelColor(0, c);
+  }
 }
 
 // ANIMATION HELPERS -------------------------------------------------------------------------------
@@ -88,7 +95,6 @@ void spawnFaeries(void) {
     faerieFlying = bottles.at(faerieBottle)->showFaerie();
     // After animation, reset bottle and log time.
     if (!faerieFlying) {
-      Serial.println("Faerie has flown away from bottle " + String(faerieBottle));
       faerieBottle = -1;
       lastFaerieFly = millis();
       faerieFlying = false;
@@ -99,18 +105,57 @@ void spawnFaeries(void) {
 // SETUP -------------------------------------------------------------------------------------------
 
 uint8_t loading_step = 0;
-void loading(void) {
-  uint8_t r = loading_step * 2;
-  uint8_t g = loading_step * 10;
-  uint8_t b = 255;
-  statusLED.setPixelColor(0, pxl8.color(r, g, b));
-  statusLED.show();
-  interwebs.setLED(r, g, b);
+void loading(status_t status) {
+  ledStatus(status);
+  uint8_t r = loading_step * 3,
+          g = loading_step * 10,
+          b = 255;
   for (auto & bottle : bottles) {
     bottle->illuminate(rgb_t{ r, g, b });
   };
   pxl8.show();
   loading_step++;
+}
+
+void ledStatus(status_t status) {
+  uint8_t r, g, b;
+  switch (status) {
+    case STATUS_OK:
+      statusLED.setPixelColor(0, 0);
+      interwebs.setLED(0, 0, 0);
+      break;
+    case STATUS_LOADING:
+      r = loading_step * 2;
+      g = loading_step * 10;
+      b = 255;
+      statusLED.setPixelColor(0, pxl8.color(r, g, b));
+      interwebs.setLED(r, g, b);
+      break;
+    case STATUS_LOADING_WIFI_ERR:
+      r = 255;
+      g = loading_step * 10;
+      b = loading_step * 2;
+      statusLED.setPixelColor(0, pxl8.color(r, g, b));
+      interwebs.setLED(r, g, b);
+      break;
+    case STATUS_WIFI_OFFLINE:
+      statusLED.setPixelColor(0, 0xFF0080);
+      interwebs.setLED(255, 0, 127);
+      break;
+    case STATUS_MQTT_OFFLINE:
+      statusLED.setPixelColor(0, 0xFF8000);
+      interwebs.setLED(255, 127, 0);
+      break;
+    case STATUS_MQTT_SENDING:
+      statusLED.setPixelColor(0, 0x00FF80);
+      interwebs.setLED(0, 255, 0);
+      break;
+    case STATUS_UNKNOWN_ERROR:
+    default:
+      statusLED.setPixelColor(0, 0xFF0000);
+      interwebs.setLED(255, 0, 0);
+  }
+  statusLED.show();
 }
 
 void setup(void) {
@@ -149,15 +194,12 @@ void setup(void) {
   control.initMQTT();
   loading();
   if (interwebs.connect(loading)) {
-    loading();
+    loading(STATUS_MQTT_SENDING);
     control.sendDiscovery();
-    loading();
+    loading(STATUS_MQTT_SENDING);
     control.mqttCurrentStatus();
+    loading(STATUS_OK);
   }
-  loading();
-  statusLED.setPixelColor(0, 0);
-  statusLED.show();
-  interwebs.setLED(0, 0, 0);
 }
 
 // LOOP --------------------------------------------------------------------------------------------
@@ -235,29 +277,26 @@ void loop(void) {
   if (loopCounter % (MAX_FPS * 15) == 0) {
     // Check and repair interwebs connections.
     if (!interwebs.wifiIsConnected()) {
-      statusLED.setPixelColor(0, 0xFF00FF);
-      statusLED.show();
-      interwebs.setLED(255, 0, 127);
+      ledStatus(STATUS_WIFI_OFFLINE);
       bottles.at(0)->warningWiFi();
       interwebs.wifiReconnect();
     }
     else if (!interwebs.mqttIsConnected()) {
-      statusLED.setPixelColor(0, 0xFFFF00);
-      statusLED.show();
-      interwebs.setLED(255, 127, 0);
+      ledStatus(STATUS_MQTT_OFFLINE);
       bottles.at(0)->warningMQTT();
       if (interwebs.mqttReconnect()) {
-        statusLED.setPixelColor(0, 0);
-        statusLED.show();
-        interwebs.setLED(0, 0, 0);
+        ledStatus(STATUS_MQTT_SENDING);
         control.sendDiscovery();
         control.mqttCurrentStatus();
+        ledStatus(STATUS_OK);
       }
     }
   }
   // At max FPS, every n seconds.
   if (loopCounter % (MAX_FPS * 240) == 0) {
+    ledStatus(STATUS_MQTT_SENDING);
     control.mqttCurrentStatus();
+    ledStatus(STATUS_OK);
     loopCounter = 0;
   }
   loopCounter++;
