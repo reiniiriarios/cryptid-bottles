@@ -174,34 +174,33 @@ const inline String jsonStr(std::map<String, T> v) {
 
 /**
  * @brief Discovery JSON for light.
+ *
+ * @see https://www.home-assistant.io/integrations/mqtt
  */
 const static String discoveryJson = []() -> String {
   String json = R"JSON({
-    "name": "Cryptid Bottles",
-    "unique_id": "cryptid-bottles",
-    "icon": "mdi:bottle-tonic-outline",
-    "state_topic": "cryptid/bottles/state",
-    "state_value_template": "{{ value_json.on }}",
-    "command_topic":"cryptid/bottles/on/set",
-    "brightness_command_topic": "cryptid/bottles/brightness/set",
-    "brightness_value_template": "{{ value_json.brightness }}",
-    "brightness_scale": 255,
-    "rgb_command_topic": "cryptid/bottles/rgb/set",
-    "rgb_value_template": "{{ value_json.rgb }}",
-    "white_command_topic": "cryptid/bottles/white/set",
-    "white_scale": 255,
-    "color_temp_command_topic": "cryptid/bottles/white_balance/set",
-    "color_temp_value_template": "{{ value_json.white_balance }}",
-    "min_mireds": )JSON" + String(MIN_WB_MIRED) + R"JSON(,
-    "max_mireds": )JSON" + String(MAX_WB_MIRED) + R"JSON(,
-    "effect_command_topic": "cryptid/bottles/effect/set",
-    "effect_list": )JSON" + jsonStr(BOTTLE_ANIMATIONS) + R"JSON(,
-    "effect_value_template": "{{ value_json.effect }}",
-    "device": {
-      "identifiers": ["cryptidBottles"],
-      "name": "Cryptid Bottles"
-    }
-  })JSON";
+    "~":"cryptid/bottles",
+    "name":"Cryptid Bottles",
+    "uniq_id":"cryptid-bottles",
+    "ic":"mdi:bottle-tonic-outline",
+    "stat_t":"~/state",
+    "stat_val_tpl":"{{ value_json.on }}",
+    "cmd_t":"~/on/set",
+    "bri_cmd_t":"~/brightness/set",
+    "bri_val_tpl":"{{ value_json.brightness }}",
+    "bri_scl":255,
+    "rgb_cmd_t":"~/rgb/set",
+    "rgb_val_tpl":"{{ value_json.rgb }}",
+    "whit_cmd_t":"~/white/set",
+    "whit_scl":255,
+    "clr_temp_cmd_t":"~/white_balance/set",
+    "clr_temp_val_tpl":"{{ value_json.white_balance }}",
+    "min_mirs":)JSON" + String(MIN_WB_MIRED) + R"JSON(,
+    "max_mirs":)JSON" + String(MAX_WB_MIRED) + R"JSON(,
+    "fx_cmd_t":"~/effect/set",
+    "fx_list":)JSON" + jsonStr(BOTTLE_ANIMATIONS) + R"JSON(,
+    "fx_val_tpl":"{{ value_json.effect }}",
+    "dev":{"ids":["cryptidBottles"],"name":"Cryptid Bottles"}})JSON";
   json.replace("\n    ",""); // shrink data
   return json;
 }();
@@ -216,18 +215,20 @@ const static String discoveryJson = []() -> String {
  * @param options map<String value, enum setting>
  * @return const String
  *
+ * @see https://www.home-assistant.io/integrations/mqtt
  * @see https://pictogrammers.com/library/mdi/
  */
 template<typename T>
 const static String discoverySelect(String id, String name, String icon, std::map<String, T> options) {
-  return "{\"name\":\"" + name + "\","
-         "\"unique_id\":\"cryptid-bottles-" + id + "\","
-         "\"icon\":\"mdi:" + icon + "\","
-         "\"state_topic\":\"cryptid/bottles/state\","
-         "\"command_topic\":\"cryptid/bottles/" + id + "/set\","
-         "\"value_template\":\"{{ value_json." + id + " }}\","
-         "\"options\":" + jsonStr(options) + ","
-         "\"device\":{\"identifiers\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
+  return "{\"~\":\"cryptid/bottles\","
+         "\"name\":\"" + name + "\","
+         "\"uniq_id\":\"cryptid-bottles-" + id + "\","
+         "\"ic\":\"mdi:" + icon + "\","
+         "\"stat_t\":\"~/state\","
+         "\"cmd_t\":\"~/" + id + "/set\","
+         "\"val_tpl\":\"{{ value_json." + id + " }}\","
+         "\"ops\":" + jsonStr(options) + ","
+         "\"dev\":{\"ids\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
 }
 
 /**
