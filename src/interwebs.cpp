@@ -11,6 +11,10 @@ Interwebs::Interwebs() {
   WiFi.setPins(SPIWIFI_SS, SPIWIFI_ACK, ESP32_RESETN, ESP32_GPIO0, &SPIWIFI);
 }
 
+void Interwebs::setLED(uint8_t r, uint8_t g, uint8_t b) {
+  WiFi.setLEDs(r, g, b);
+}
+
 // ------------ CONNECTION ------------
 
 bool Interwebs::connect(std::function<void(void)> loading_callback) {

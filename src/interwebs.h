@@ -112,6 +112,15 @@ class Interwebs {
     Interwebs();
 
     /**
+     * @brief Set the Airlift onboard LED to a specific color.
+     * 
+     * @param r 
+     * @param g 
+     * @param b 
+     */
+    void setLED(uint8_t r, uint8_t g, uint8_t b);
+
+    /**
      * @brief Connect to WiFi. Run in setup() after subscription hooks.
      *
      * @param loading_callback callback to loading function to display status

@@ -100,10 +100,14 @@ void spawnFaeries(void) {
 
 uint8_t loading_step = 0;
 void loading(void) {
-  statusLED.setPixelColor(0, pxl8.color(loading_step * 2, loading_step * 10, 255));
+  uint8_t r = loading_step * 2;
+  uint8_t g = loading_step * 10;
+  uint8_t b = 255;
+  statusLED.setPixelColor(0, pxl8.color(r, g, b));
   statusLED.show();
+  interwebs.setLED(r, g, b);
   for (auto & bottle : bottles) {
-    bottle->illuminate(rgb_t{ loading_step * 2, loading_step * 10, 255 });
+    bottle->illuminate(rgb_t{ r, g, b });
   };
   pxl8.show();
   loading_step++;
@@ -153,6 +157,7 @@ void setup(void) {
   loading();
   statusLED.setPixelColor(0, 0);
   statusLED.show();
+  interwebs.setLED(0, 0, 0);
 }
 
 // LOOP --------------------------------------------------------------------------------------------
@@ -232,16 +237,19 @@ void loop(void) {
     if (!interwebs.wifiIsConnected()) {
       statusLED.setPixelColor(0, 0xFF00FF);
       statusLED.show();
+      interwebs.setLED(255, 0, 127);
       bottles.at(0)->warningWiFi();
       interwebs.wifiReconnect();
     }
     else if (!interwebs.mqttIsConnected()) {
       statusLED.setPixelColor(0, 0xFFFF00);
       statusLED.show();
+      interwebs.setLED(255, 127, 0);
       bottles.at(0)->warningMQTT();
       if (interwebs.mqttReconnect()) {
         statusLED.setPixelColor(0, 0);
         statusLED.show();
+        interwebs.setLED(0, 0, 0);
         control.sendDiscovery();
         control.mqttCurrentStatus();
       }
