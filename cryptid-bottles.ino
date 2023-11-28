@@ -10,6 +10,7 @@ Pxl8 pxl8;
 Interwebs interwebs;
 std::vector<Bottle*> bottles = {};
 Control control(&pxl8, &interwebs, &bottles);
+Adafruit_NeoPixel statusLED(1, 8, NEO_GRB);
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -99,8 +100,10 @@ void spawnFaeries(void) {
 
 uint8_t loading_step = 0;
 void loading(void) {
+  statusLED.setPixelColor(0, pxl8.color(loading_step * 2, loading_step * 10, 255));
+  statusLED.show();
   for (auto & bottle : bottles) {
-    bottle->illuminate(rgb_t{ loading_step * 2, loading_step * 15, 255 });
+    bottle->illuminate(rgb_t{ loading_step * 2, loading_step * 10, 255 });
   };
   pxl8.show();
   loading_step++;
@@ -114,6 +117,9 @@ void setup(void) {
 
   // Seed by reading unused anolog pin.
   randomSeed(analogRead(A0));
+
+  statusLED.begin();
+  statusLED.setBrightness(64);
 
   // Bottles !! Config pin, start, and length according to hardware !!
   Serial.println("Setting up LEDs...");
@@ -145,6 +151,8 @@ void setup(void) {
     control.mqttCurrentStatus();
   }
   loading();
+  statusLED.setPixelColor(0, 0);
+  statusLED.show();
 }
 
 // LOOP --------------------------------------------------------------------------------------------
@@ -218,19 +226,22 @@ void loop(void) {
     }
   }
 
-  // Push all pixel changes to bottles.
-  pxl8.show();
-
   // At max FPS, every n seconds.
   if (loopCounter % (MAX_FPS * 15) == 0) {
     // Check and repair interwebs connections.
     if (!interwebs.wifiIsConnected()) {
+      statusLED.setPixelColor(0, 0xFF00FF);
+      statusLED.show();
       bottles.at(0)->warningWiFi();
       interwebs.wifiReconnect();
     }
     else if (!interwebs.mqttIsConnected()) {
+      statusLED.setPixelColor(0, 0xFFFF00);
+      statusLED.show();
       bottles.at(0)->warningMQTT();
       if (interwebs.mqttReconnect()) {
+        statusLED.setPixelColor(0, 0);
+        statusLED.show();
         control.sendDiscovery();
         control.mqttCurrentStatus();
       }
@@ -242,6 +253,9 @@ void loop(void) {
     loopCounter = 0;
   }
   loopCounter++;
+
+  // Push all pixel changes to bottles.
+  pxl8.show();
 
   // Speed check.
   uint32_t m = millis();

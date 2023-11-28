@@ -44,6 +44,7 @@
 
 ### Other Pins
 
+- Pin `D8` is connected to the onboard mini NeoPixel.
 - Analog pin `A0` used for random seed.
 
 ## MQTT Control
