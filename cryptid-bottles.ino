@@ -43,8 +43,6 @@ void updateBottleHues(void) {
     uint8_t id = random(0, bottles.size());
     uint16_t hueStart = random(0, 360);
     uint16_t hueEnd = hueStart + random(30, 40);
-    Serial.println("Updating hue for bottle " + String(id) +
-      " to " + String(hueStart) + "-" + String(hueEnd));
     bottles.at(id)->setHue(hueStart, hueEnd, random(1500, 2500));
     lastGlowChange = millis();
   }
@@ -60,8 +58,6 @@ void updateBottleWhiteBalance(void) {
   if (shouldChangeGlow()) {
     uint8_t id = random(0, bottles.size());
     rgb_t c = randomWhiteBalance();
-    Serial.println("Updating white balance for bottle " + String(id) +
-      " to " + String(c.r) + " " + String(c.g) + " " + String(c.b));
     bottles.at(id)->setColor(c, random(1500, 2500));
     lastGlowChange = millis();
   }
@@ -89,7 +85,6 @@ void spawnFaeries(void) {
     // If a new faerie, pick a random bottle.
     if (faerieBottle == -1) {
       faerieBottle = random(0, bottles.size());
-      Serial.println("Spawning new faerie in bottle " + String(faerieBottle));
       bottles.at(faerieBottle)->spawnFaerie(random(8, 14) * 0.1);
     }
     faerieFlying = bottles.at(faerieBottle)->showFaerie();
