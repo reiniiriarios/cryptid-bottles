@@ -97,6 +97,15 @@ void spawnFaeries(void) {
 
 // SETUP -------------------------------------------------------------------------------------------
 
+uint8_t loading_step = 0;
+void loading(void) {
+  for (auto & bottle : bottles) {
+    bottle->illuminate(rgb_t{ 0, loading_step * 15, 255 });
+  };
+  pxl8.show();
+  loading_step++;
+}
+
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
@@ -124,13 +133,18 @@ void setup(void) {
     err();
   }
   pxl8.setBrightness(control.brightness);
+  loading();
 
   // WiFi, MQTT, etc.
   control.initMQTT();
-  if (interwebs.connect()) {
+  loading();
+  if (interwebs.connect(loading)) {
+    loading();
     control.sendDiscovery();
+    loading();
     control.mqttCurrentStatus();
   }
+  loading();
 }
 
 // LOOP --------------------------------------------------------------------------------------------

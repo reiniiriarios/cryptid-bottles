@@ -221,14 +221,18 @@ const static String discoveryJson = []() -> String {
  * 
  * @tparam T map setting
  * @param id
- * @param name 
+ * @param name
+ * @param icon material design icon
  * @param options map<String value, enum setting>
- * @return const String 
+ * @return const String
+ *
+ * @see https://pictogrammers.com/library/mdi/
  */
 template<typename T>
-const static String discoverySelect(String id, String name, std::map<String, T> options) {
+const static String discoverySelect(String id, String name, String icon, std::map<String, T> options) {
   return "{\"name\":\"" + name + "\","
          "\"unique_id\":\"cryptid-bottles-" + id + "\","
+         "\"icon\":\"mdi:" + icon + "\","
          "\"state_topic\":\"cryptid/bottles/state\","
          "\"command_topic\":\"cryptid/bottles/" + id + "/set\","
          "\"value_template\":\"{{ value_json." + id + " }}\","
@@ -239,12 +243,12 @@ const static String discoverySelect(String id, String name, std::map<String, T> 
 /**
  * @brief Discovery JSON for Glow Speed.
  */
-const static String discoveryJsonGlowSpeed = discoverySelect("glow_speed", "Glow Speed", GLOW_SPEED);
+const static String discoveryJsonGlowSpeed = discoverySelect("glow_speed", "Glow Speed", "play-speed", GLOW_SPEED);
 
 /**
  * @brief Discovery JSON for Faerie Speed.
  */
-const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "Faerie Speed", FAERIE_SPEED);
+const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "Faerie Speed", "play-speed", FAERIE_SPEED);
 
 /**
  * @brief Round mired value to the nearest value that has an enum.

@@ -52,6 +52,11 @@ void spawnFaeries(void);
  */
 void err(void);
 
+/**
+ * @brief Callback to display loading progress.
+ */
+void loading(void);
+
 void setup(void);
 void loop(void);
 

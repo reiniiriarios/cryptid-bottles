@@ -13,7 +13,7 @@ Interwebs::Interwebs() {
 
 // ------------ CONNECTION ------------
 
-bool Interwebs::connect(void) {
+bool Interwebs::connect(std::function<void(void)> loading_callback) {
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed");
     return false;
@@ -23,29 +23,35 @@ bool Interwebs::connect(void) {
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
     Serial.println("WiFi firmware upgrade available");
   }
+  loading_callback();
 
-  if (!wifiInit()) {
+  if (!wifiInit(loading_callback)) {
     Serial.println("Connection failed");
     return false;
   }
+  loading_callback();
 
   Serial.print("Waiting for connection");
   for (uint8_t i = 0; i < 5; i++) {
+    loading_callback();
     delay(500);
     Serial.print(".");
   }
   Serial.println();
+  loading_callback();
 
   printWifiStatus();
+  loading_callback();
 
-  if (!mqttInit()) {
+  if (!mqttInit(loading_callback)) {
     return false;
   }
+  loading_callback();
 
   return true;
 }
 
-bool Interwebs::wifiInit(void) {
+bool Interwebs::wifiInit(std::function<void(void)> loading_callback) {
   Serial.print("Attempting to connect to SSID: ");
   Serial.println(WIFI_SSID);
 
@@ -53,17 +59,20 @@ bool Interwebs::wifiInit(void) {
   uint8_t wifiStatus = WL_IDLE_STATUS;
   uint8_t completeAttempts = 5;
   do {
+    loading_callback();
     wifiStatus = WiFiDrv::wifiSetPassphrase(WIFI_SSID, strlen(WIFI_SSID), WIFI_PASS, strlen(WIFI_PASS));
     if (wifiStatus != WL_FAILURE) {
       Serial.print("Connecting");
       uint8_t attempts = 5;
       do {
+        loading_callback();
         Serial.print(".");
         delay(800);
         wifiStatus = WiFiDrv::getConnectionStatus();
       } while ((wifiStatus == WL_IDLE_STATUS || wifiStatus == WL_NO_SSID_AVAIL || wifiStatus == WL_SCAN_COMPLETED) && --attempts > 0);
     }
   } while (wifiStatus != WL_CONNECTED && --completeAttempts > 0);
+  loading_callback();
 
   if (wifiStatus != WL_CONNECTED) {
     status = INTERWEBS_STATUS_WIFI_ERRORS;
@@ -134,9 +143,11 @@ void Interwebs::setBirthLWTtopic(String topic) {
   }
 }
 
-bool Interwebs::mqttInit(void) {
+bool Interwebs::mqttInit(std::function<void(void)> loading_callback) {
   Serial.print("MQTT connecting...");
+  loading_callback();
   mqttClient->begin(mqttBroker, wifiClient);
+  loading_callback();
   mqttClient->onMessage([&](String &topic, String &payload){
     mqttMessageReceived(topic, payload);
   });
@@ -146,9 +157,11 @@ bool Interwebs::mqttInit(void) {
   // Connect
   bool connected = false;
   for (int attempts = 5; !connected && attempts >= 0; attempts--) {
+    loading_callback();
     Serial.print(".");
     connected = mqttClient->connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
   }
+  loading_callback();
   if (!connected) {
     Serial.println("Error connecting to MQTT broker.");
     return false;
@@ -157,9 +170,11 @@ bool Interwebs::mqttInit(void) {
   status = INTERWEBS_STATUS_MQTT_CONNECTED;
 
   mqttSubscribe();
+  loading_callback();
   if (birth_lwt_topic != "") {
     mqttPublish(birth_lwt_topic, "online"); // Birth
   }
+  loading_callback();
 
   return true;
 }

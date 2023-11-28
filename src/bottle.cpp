@@ -135,7 +135,7 @@ void Bottle::spawnFaerie(float speed, rgb_t c) {
   faerieKeyframes[3] = 400 / speed + faerieKeyframes[2];
   faerieKeyframes[4] = 300 / speed + faerieKeyframes[3];
   faerieAnimationStart = millis();
-  Serial.println("+ faerie spawned at " + String(speed) + "x; will fly for " + String(faerieKeyframes[4]) + " ms");
+  Serial.println("Faerie spawned at " + String(speed) + "x; will fly for " + String(faerieKeyframes[4]) + " ms");
 }
 
 bool Bottle::showFaerie() {

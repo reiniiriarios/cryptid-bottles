@@ -20,7 +20,7 @@ void Pxl8::addStrand(uint8_t pin, uint16_t length) {
   }
   num_pixels += length;
   num_calc_pixels = longest_strand * num_strands;
-  Serial.println("+ Added strand of " + String(length) + " on " + String(pin) +
+  Serial.println("Added strand of " + String(length) + " on " + String(pin) +
     ", leds: " + String(num_pixels) + " (" + String(num_calc_pixels) + ")");
 }
 

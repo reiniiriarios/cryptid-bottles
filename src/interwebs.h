@@ -114,16 +114,18 @@ class Interwebs {
     /**
      * @brief Connect to WiFi. Run in setup() after subscription hooks.
      *
+     * @param loading_callback callback to loading function to display status
      * @return Whether the connection was successful.
      */
-    bool connect(void);
+    bool connect(std::function<void(void)> loading_callback);
 
     /**
      * @brief Connect to the given WiFi network, using password.
      * 
+     * @param loading_callback callback to loading function to display status
      * @return bool 
      */
-    bool wifiInit(void);
+    bool wifiInit(std::function<void(void)> loading_callback);
 
     /**
      * @brief Reconnect to WiFi. This method operates step-by-step, continuing each call.
@@ -145,9 +147,10 @@ class Interwebs {
     /**
      * @brief Initialize MQTT client.
      *
+     * @param loading_callback callback to loading function to display status
      * @return Success
      */
-    bool mqttInit(void);
+    bool mqttInit(std::function<void(void)> loading_callback);
 
     /**
      * @brief Reconnect to MQTT broker. This method operates step-by-step, continuing each call.
