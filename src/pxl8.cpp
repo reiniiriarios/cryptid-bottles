@@ -60,8 +60,6 @@ void Pxl8::show(void) {
 }
 
 void Pxl8::setBrightness(uint8_t b) {
-  Serial.print(F("Changing brightness to "));
-  Serial.println(String(b));
   neopxl8->setBrightness(b);
 }
 
