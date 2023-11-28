@@ -258,7 +258,7 @@ void Bottle::warningMQTT(void) {
 }
 
 void Bottle::warning(uint8_t r, uint8_t g, uint8_t b) {
-  float br = sin(millis() / 2 * PI * 0.001);
+  float br = 0.8 * sin(millis() / 2 * PI * 0.001) + 0.2;
   float r2 = r / 2;
   float g2 = g / 2;
   float b2 = b / 2;

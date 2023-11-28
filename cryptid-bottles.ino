@@ -109,7 +109,7 @@ void loading(void) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  while (!Serial) delay(10);
+  // while (!Serial) delay(10);
   Serial.println("Starting...");
 
   // Seed by reading unused anolog pin.
@@ -221,7 +221,7 @@ void loop(void) {
   // Push all pixel changes to bottles.
   pxl8.show();
 
-
+  // At max FPS, every n seconds.
   if (loopCounter % (MAX_FPS * 15) == 0) {
     // Check and repair interwebs connections.
     if (!interwebs.wifiIsConnected()) {
@@ -236,9 +236,9 @@ void loop(void) {
       }
     }
   }
-  // At max FPS, every 30 seconds.
+  // At max FPS, every n seconds.
   if (loopCounter % (MAX_FPS * 60) == 0) {
-    // control.mqttCurrentStatus();
+    control.mqttCurrentStatus();
     loopCounter = 0;
   }
   loopCounter++;
