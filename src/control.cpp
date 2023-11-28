@@ -143,7 +143,7 @@ void Control::mqttCurrentStatus(void) {
   String payload = "{\"on\":\"" + on + "\","
     "\"brightness\":\"" + String(brightness) + "\","
     "\"rgb\":\"" + String(static_color.r) + "," + String(static_color.g) + "," + String(static_color.b) + "\","
-    "\"white_balance\":\"" + String((int8_t)white_balance) + "\","
+    "\"white_balance\":\"" + String(white_balance) + "\","
     "\"effect\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\","
     "\"glow_speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\","
     "\"faerie_speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"}";
