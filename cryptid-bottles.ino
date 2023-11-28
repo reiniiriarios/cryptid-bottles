@@ -10,7 +10,7 @@ Pxl8 pxl8;
 Interwebs interwebs;
 std::vector<Bottle*> bottles = {};
 Control control(&pxl8, &interwebs, &bottles);
-Adafruit_NeoPixel statusLED(1, 8, NEO_GRB);
+Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
