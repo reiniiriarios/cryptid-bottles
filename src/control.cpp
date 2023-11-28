@@ -3,6 +3,21 @@
 Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle*>* bottles)
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
 
+void Control::turnOn(void) {
+  pixelsOn = true;
+  if (brightness == 0) {
+    brightness = 127;
+    pxl8->setBrightness(brightness);
+  }
+}
+
+void Control::turnOff(void) {
+  pixelsOn = false;
+  for (auto & bottle : *bottles) {
+    bottle->blank();
+  }
+}
+
 void Control::initMQTT(void) {
   Serial.println(F("Setting up MQTT control..."));
 
@@ -14,16 +29,10 @@ void Control::initMQTT(void) {
     Serial.print(F("Setting on/off to "));
     Serial.println(payload);
     if (payload == "on" || payload == "ON" || payload.toInt() == 1) {
-      pixelsOn = true;
-      if (brightness == 0) {
-        brightness = 127;
-      }
+      turnOn();
     }
     else if (payload == "off" || payload == "OFF" || payload.toInt() == 0) {
-      pixelsOn = false;
-      for (auto & bottle : *bottles) {
-        bottle->blank();
-      };
+      turnOff();
     }
     mqttCurrentStatus();
   });
@@ -41,6 +50,7 @@ void Control::initMQTT(void) {
       Serial.println(payload);
       bottleAnimation = BOTTLE_ANIMATIONS.at(payload);
     }
+    turnOn();
     mqttCurrentStatus();
   });
 
@@ -76,12 +86,9 @@ void Control::initMQTT(void) {
     Serial.print(F("Setting brightness to "));
     Serial.println(String(brightness));
     if (brightness == 0) {
-      pixelsOn = false;
-      for (auto & bottle : *bottles) {
-        bottle->blank();
-      };
+      turnOff();
     } else {
-      pixelsOn = true;
+      turnOn();
     }
     pxl8->setBrightness(brightness);
     mqttCurrentStatus();
@@ -106,6 +113,7 @@ void Control::initMQTT(void) {
       static_color = rgb_t{ rgb.at(0), rgb.at(1), rgb.at(2) };
     }
     bottleAnimation = BOTTLE_ANIMATION_ILLUM;
+    turnOn();
     mqttCurrentStatus();
   });
 
@@ -116,12 +124,9 @@ void Control::initMQTT(void) {
     Serial.println(String(white_balance) + "@" + String(brightness));
     static_color = WHITE_TEMPERATURES.at(white_balance);
     if (brightness == 0) {
-      pixelsOn = false;
-      for (auto & bottle : *bottles) {
-        bottle->blank();
-      };
+      turnOff();
     } else {
-      pixelsOn = true;
+      turnOn();
     }
     pxl8->setBrightness(brightness);
     bottleAnimation = BOTTLE_ANIMATION_ILLUM;
@@ -135,6 +140,7 @@ void Control::initMQTT(void) {
     Serial.println(String(white_balance));
     static_color = WHITE_TEMPERATURES.at(white_balance);
     bottleAnimation = BOTTLE_ANIMATION_ILLUM;
+    turnOn();
     mqttCurrentStatus();
   });
 

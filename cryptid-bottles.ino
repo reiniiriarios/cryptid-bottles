@@ -303,7 +303,7 @@ void loop(void) {
   if (prevMillis != 0 && m > prevMillis) { // skips first, ignores millis() overflow
     uint32_t s = m - prevMillis;
     if (s > 10) {
-      Serial.print(F("Slow frame (ms):"));
+      Serial.print(F("Slow frame (ms): "));
       Serial.println(String(s));
     }
   }

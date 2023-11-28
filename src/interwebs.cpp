@@ -336,7 +336,7 @@ void Interwebs::mqttSendMessage(String topic, String payload) {
   if (wifiIsConnected() && mqttIsConnected()) {
     Serial.print(F("MQTT publishing to "));
     Serial.println(topic);
-    if (!mqttClient->publish(topic, payload, true, 1)) {
+    if (!mqttClient->publish(topic, payload, true, 0)) {
       Serial.println(F("Error publishing"));
     }
   }

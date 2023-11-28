@@ -41,6 +41,7 @@ const static String discoveryJson = []() -> String {
     "stat_t":"~/state",
     "stat_val_tpl":"{{ value_json.on }}",
     "cmd_t":"~/on/set",
+    "on_cmd_type":"brightness",
     "bri_cmd_t":"~/brightness/set",
     "bri_val_tpl":"{{ value_json.brightness }}",
     "bri_scl":255,
@@ -158,6 +159,16 @@ class Control {
      * @brief Global color.
      */
     rgb_t static_color = rgb_t{ 255, 255, 255 };
+
+    /**
+     * @brief Turn on light and check brightness is not zero.
+     */
+    void turnOn(void);
+
+    /**
+     * @brief Turn off light and blank bottle LEDs.
+     */
+    void turnOff(void);
 
     /**
      * @brief Get the RGB value for the current white balance.
