@@ -61,4 +61,12 @@ void ledStatus(status_t status);
 void setup(void);
 void loop(void);
 
+/**
+ * @brief Calculate SRAM free.
+ *
+ * @return int bytes
+ * @see https://learn.adafruit.com/memories-of-an-arduino/measuring-free-memory
+ */
+int freeMemory(void);
+
 #endif

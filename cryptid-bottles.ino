@@ -198,9 +198,13 @@ void setup(void) {
 
 // LOOP --------------------------------------------------------------------------------------------
 
-uint32_t prevMicros; // FPS throttle.
-uint32_t prevMillis = 0; // Speed check.
-uint16_t loopCounter = 0;  // Counts up every frame.
+// FPS throttle.
+uint32_t prevMicros;
+// Speed check.
+uint32_t prevMillis = 0;
+// Counts up every frame for "every so often" items.
+// By starting at 0, actions are called the first loop as well.
+uint16_t loopCounter = 0;
 
 void loop(void) {
   // FPS Throttle.
@@ -287,7 +291,13 @@ void loop(void) {
     }
   }
   // At max FPS, every n seconds.
-  if (loopCounter % (MAX_FPS * 240) == 0) { // also runs on startup
+  if (loopCounter % (MAX_FPS * 120) == 0) {
+    Serial.print(F("Free Memory: "));
+    Serial.print(freeMemory() * 0.001f, 2);
+    Serial.println(F(" KB")); // 192KB total
+  }
+  // At max FPS, every n seconds.
+  if (loopCounter % (MAX_FPS * 240) == 0) {
     ledStatus(STATUS_MQTT_SENDING);
     control.mqttCurrentStatus();
     ledStatus(STATUS_OK);
@@ -308,4 +318,21 @@ void loop(void) {
     }
   }
   prevMillis = m;
+}
+
+#ifdef __arm__
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
 }

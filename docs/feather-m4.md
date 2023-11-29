@@ -6,6 +6,13 @@ https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/pinouts
 
 ![](feather-m4-pinouts.png)
 
+## Details
+
+- ATSAMD51J19A
+- 120MHz Cortex M4 with floating point support
+- 512KB Flash
+- 192KB RAM
+
 ## Power Pins
 
 - GND - this is the common ground for all power and logic
