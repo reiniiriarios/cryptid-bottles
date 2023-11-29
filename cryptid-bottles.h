@@ -11,6 +11,8 @@
 #include "src/interwebs.h"
 #include "src/bottle.h"
 
+#define every_n_seconds(n) if (loopCounter % (MAX_FPS * n) == 0)
+
 /**
  * @brief Get a white RGB value at a random color temperature.
  * 
@@ -46,7 +48,7 @@ void spawnFaeries(void);
 /**
  * @brief Call if fatal crash.
  */
-void err(void);
+void err(uint32_t ledColor = 0xFF0000);
 
 /**
  * @brief Callback to display loading progress.

@@ -30,7 +30,7 @@
                 "/home/reinii/Arduino/libraries/WiFiNINA/src",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/SPI",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/Adafruit_ZeroDMA",
-                "/home/reinii/Arduino/libraries/MQTT/src",
+                "/home/reinii/Arduino/libraries/Adafruit_MQTT_Library",
                 "/home/reinii/Arduino/libraries/Adafruit_NeoPXL8",
                 "/home/reinii/.arduino15/packages/adafruit/tools/arm-none-eabi-gcc/9-2019q4/arm-none-eabi/include/c++/9.2.1",
                 "/home/reinii/.arduino15/packages/adafruit/tools/arm-none-eabi-gcc/9-2019q4/arm-none-eabi/include/c++/9.2.1/arm-none-eabi",

@@ -46,7 +46,10 @@
     "cinttypes": "cpp",
     "typeinfo": "cpp",
     "bitset": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "string.h": "c",
+    "client.h": "c",
+    "packet.h": "c"
   },
   "C_Cpp.files.exclude": {
     "**/build": true,
@@ -64,5 +67,6 @@
   "files.exclude": {
     "**/build": true,
     "**/*.code-search": true
-  }
+  },
+  "C_Cpp.errorSquiggles": "enabled"
 }

@@ -6,5 +6,6 @@
 
 // IPv4, commas between parts
 #define MQTT_SERVER 127,0,0,1
+#define MQTT_PORT 1883
 
 #endif

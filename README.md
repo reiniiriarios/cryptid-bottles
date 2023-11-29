@@ -16,7 +16,7 @@
     1. Adafruit NeoPixel
     1. Adafruit ZeroDMA
     1. [Adafruit WiFiNiNA](https://github.com/adafruit/WiFiNINA/archive/master.zip) - _manual install_, forked from arduino, [see docs](https://learn.adafruit.com/adafruit-airlift-featherwing-esp32-wifi-co-processor-featherwing/arduino)
-    1. MQTT - there are a few MQTT libraries, this one is just called "MQTT".
+1. Install the [lwmqtt](https://github.com/256dpi/lwmqtt) C library by running `make`.
 1. For VS Code, compile to finish intellisense setup.
     1. `.vscode/c_cpp_properties.json` may update.
 1. Configure defines in `cryptid-bottles.h` and `src/pxl8.h` if relevant.

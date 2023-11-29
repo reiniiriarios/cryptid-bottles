@@ -14,13 +14,13 @@ Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
-void err(void) {
+void err(uint32_t ledColor) {
   Serial.println(F("FATAL ERROR"));
   uint32_t c;
   for (;;) {
     c = 0;
     if ((millis() / 500) & 1) {
-      c = 0xFF0000;
+      c = ledColor;
     }
     statusLED.setPixelColor(0, c);
   }
@@ -156,7 +156,7 @@ void ledStatus(status_t status) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  // while (!Serial) delay(10);
+  while (!Serial) delay(10);
   Serial.println(F("Starting..."));
 
   // Seed by reading unused anolog pin.
@@ -178,22 +178,26 @@ void setup(void) {
     bottle->setColor(randomWhiteBalance());
   };
 
-  // Start pixel driver.
+  // Start pixel driver. Call after bottle setup.
   if (!pxl8.init()) {
-    err();
+    Serial.println(F("Error starting NeoPXL8"));
+    err(0xFF0000);
   }
   pxl8.setBrightness(control.brightness);
   loading();
 
-  // WiFi, MQTT, etc.
-  control.initMQTT();
-  loading();
-  if (interwebs.connect(loading)) {
-    loading(STATUS_MQTT_SENDING);
-    control.sendDiscovery();
-    // status sent at end of first loop
-    loading(STATUS_OK);
+  // Check connection to WiFi board.
+  if (WiFi.status() == WL_NO_MODULE) {
+    Serial.println(F("Communication with WiFi module failed"));
+    err(0xFF0080);
   }
+  loading();
+
+  // Set up MQTT callbacks, etc.
+  control.initMQTT();
+
+  // Done. Call last to clear status LEDs.
+  loading(STATUS_OK);
 }
 
 // LOOP --------------------------------------------------------------------------------------------
@@ -204,7 +208,7 @@ uint32_t prevMicros;
 uint32_t prevMillis = 0;
 // Counts up every frame for "every so often" items.
 // By starting at 0, actions are called the first loop as well.
-uint16_t loopCounter = 0;
+uint32_t loopCounter = 0;
 
 void loop(void) {
   // FPS Throttle.
@@ -271,42 +275,52 @@ void loop(void) {
     }
   }
 
-  // At max FPS, every n seconds.
-  if (loopCounter % (MAX_FPS * 15) == 0) {
-    // Check and repair interwebs connections.
-    if (!interwebs.wifiIsConnected()) {
-      ledStatus(STATUS_WIFI_OFFLINE);
-      bottles.at(0)->warningWiFi();
-      interwebs.wifiReconnect();
+  // Check and repair interwebs connections.
+  every_n_seconds(10) {
+    // If status is okay, query connection over SPI to verify.
+    if (interwebs.mqttIsConnected()) {
+      interwebs.verifyConnection();
     }
-    else if (!interwebs.mqttIsConnected()) {
-      ledStatus(STATUS_MQTT_OFFLINE);
-      bottles.at(0)->warningMQTT();
-      if (interwebs.mqttReconnect()) {
+  }
+  if (!interwebs.wifiIsConnected()) {
+    ledStatus(STATUS_WIFI_OFFLINE);
+    bottles.at(0)->warningWiFi();
+    every_n_seconds(1) {
+      interwebs.wifiConnectionLoop();
+    }
+  }
+  else if (!interwebs.mqttIsConnected()) {
+    ledStatus(STATUS_MQTT_OFFLINE);
+    bottles.at(0)->warningMQTT();
+    every_n_seconds(1) {
+      if (interwebs.mqttConnectionLoop()) {
         ledStatus(STATUS_MQTT_SENDING);
         control.sendDiscovery();
+        ledStatus(STATUS_MQTT_SENDING);
         control.mqttCurrentStatus();
         ledStatus(STATUS_OK);
       }
     }
   }
-  // At max FPS, every n seconds.
-  if (loopCounter % (MAX_FPS * 120) == 0) {
+
+  // Send status update.
+  every_n_seconds(240) {
+    if (interwebs.mqttIsConnected()) {
+      ledStatus(STATUS_MQTT_SENDING);
+      control.mqttCurrentStatus();
+      ledStatus(STATUS_OK);
+    }
+  }
+
+  // Push all pixel changes to bottles.
+  pxl8.show();
+
+  // Check memory available.
+  every_n_seconds(120) {
     Serial.print(F("Free Memory: "));
     Serial.print(freeMemory() * 0.001f, 2);
     Serial.println(F(" KB")); // 192KB total
   }
-  // At max FPS, every n seconds.
-  if (loopCounter % (MAX_FPS * 240) == 0) {
-    ledStatus(STATUS_MQTT_SENDING);
-    control.mqttCurrentStatus();
-    ledStatus(STATUS_OK);
-    loopCounter = 0;
-  }
-  loopCounter++;
-
-  // Push all pixel changes to bottles.
-  pxl8.show();
 
   // Speed check.
   uint32_t m = millis();
@@ -318,6 +332,8 @@ void loop(void) {
     }
   }
   prevMillis = m;
+
+  loopCounter++;
 }
 
 #ifdef __arm__
