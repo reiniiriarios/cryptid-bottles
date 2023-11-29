@@ -96,21 +96,21 @@ void Control::initMQTT(void) {
 
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/rgb/set", [&](String &payload){
-    stringstream ss(payload.c_str());
-    vector<uint8_t> rgb;
-    while (ss.good()) {
-      string substr;
-      getline(ss, substr, ',');
-      rgb.push_back(atoi(substr.c_str()));
-    }
-    if (rgb.size() != 3) {
+    int c1 = payload.indexOf(",");
+    int c2 = payload.lastIndexOf(",");
+    // -1 -> not found || c1 == c2 -> only one comma || no chars after second comma
+    if (c1 == -1 || c2 == -1 || c1 == c2 || payload.length() < c2 + 1) {
       Serial.print(F("Invalid color: "));
       Serial.println(payload);
       static_color = rgb_t{ 255, 255, 255 };
-    } else {
+    }
+    else {
+      uint8_t r = payload.substring(0, c1).toInt(),
+              g = payload.substring(c1 + 1, c2).toInt(),
+              b = payload.substring(c2 + 1).toInt();
       Serial.print(F("Setting color to "));
       Serial.println(payload);
-      static_color = rgb_t{ rgb.at(0), rgb.at(1), rgb.at(2) };
+      static_color = rgb_t{ r, g, b };
     }
     bottleAnimation = BOTTLE_ANIMATION_ILLUM;
     turnOn();

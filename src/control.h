@@ -2,7 +2,6 @@
 #define CRYPTID_CONTROL_H
 
 #include <vector>
-#include <sstream>
 #include "def.h"
 #include "interwebs.h"
 #include "bottle.h"
