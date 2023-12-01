@@ -10,15 +10,15 @@
 
 1. Copy `wifi-config.example.h` to `wifi-config.h` and fill in values.
 1. Install board [following instructions](https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup).
-1. Install required libraries via Arduino IDE.
-    1. Adafruit SAMD
-    1. Adafruit NeoPXL8 - [see docs](https://learn.adafruit.com/adafruit-neopxl8-featherwing-and-library/neopxl8-arduino-library)
-    1. Adafruit NeoPixel
-    1. Adafruit ZeroDMA
-    1. [Adafruit WiFiNiNA](https://github.com/adafruit/WiFiNINA/archive/master.zip) - _manual install_, forked from arduino, [see docs](https://learn.adafruit.com/adafruit-airlift-featherwing-esp32-wifi-co-processor-featherwing/arduino)
-1. Install the [lwmqtt](https://github.com/256dpi/lwmqtt) C library by running `make`.
+1. Install required libraries (and their dependencies) via Arduino IDE.
+   1. Adafruit SAMD
+   1. Adafruit NeoPXL8 - [see docs](https://learn.adafruit.com/adafruit-neopxl8-featherwing-and-library/neopxl8-arduino-library)
+   1. Adafruit NeoPixel
+   1. Adafruit ZeroDMA
+   1. [Adafruit WiFiNiNA](https://github.com/adafruit/WiFiNINA/archive/master.zip) - _manual install_, forked from arduino, [see docs](https://learn.adafruit.com/adafruit-airlift-featherwing-esp32-wifi-co-processor-featherwing/arduino)
+   1. Adafruit MQTT
 1. For VS Code, compile to finish intellisense setup.
-    1. `.vscode/c_cpp_properties.json` may update.
+   1. `.vscode/c_cpp_properties.json` may update.
 1. Configure defines in `cryptid-bottles.h` and `src/pxl8.h` if relevant.
 
 ## HW Config
@@ -49,11 +49,26 @@
 
 ## MQTT Control
 
-Bottles can be controlled over MQTT. Discovery (auto-config) messages published for [Home Assistant](https://www.home-assistant.io/) (prefix `homeassistant/`) on startup, reconnection, and Home Assistant birth messages.
+Bottles can be controlled over MQTT.
 
-Birth and LWT messages sent on `cryptid/bottles/status` as `online`/`offline`.
+- Birth and LWT messages sent on `cryptid/bottles/status` as `online`/`offline`.
+- Status messages sent on `cryptid/bottles/state` in JSON.
+- Discovery (auto-config) messages published for [Home Assistant](https://www.home-assistant.io/)
+  (prefix `homeassistant/`) on startup, reconnection, and Home Assistant birth messages.
+- Commands for:
 
-See [src/control.cpp](./src/control.cpp) for individual command details.
+  | Topic           | Payload                                                                                                      |
+  | --------------- | ------------------------------------------------------------------------------------------------------------ |
+  | `on`            | `ON`/`OFF`                                                                                                   |
+  | `brightness`    | `0-255`                                                                                                      |
+  | `rgb`           | `0-255,0-255,0-255`, e.g. `0,128,200`                                                                        |
+  | `white_balance` | `30-90` in [mireds](https://en.wikipedia.org/wiki/Mired), e.g. `40`, `65`                                    |
+  | `white`         | `0-255`F                                                                                                     |
+  | `effect`        | `Default`, `Glow`, `Glow White`, `Faeries`, `Rain`, `Rainbow`, `Test`, `Test White`, `Illuminate`, `Warning` |
+  | `glow_speed`    | `Slow`,`Medium`,`Fast`                                                                                       |
+  | `faerie_speed`  | `Slow`,`Medium`,`Fast`                                                                                       |
+
+- See [src/control.cpp](./src/control.cpp) for individual command details.
 
 ## Status LEDs 🚥
 
