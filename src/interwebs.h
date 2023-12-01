@@ -72,6 +72,9 @@ typedef std::function<void(char*,uint16_t)> mqttcallback_t;
 /**
  * @brief Subscription class.
  *        Extends base class in order to add support for lambda callbacks.
+ *
+ * @todo processPacketsUntil() could be broken out to run with the main loop
+ *       readFullPacket() could be similarly broken out
  */
 class MQTTSubscribe : public Adafruit_MQTT_Subscribe {
   public:
