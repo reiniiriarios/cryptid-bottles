@@ -111,12 +111,12 @@ void ledStatus(status_t status) {
       interwebs.setLED(255, 0, 127);
       break;
     case STATUS_MQTT_OFFLINE:
-      statusLED.setPixelColor(0, 0xFF8000);
-      interwebs.setLED(255, 127, 0);
+      statusLED.setPixelColor(0, 0xFF5000);
+      interwebs.setLED(255, 80, 0);
       break;
     case STATUS_MQTT_SENDING:
-      statusLED.setPixelColor(0, 0x00FF80);
-      interwebs.setLED(0, 255, 0);
+      statusLED.setPixelColor(0, 0x00C8FF);
+      interwebs.setLED(0, 200, 255);
       break;
     case STATUS_UNKNOWN_ERROR:
     default:

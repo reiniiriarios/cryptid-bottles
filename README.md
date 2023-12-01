@@ -54,3 +54,13 @@ Bottles can be controlled over MQTT. Discovery (auto-config) messages published 
 Birth and LWT messages sent on `cryptid/bottles/status` as `online`/`offline`.
 
 See [src/control.cpp](./src/control.cpp) for individual command details.
+
+## Status LEDs 🚥
+
+The two larger LEDs on both the M4 and ESP32 boards will display:
+
+- 💚 **green**: bootloader active (M4 only) (double tap reset to activate)
+- 💜 **purple**: WiFi disconnected, connecting
+- 🧡 **orange**: MQTT disconnected, connecting
+- 💙 **cyan**: Sending MQTT message
+- 🛑 **red**: Unknown error
