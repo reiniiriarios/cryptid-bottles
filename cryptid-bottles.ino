@@ -156,7 +156,7 @@ void ledStatus(status_t status) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  while (!Serial) delay(10);
+  // while (!Serial) delay(10);
   Serial.println(F("Starting..."));
 
   // Seed by reading unused anolog pin.

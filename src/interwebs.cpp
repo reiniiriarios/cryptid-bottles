@@ -29,8 +29,6 @@ void Interwebs::setLED(uint8_t r, uint8_t g, uint8_t b) {
 // --------------------------------------- CONNECTION LOOPS ----------------------------------------
 
 bool Interwebs::wifiConnectionLoop(void) {
-  Serial.print("wifi loop: ");
-  Serial.println(this->status);
   switch (this->status) {
     case INTERWEBS_STATUS_WIFI_CONNECTED:
       return true;
@@ -53,8 +51,6 @@ bool Interwebs::wifiConnectionLoop(void) {
 }
 
 bool Interwebs::mqttConnectionLoop(void) {
-  Serial.print("mqtt loop: ");
-  Serial.println(this->status);
   switch (this->status) {
     case INTERWEBS_STATUS_MQTT_CONNECTED:
       return true;
@@ -108,31 +104,31 @@ bool Interwebs::disconnectServer() {
 int8_t Interwebs::connect() {
   // If not already connected to the server, fail.
   if (!this->wifiClient->connected()) {
-    Serial.print(F("not connected.."));
+    DEBUG_PRINT(F("not connected.."));
     return -1;
   }
 
   // Construct and send connect packet.
   uint8_t len = (this->*robbed<MQTTConPacket>::ptr)(this->buffer);
   if (!this->sendPacket(this->buffer, len)) {
-    Serial.print(F("err send packet.."));
+    DEBUG_PRINT(F("err send packet.."));
     return -1;
   }
 
   // Read connect response packet and verify it
   len = this->readFullPacket(this->buffer, MAXBUFFERSIZE, CONNECT_TIMEOUT_MS);
   if (len != 4) {
-    Serial.print(F("err read packet.."));
+    DEBUG_PRINT(F("err read packet.."));
     return -1;
   }
   if ((this->buffer[0] != (MQTT_CTRL_CONNECTACK << 4)) || (this->buffer[1] != 2)) {
-    Serial.print(F("err read buf.."));
+    DEBUG_PRINT(F("err read buf.."));
     return -1;
   }
   if (this->buffer[3] != 0) {
-    Serial.print(F("buffer ret: "));
-    Serial.print(this->buffer[3]);
-    Serial.print(F(".."));
+    DEBUG_PRINT(F("buffer ret: "));
+    DEBUG_PRINT(this->buffer[3]);
+    DEBUG_PRINT(F(".."));
     return this->buffer[3];
   }
   
@@ -322,12 +318,9 @@ bool Interwebs::mqttSubscribe(void) {
 
 bool Interwebs::mqttAnnounce(void) {
   if (this->birth_msg.first != "") {
-    Serial.print("announce..");
     if (!this->mqttPublish(this->birth_msg.first, this->birth_msg.second)) {
-      Serial.println("fail");
       return false;
     }
-    Serial.println("success");
   }
   this->status = INTERWEBS_STATUS_MQTT_CONNECTED;
   return true;
@@ -341,9 +334,9 @@ bool Interwebs::mqttLoop(void) {
     return false;
   }
   // Try to read message in queue first.
-  if (!this->readNewMessage()) {
+  if (!this->processSubscriptionQueue()) {
     // If nothing to read, try processing a packet instead.
-    this->processIncomingPacket();
+    this->processIncomingSubscriptions();
   }
   return true;
 }
@@ -398,8 +391,6 @@ void Interwebs::onMqtt(const char* topic, mqttcallback_t callback) {
 
 void Interwebs::mqttSendMessage(String topic, String payload) {
   if (!this->connected()) {
-    Serial.print(F("Unable to publish message, topic: "));
-    Serial.println(topic);
     return;
   }
   Serial.print(F("MQTT publishing to "));
@@ -414,7 +405,7 @@ bool Interwebs::mqttPublish(String topic, String payload, bool retain, uint8_t q
   return this->publish(topic.c_str(), (uint8_t *)(data), strlen(data), qos, retain);
 }
 
-bool Interwebs::readNewMessage(void) {
+bool Interwebs::processSubscriptionQueue(void) {
   for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
     MQTTSubscribe* sub = (MQTTSubscribe*)((*this->mqttSubs)[i]);
     if (sub && sub->new_message) {
@@ -428,7 +419,7 @@ bool Interwebs::readNewMessage(void) {
 
 // -------------------------------------- PACKET PROCESSING ----------------------------------------
 
-void Interwebs::processIncomingPacket(void) {
+void Interwebs::processIncomingSubscriptions(void) {
   // If data is available to be read, read and process a single packet.
   if (this->wifiClient->available()) {
     uint16_t len = this->readFullPacket(this->buffer, MAXBUFFERSIZE, READ_PACKET_TIMEOUT);
@@ -483,31 +474,3 @@ bool Interwebs::sendPacket(uint8_t *buf, uint16_t len) {
   }
   return true;
 }
-
-// uint8_t Interwebs::subscribePacket(uint8_t *packet, const char *topic, uint8_t qos) {
-//   uint8_t *p = packet;
-//   uint16_t len;
-
-//   p[0] = MQTT_CTRL_SUBSCRIBE << 4 | MQTT_QOS_1 << 1;
-//   // fill in packet[1] last
-//   p += 2;
-
-//   // packet identifier. used for checking SUBACK
-//   p[0] = (packet_id_counter >> 8) & 0xFF;
-//   p[1] = packet_id_counter & 0xFF;
-//   p += 2;
-
-//   // increment the packet id, skipping 0
-//   packet_id_counter = packet_id_counter + 1 + (packet_id_counter + 1 == 0);
-
-//   p = stringprint(p, topic);
-
-//   p[0] = qos;
-//   p++;
-
-//   len = p - packet;
-//   packet[1] = len - 2; // don't include the 2 bytes of fixed header data
-//   DEBUG_PRINTLN(F("MQTT subscription packet:"));
-//   DEBUG_PRINTBUFFER(buffer, len);
-//   return len;
-// }

@@ -1,8 +1,6 @@
 #ifndef CRYPTID_INTERWEBS_H
 #define CRYPTID_INTERWEBS_H
 
-#define MQTT_DEBUG
-
 #include <vector>
 using namespace std;
 
@@ -22,7 +20,7 @@ using namespace std;
 
 // Ping timeout. Can be low b/c local server.
 #undef PING_TIMEOUT_MS
-#define PING_TIMEOUT_MS 500
+#define PING_TIMEOUT_MS 100
 
 // Timeout for reading packets.
 #define READ_PACKET_TIMEOUT 100
@@ -64,32 +62,6 @@ typedef enum {
  * @brief MQTT subscription callback function.
  */
 typedef std::function<void(char*,uint16_t)> mqttcallback_t;
-
-
-
-/**
- * @brief Helper function defined in Adafruit_MQTT.cpp, but not declared.
- */
-static uint8_t *stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0) {
-  // If maxlen is specified (has a non-zero value) then use it as the maximum
-  // length of the source string to write to the buffer.  Otherwise write
-  // the entire source string.
-  uint16_t len = strlen(s);
-  if (maxlen > 0 && len > maxlen) {
-    len = maxlen;
-  }
-  /*
-  for (uint8_t i=0; i<len; i++) {
-    Serial.write(pgm_read_byte(s+i));
-  }
-  */
-  p[0] = len >> 8;
-  p++;
-  p[0] = len & 0xFF;
-  p++;
-  strncpy((char *)p, s, len);
-  return p + len;
-}
 
 // -------------------------------------- SUBSCRIPTION CLASS ---------------------------------------
 
@@ -360,14 +332,40 @@ class Interwebs : public Adafruit_MQTT {
 
     // ----------------------------------------- MESSAGING -----------------------------------------
 
-    bool readNewMessage(void);
+    /**
+     * @brief Process a single subscription flagged as having a new message.
+     *
+     * @return subscription processed
+     */
+    bool processSubscriptionQueue(void);
 
     // ------------------------------------ PACKET PROCESSING --------------------------------------
 
-    void processIncomingPacket(void);
+    /**
+     * @brief Process a single incoming packet relating to a subscription.
+     */
+    void processIncomingSubscriptions(void);
+
+    /**
+     * @brief Read MQTT packet from the server.  Will read up to maxlen bytes and store
+     *        the data in the provided buffer.  Waits up to the specified timeout (in
+     *        milliseconds) for data to be available.
+     * 
+     * @param buffer 
+     * @param maxlen 
+     * @param timeout 
+     * @return length read
+     */
     uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) override;
+
+    /**
+     * @brief Send data to the server specified by the buffer and length of data.
+     * 
+     * @param buffer 
+     * @param len 
+     * @return success
+     */
     bool sendPacket(uint8_t *buffer, uint16_t len) override;
-    // uint8_t subscribePacket(uint8_t *packet, const char *topic, uint8_t qos);
 
     // -------------------------- CONNECTION LOOP - CLOSE SOCKET, RESTART --------------------------
 
