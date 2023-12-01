@@ -69,9 +69,6 @@ bool Interwebs::mqttConnectionLoop(void) {
     case INTERWEBS_STATUS_MQTT_OFFLINE:
       this->mqttConnect();
       return false;
-    case INTERWEBS_STATUS_MQTT_SUBSCRIBED:
-      this->mqttAnnounce();
-      return false;
     case INTERWEBS_STATUS_MQTT_CONNECTING:
       this->waitOnConnection();
       return false;
@@ -85,6 +82,8 @@ bool Interwebs::mqttConnectionLoop(void) {
     case INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL:
       this->mqttSubscribe();
       return false;
+    case INTERWEBS_STATUS_MQTT_SUBSCRIBED:
+      return this->mqttAnnounce();
     default:
       return this->mqttIsConnected();
   }
@@ -100,6 +99,7 @@ bool Interwebs::connectServer() {
 bool Interwebs::disconnectServer() {
   // Stop connection if connected and return success (stop has no indication of failure).
   if (this->wifiClient->connected()) {
+    Serial.println(F("Stopping WiFi client"));
     this->wifiClient->stop();
   }
   return true;
@@ -107,25 +107,34 @@ bool Interwebs::disconnectServer() {
 
 int8_t Interwebs::connect() {
   // If not already connected to the server, fail.
-  if (!this->wifiClient->connected())
+  if (!this->wifiClient->connected()) {
+    Serial.print(F("not connected.."));
     return -1;
+  }
 
   // Construct and send connect packet.
   uint8_t len = (this->*robbed<MQTTConPacket>::ptr)(this->buffer);
-
-  if (!this->sendPacket(this->buffer, len))
+  if (!this->sendPacket(this->buffer, len)) {
+    Serial.print(F("err send packet.."));
     return -1;
+  }
 
   // Read connect response packet and verify it
   len = this->readFullPacket(this->buffer, MAXBUFFERSIZE, CONNECT_TIMEOUT_MS);
   if (len != 4) {
+    Serial.print(F("err read packet.."));
     return -1;
   }
   if ((this->buffer[0] != (MQTT_CTRL_CONNECTACK << 4)) || (this->buffer[1] != 2)) {
+    Serial.print(F("err read buf.."));
     return -1;
   }
-  if (this->buffer[3] != 0)
+  if (this->buffer[3] != 0) {
+    Serial.print(F("buffer ret: "));
+    Serial.print(this->buffer[3]);
+    Serial.print(F(".."));
     return this->buffer[3];
+  }
   
   return 1;
 }
@@ -189,8 +198,8 @@ bool Interwebs::wifiConnect(void) {
       Serial.println(F("WiFi connected"));
       return true; // yay
     case WL_IDLE_STATUS:
-    case WL_SCAN_COMPLETED:
     case WL_NO_SSID_AVAIL:
+    case WL_SCAN_COMPLETED:
       // do nothing, wait...
       return false;
     case WL_FAILURE:
@@ -281,28 +290,27 @@ bool Interwebs::mqttConnectBroker(void) {
 bool Interwebs::mqttSubscribe(void) {
   Serial.print(F("MQTT subscribing..."));
   for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
-    if (!(*this->mqttSubs[i])) {
+    MQTTSubscribe* sub = (MQTTSubscribe*)((*this->mqttSubs)[i]);
+    if (!sub || sub->topic == nullptr) {
       continue;
     }
     boolean success = false;
     for (uint8_t retry = 0; (retry < 3) && !success; retry++) { // retry until we get a suback
       // Construct and send subscription packet.
-      uint8_t len = (this->*robbed<MQTTSubPacket>::ptr)(this->buffer, (*this->mqttSubs[i])->topic, 0);
-      if (!this->sendPacket(buffer, len)) {
+      uint8_t len = (this->*robbed<MQTTSubPacket>::ptr)(this->buffer, sub->topic, 0);
+      // uint8_t len = this->subscribePacket(this->buffer, sub->topic, 0);
+      if (!this->sendPacket(this->buffer, len)) {
+        Serial.println(F("error sending packet"));
         this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
         return false;
       }
-
-      if (MQTT_PROTOCOL_LEVEL < 3) { // older versions didn't suback
-        break;
-      }
-
-      if (this->processPacketsUntil(buffer, MQTT_CTRL_SUBACK, SUBACK_TIMEOUT_MS)) {
+      if (this->processPacketsUntil(this->buffer, MQTT_CTRL_SUBACK, SUBACK_TIMEOUT_MS)) {
         success = true;
         break;
       }
     }
     if (!success) {
+      Serial.println(F("error"));
       this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
       return false;
     }
@@ -314,9 +322,12 @@ bool Interwebs::mqttSubscribe(void) {
 
 bool Interwebs::mqttAnnounce(void) {
   if (this->birth_msg.first != "") {
+    Serial.print("announce..");
     if (!this->mqttPublish(this->birth_msg.first, this->birth_msg.second)) {
+      Serial.println("fail");
       return false;
     }
+    Serial.println("success");
   }
   this->status = INTERWEBS_STATUS_MQTT_CONNECTED;
   return true;
@@ -329,13 +340,11 @@ bool Interwebs::mqttLoop(void) {
   if (!this->mqttIsConnected()) {
     return false;
   }
-
   // Try to read message in queue first.
   if (!this->readNewMessage()) {
     // If nothing to read, try processing a packet instead.
     this->processIncomingPacket();
   }
-
   return true;
 }
 
@@ -381,7 +390,7 @@ void Interwebs::setBirth(String topic, String payload) {
   this->birth_msg = { topic, payload };
 }
 
-void Interwebs::onMqtt(char* topic, mqttcallback_t callback) {
+void Interwebs::onMqtt(const char* topic, mqttcallback_t callback) {
   MQTTSubscribe* sub = new MQTTSubscribe(this, topic);
   sub->setCallback(callback);
   this->subscribe(sub);
@@ -401,19 +410,14 @@ void Interwebs::mqttSendMessage(String topic, String payload) {
 }
 
 bool Interwebs::mqttPublish(String topic, String payload, bool retain, uint8_t qos) {
-  Serial.print(F("Publishing "));
-  Serial.println(topic);
   const char *data = payload.c_str();
   return this->publish(topic.c_str(), (uint8_t *)(data), strlen(data), qos, retain);
 }
 
 bool Interwebs::readNewMessage(void) {
   for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
-    MQTTSubscribe* sub = *this->mqttSubs[i];
-    if (!sub) {
-      continue;
-    }
-    if (sub->new_message) {
+    MQTTSubscribe* sub = (MQTTSubscribe*)((*this->mqttSubs)[i]);
+    if (sub && sub->new_message) {
       sub->callback_lambda((char *)sub->lastread, sub->datalen);
       sub->new_message = false;
       return true; // only read one
@@ -425,29 +429,27 @@ bool Interwebs::readNewMessage(void) {
 // -------------------------------------- PACKET PROCESSING ----------------------------------------
 
 void Interwebs::processIncomingPacket(void) {
-  uint16_t len = this->readFullPacket(this->buffer, MAXBUFFERSIZE, READ_PACKET_TIMEOUT);
-  this->handleSubscriptionPacket(len);
+  // If data is available to be read, read and process a single packet.
+  if (this->wifiClient->available()) {
+    uint16_t len = this->readFullPacket(this->buffer, MAXBUFFERSIZE, READ_PACKET_TIMEOUT);
+    this->handleSubscriptionPacket(len);
+  }
 }
 
-uint16_t Interwebs::readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) {
+uint16_t Interwebs::readPacket(uint8_t *buf, uint16_t maxlen, int16_t timeout) {
+  if (maxlen == 0) return 0; // handle zero-length packets
   // Read data until either the connection is closed, or the idle timeout is reached.
   uint16_t len = 0;
   int16_t t = timeout;
-
-  if (maxlen == 0) { // handle zero-length packets
-    return 0;
-  }
-
   while (this->wifiClient->connected() && (timeout >= 0)) {
     while (this->wifiClient->available()) {
       char c = this->wifiClient->read();
       timeout = t; // reset the timeout
-      buffer[len] = c;
+      buf[len] = c;
       len++;
-
       if (len == maxlen) { // we read all we want, bail
         DEBUG_PRINT(F("Read data:\t"));
-        DEBUG_PRINTBUFFER(buffer, len);
+        DEBUG_PRINTBUFFER(buf, len);
         return len;
       }
     }
@@ -457,27 +459,55 @@ uint16_t Interwebs::readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout
   return len;
 }
 
-bool Interwebs::sendPacket(uint8_t *buffer, uint16_t len) {
+bool Interwebs::sendPacket(uint8_t *buf, uint16_t len) {
   uint16_t ret = 0;
   uint16_t offset = 0;
   while (len > 0) {
-    if (this->wifiClient->connected()) {
-      // send 250 bytes at most at a time, can adjust this later based on Client
-      uint16_t sendlen = len > 250 ? 250 : len;
-      ret = this->wifiClient->write(buffer + offset, sendlen);
-      DEBUG_PRINT(F("Client sendPacket returned: "));
-      DEBUG_PRINTLN(ret);
-      len -= ret;
-      offset += ret;
-
-      if (ret != sendlen) {
-        DEBUG_PRINTLN("Failed to send packet.");
-        return false;
-      }
-    } else {
+    if (!this->wifiClient->connected()) {
+      this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
       DEBUG_PRINTLN(F("Connection failed!"));
+      return false;
+    }
+    // send 250 bytes at most at a time, can adjust this later based on Client
+    uint16_t sendlen = len > 250 ? 250 : len;
+    ret = this->wifiClient->write(buf + offset, sendlen);
+    DEBUG_PRINT(F("Client sendPacket returned: "));
+    DEBUG_PRINTLN(ret);
+    len -= ret;
+    offset += ret;
+
+    if (ret != sendlen) {
+      DEBUG_PRINTLN("Failed to send packet.");
       return false;
     }
   }
   return true;
 }
+
+// uint8_t Interwebs::subscribePacket(uint8_t *packet, const char *topic, uint8_t qos) {
+//   uint8_t *p = packet;
+//   uint16_t len;
+
+//   p[0] = MQTT_CTRL_SUBSCRIBE << 4 | MQTT_QOS_1 << 1;
+//   // fill in packet[1] last
+//   p += 2;
+
+//   // packet identifier. used for checking SUBACK
+//   p[0] = (packet_id_counter >> 8) & 0xFF;
+//   p[1] = packet_id_counter & 0xFF;
+//   p += 2;
+
+//   // increment the packet id, skipping 0
+//   packet_id_counter = packet_id_counter + 1 + (packet_id_counter + 1 == 0);
+
+//   p = stringprint(p, topic);
+
+//   p[0] = qos;
+//   p++;
+
+//   len = p - packet;
+//   packet[1] = len - 2; // don't include the 2 bytes of fixed header data
+//   DEBUG_PRINTLN(F("MQTT subscription packet:"));
+//   DEBUG_PRINTBUFFER(buffer, len);
+//   return len;
+// }

@@ -216,9 +216,6 @@ void loop(void) {
   while (((t = micros()) - prevMicros) < (1000000L / MAX_FPS));
   prevMicros = t;
 
-  // Run main MQTT loop every loop.
-  interwebs.mqttLoop();
-
   // Main animation processing.
   if (control.pixelsOn) {
     switch (control.bottleAnimation) {
@@ -273,6 +270,11 @@ void loop(void) {
           bottle->warning();
         };
     }
+  }
+
+  every_n_seconds(1) {
+    // Process incoming data.
+    interwebs.mqttLoop();
   }
 
   // Check and repair interwebs connections.

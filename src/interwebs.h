@@ -1,6 +1,8 @@
 #ifndef CRYPTID_INTERWEBS_H
 #define CRYPTID_INTERWEBS_H
 
+#define MQTT_DEBUG
+
 #include <vector>
 using namespace std;
 
@@ -19,53 +21,14 @@ using namespace std;
 #define MQTT_CLIENT_READINTERVAL_MS 10
 
 // Ping timeout. Can be low b/c local server.
-#define PING_TIMEOUT_MS 100
+#undef PING_TIMEOUT_MS
+#define PING_TIMEOUT_MS 500
 
+// Timeout for reading packets.
 #define READ_PACKET_TIMEOUT 100
 
-// -------------------------------------------- ROBBERY --------------------------------------------
-// Rob a pointer to a private property of an object.
-
-// Struct to hold the stolen pobool Interwebs::processIncomingPacket(void)inter (ptr).
-template<typename Tag>
-struct robbed {
-  typedef typename Tag::type type;
-  static type ptr;
-};
-
-template<typename Tag>
-typename robbed<Tag>::type robbed<Tag>::ptr;
-
-// Struct to rob a pointer.
-template<typename Tag, typename Tag::type p>
-struct rob : robbed<Tag> {
-  struct filler {
-    filler() { robbed<Tag>::ptr = p; }
-  };
-  static filler filler_obj;
-};
-
-template<typename Tag, typename Tag::type p>
-typename rob<Tag, p>::filler rob<Tag, p>::filler_obj;
-
-// (uint8_t) &WiFiClient::_sock
-// wifiClientObj->_sock <=> &(wifiClientObj->*robbed<WiFiClientSock>::ptr);
-struct WiFiClientSock { typedef uint8_t WiFiClient::*type; };
-template class rob<WiFiClientSock, &WiFiClient::_sock>;
-
-typedef MQTTSubscribe* mqtt_sub_array_t[MAXSUBSCRIPTIONS];
-struct MQTTSubs { typedef mqtt_sub_array_t Adafruit_MQTT::*type; };
-template class rob<MQTTSubs, &Adafruit_MQTT::subscriptions>;
-
-// &Adafruit_MQTT::connectPacket(uint8_t *packet)
-// (mqtt->*robbed<MQTTConPacket>::ptr)(...);
-struct MQTTConPacket { typedef uint8_t(Adafruit_MQTT::*type)(uint8_t*); };
-template class rob<MQTTConPacket, &Adafruit_MQTT::connectPacket>;
-
-// &Adafruit_MQTT::subscribePacket(uint8_t *packet, const char *topic, uint8_t qos)
-// (mqtt->*robbed<MQTTSubPacket>::ptr)(...);
-struct MQTTSubPacket { typedef uint8_t(Adafruit_MQTT::*type)(uint8_t*, const char*, uint8_t); };
-template class rob<MQTTSubPacket, &Adafruit_MQTT::subscribePacket>;
+// Use 3 (MQTT 3.0) or 4 (MQTT 3.1.1)
+#define MQTT_PROTOCOL_LEVEL 4
 
 // -------------------------------------------- TYPEDEF --------------------------------------------
 
@@ -102,6 +65,32 @@ typedef enum {
  */
 typedef std::function<void(char*,uint16_t)> mqttcallback_t;
 
+
+
+/**
+ * @brief Helper function defined in Adafruit_MQTT.cpp, but not declared.
+ */
+static uint8_t *stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0) {
+  // If maxlen is specified (has a non-zero value) then use it as the maximum
+  // length of the source string to write to the buffer.  Otherwise write
+  // the entire source string.
+  uint16_t len = strlen(s);
+  if (maxlen > 0 && len > maxlen) {
+    len = maxlen;
+  }
+  /*
+  for (uint8_t i=0; i<len; i++) {
+    Serial.write(pgm_read_byte(s+i));
+  }
+  */
+  p[0] = len >> 8;
+  p++;
+  p[0] = len & 0xFF;
+  p++;
+  strncpy((char *)p, s, len);
+  return p + len;
+}
+
 // -------------------------------------- SUBSCRIPTION CLASS ---------------------------------------
 
 /**
@@ -131,6 +120,51 @@ class MQTTSubscribe : public Adafruit_MQTT_Subscribe {
      */
     mqttcallback_t callback_lambda;
 };
+
+// -------------------------------------------- ROBBERY --------------------------------------------
+// Rob a pointer to a private property of an object.
+
+// Struct to hold the stolen pointer (ptr).
+template<typename Tag>
+struct robbed {
+  typedef typename Tag::type type;
+  static type ptr;
+};
+template<typename Tag>
+typename robbed<Tag>::type robbed<Tag>::ptr;
+
+// Struct to rob a pointer.
+template<typename Tag, typename Tag::type p>
+struct rob : robbed<Tag> {
+  struct filler {
+    filler() { robbed<Tag>::ptr = p; }
+  };
+  static filler filler_obj;
+};
+template<typename Tag, typename Tag::type p>
+typename rob<Tag, p>::filler rob<Tag, p>::filler_obj;
+
+// (uint8_t) &WiFiClient::_sock
+// wifiClientObj->_sock <=> &(wifiClientObj->*robbed<WiFiClientSock>::ptr);
+struct WiFiClientSock { typedef uint8_t WiFiClient::*type; };
+template class rob<WiFiClientSock, &WiFiClient::_sock>;
+
+// (MQTTSubscribe*)[MAXSUBSCRIPTIONS]
+// &Adafruit_MQTT::subscriptions
+// mqtt->subscriptions <=> &(mqtt->*robbed<MQTTSubs>::ptr)
+typedef Adafruit_MQTT_Subscribe* mqtt_sub_array_t[MAXSUBSCRIPTIONS];
+struct MQTTSubs { typedef mqtt_sub_array_t Adafruit_MQTT::*type; };
+template class rob<MQTTSubs, &Adafruit_MQTT::subscriptions>;
+
+// &Adafruit_MQTT::connectPacket(uint8_t *packet)
+// (mqtt->*robbed<MQTTConPacket>::ptr)(...);
+struct MQTTConPacket { typedef uint8_t(Adafruit_MQTT::*type)(uint8_t*); };
+template class rob<MQTTConPacket, &Adafruit_MQTT::connectPacket>;
+
+// &Adafruit_MQTT::subscribePacket(uint8_t *packet, const char *topic, uint8_t qos)
+// (mqtt->*robbed<MQTTSubPacket>::ptr)(...);
+struct MQTTSubPacket { typedef uint8_t(Adafruit_MQTT::*type)(uint8_t*, const char*, uint8_t); };
+template class rob<MQTTSubPacket, &Adafruit_MQTT::subscribePacket>;
 
 // ------------------------------------------ MAIN CLASS -------------------------------------------
 
@@ -230,7 +264,7 @@ class Interwebs : public Adafruit_MQTT {
      * @param topic
      * @param callback
      */
-    void onMqtt(char* topic, mqttcallback_t callback);
+    void onMqtt(const char* topic, mqttcallback_t callback);
 
     /**
      * @brief Send MQTT message. Verifies connection before sending.
@@ -293,8 +327,35 @@ class Interwebs : public Adafruit_MQTT {
 
     // ------------------------------------------ CONNECT ------------------------------------------
 
+    /**
+     * @brief [NOT USED] Dummy method, required instantiation. Connection handled in loop.
+     *
+     * @return false
+     */
     bool connectServer() override;
+
+    /**
+     * @brief Stop WiFi client.
+     * 
+     * @return success
+     */
     bool disconnectServer() override;
+
+    /**
+     * @brief Override for parent class. This method DOES NOT connect to WiFi or the
+     *        configured server. It only connects to the MQTT broker after the other
+     *        two parts of the connection are established.
+     * 
+     * @return Returns 0 on success, otherwise an error code that indicates something went wrong:
+     *           -1 = Error connecting to server;
+     *           1 = Wrong protocol;
+     *           2 = ID rejected;
+     *           3 = Server unavailable;
+     *           4 = Bad username or password;
+     *           5 = Not authenticated;
+     *           6 = Failed to subscribe;
+     *         Use connectErrorString() to get a printable string version of the error.
+     */
     int8_t connect();
 
     // ----------------------------------------- MESSAGING -----------------------------------------
@@ -306,6 +367,7 @@ class Interwebs : public Adafruit_MQTT {
     void processIncomingPacket(void);
     uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) override;
     bool sendPacket(uint8_t *buffer, uint16_t len) override;
+    // uint8_t subscribePacket(uint8_t *packet, const char *topic, uint8_t qos);
 
     // -------------------------- CONNECTION LOOP - CLOSE SOCKET, RESTART --------------------------
 
@@ -385,10 +447,5 @@ class Interwebs : public Adafruit_MQTT {
      */
     bool mqttAnnounce(void);
 };
-
-/**
- * @brief Helper function defined in Adafruit_MQTT.cpp, but not declared.
- */
-static uint8_t *stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0);
 
 #endif
