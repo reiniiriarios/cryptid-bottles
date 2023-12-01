@@ -19,6 +19,7 @@ Interwebs::Interwebs() : Adafruit_MQTT(nullptr, MQTT_PORT, MQTT_CLIENT_ID, MQTT_
   // Create WiFi client.
   this->wifiClient = new WiFiClient();
   this->_sock = &(this->wifiClient->*robbed<WiFiClientSock>::ptr);
+  this->mqttSubs = &(this->*robbed<MQTTSubs>::ptr);
 }
 
 void Interwebs::setLED(uint8_t r, uint8_t g, uint8_t b) {
@@ -279,11 +280,14 @@ bool Interwebs::mqttConnectBroker(void) {
 
 bool Interwebs::mqttSubscribe(void) {
   Serial.print(F("MQTT subscribing..."));
-  for (auto & sub : this->mqttSubs) {
+  for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
+    if (!(*this->mqttSubs[i])) {
+      continue;
+    }
     boolean success = false;
     for (uint8_t retry = 0; (retry < 3) && !success; retry++) { // retry until we get a suback
       // Construct and send subscription packet.
-      uint8_t len = (this->*robbed<MQTTSubPacket>::ptr)(this->buffer, sub.first.c_str(), 0);
+      uint8_t len = (this->*robbed<MQTTSubPacket>::ptr)(this->buffer, (*this->mqttSubs[i])->topic, 0);
       if (!this->sendPacket(buffer, len)) {
         this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
         return false;
@@ -325,19 +329,11 @@ bool Interwebs::mqttLoop(void) {
   if (!this->mqttIsConnected()) {
     return false;
   }
-  // If we think it's connected... and it isn't... change the status and fail.
-  if (!this->wifiClient->connected()) {
-    this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
-    return false;
-  }
 
-  // Adafruit_MQTT_Subscribe *subscription;
-  // while ((subscription = this->readSubscription(5000))) {
-  //   // ...???
-  // }
-
-  if (!this->ping()) {
-    this->disconnect();
+  // Try to read message in queue first.
+  if (!this->readNewMessage()) {
+    // If nothing to read, try processing a packet instead.
+    this->processIncomingPacket();
   }
 
   return true;
@@ -346,11 +342,14 @@ bool Interwebs::mqttLoop(void) {
 // --------------------------------------- CONNECTION STATUS ---------------------------------------
 
 bool Interwebs::verifyConnection(void) {
-  Serial.println(F("Verifying connection"));
-  if (!this->wifiClient->connected()) {
+  Serial.print(F("Verifying connection..."));
+  if (!this->ping()) {
+    Serial.println(F("ping failed"));
+    this->disconnect();
     this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
     return false;
   }
+  Serial.println(F("online"));
   return true;
 }
 
@@ -376,28 +375,16 @@ void Interwebs::printWifiStatus(void) {
   Serial.println(F(" dBm"));
 }
 
-// ---------------------------------------------- SET ----------------------------------------------
+// ------------------------------------------- MESSAGING -------------------------------------------
 
 void Interwebs::setBirth(String topic, String payload) {
   this->birth_msg = { topic, payload };
 }
 
-// ------------------------------------------- MESSAGING -------------------------------------------
-
-void Interwebs::onMqtt(String topic, mqttcallback_t callback) {
-  this->mqttSubs[topic] = new MQTTSubscribe(this, topic.c_str());
-  this->mqttSubs[topic]->setCallback(callback);
-}
-
-void Interwebs::processSubscriptionPacket(MQTTSubscribe *sub) {
-  if (sub->callback_lambda != NULL) {
-    sub->callback_buffer((char *)sub->lastread, sub->datalen);
-  } else {
-    DEBUG_PRINTLN("ERROR: Subscription packet did not have an associated callback");
-    return;
-  }
-  // mark subscription message as "read"
-  sub->new_message = false;
+void Interwebs::onMqtt(char* topic, mqttcallback_t callback) {
+  MQTTSubscribe* sub = new MQTTSubscribe(this, topic);
+  sub->setCallback(callback);
+  this->subscribe(sub);
 }
 
 void Interwebs::mqttSendMessage(String topic, String payload) {
@@ -420,7 +407,27 @@ bool Interwebs::mqttPublish(String topic, String payload, bool retain, uint8_t q
   return this->publish(topic.c_str(), (uint8_t *)(data), strlen(data), qos, retain);
 }
 
-// ------------------------------ PACKETS, from Adafruit_MQTT_Client -------------------------------
+bool Interwebs::readNewMessage(void) {
+  for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
+    MQTTSubscribe* sub = *this->mqttSubs[i];
+    if (!sub) {
+      continue;
+    }
+    if (sub->new_message) {
+      sub->callback_lambda((char *)sub->lastread, sub->datalen);
+      sub->new_message = false;
+      return true; // only read one
+    }
+  }
+  return false; // none read
+}
+
+// -------------------------------------- PACKET PROCESSING ----------------------------------------
+
+void Interwebs::processIncomingPacket(void) {
+  uint16_t len = this->readFullPacket(this->buffer, MAXBUFFERSIZE, READ_PACKET_TIMEOUT);
+  this->handleSubscriptionPacket(len);
+}
 
 uint16_t Interwebs::readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) {
   // Read data until either the connection is closed, or the idle timeout is reached.

@@ -1,7 +1,7 @@
 #ifndef CRYPTID_INTERWEBS_H
 #define CRYPTID_INTERWEBS_H
 
-#include <map>
+#include <vector>
 using namespace std;
 
 #include <WiFiNINA.h>
@@ -18,10 +18,15 @@ using namespace std;
 // How long to delay waiting for new data to be available in readPacket.
 #define MQTT_CLIENT_READINTERVAL_MS 10
 
+// Ping timeout. Can be low b/c local server.
+#define PING_TIMEOUT_MS 100
+
+#define READ_PACKET_TIMEOUT 100
+
 // -------------------------------------------- ROBBERY --------------------------------------------
 // Rob a pointer to a private property of an object.
 
-// Struct to hold the stolen pointer (ptr).
+// Struct to hold the stolen pobool Interwebs::processIncomingPacket(void)inter (ptr).
 template<typename Tag>
 struct robbed {
   typedef typename Tag::type type;
@@ -47,6 +52,10 @@ typename rob<Tag, p>::filler rob<Tag, p>::filler_obj;
 // wifiClientObj->_sock <=> &(wifiClientObj->*robbed<WiFiClientSock>::ptr);
 struct WiFiClientSock { typedef uint8_t WiFiClient::*type; };
 template class rob<WiFiClientSock, &WiFiClient::_sock>;
+
+typedef MQTTSubscribe* mqtt_sub_array_t[MAXSUBSCRIPTIONS];
+struct MQTTSubs { typedef mqtt_sub_array_t Adafruit_MQTT::*type; };
+template class rob<MQTTSubs, &Adafruit_MQTT::subscriptions>;
 
 // &Adafruit_MQTT::connectPacket(uint8_t *packet)
 // (mqtt->*robbed<MQTTConPacket>::ptr)(...);
@@ -205,7 +214,7 @@ class Interwebs : public Adafruit_MQTT {
      */
     bool mqttLoop(void);
 
-    // -------------------------------------------- SET --------------------------------------------
+    // ----------------------------------------- MESSAGING -----------------------------------------
 
     /**
      * @brief Set the birth topic.
@@ -215,23 +224,13 @@ class Interwebs : public Adafruit_MQTT {
      */
     void setBirth(String topic, String payload);
 
-    // ----------------------------------------- MESSAGING -----------------------------------------
-
     /**
      * @brief MQTT hook.
      *
      * @param topic
      * @param callback
      */
-    void onMqtt(String topic, mqttcallback_t callback);
-
-    /**
-     * @brief Process subscription packet.
-     *        Override from base class to allow for lambda callbacks.
-     * 
-     * @param sub
-     */
-    void processSubscriptionPacket(MQTTSubscribe *sub);
+    void onMqtt(char* topic, mqttcallback_t callback);
 
     /**
      * @brief Send MQTT message. Verifies connection before sending.
@@ -283,9 +282,9 @@ class Interwebs : public Adafruit_MQTT {
     // ---------------------------------------- MQTT PROPS -----------------------------------------
 
     /**
-     * @brief A map of mqtt subscriptions and their callbacks.
+     * @brief Pointer to underlying subscriptions array.
      */
-    std::map<String, MQTTSubscribe*> mqttSubs;
+    mqtt_sub_array_t* mqttSubs;
 
     /**
      * @brief Birth topic.
@@ -300,13 +299,11 @@ class Interwebs : public Adafruit_MQTT {
 
     // ----------------------------------------- MESSAGING -----------------------------------------
 
-    /**
-     * @brief Handle MQTT messages received.
-     */
-    void mqttMessageReceived(String &topic, String &payload);
+    bool readNewMessage(void);
 
-    // ---------------------------- PACKETS, from Adafruit_MQTT_Client -----------------------------
+    // ------------------------------------ PACKET PROCESSING --------------------------------------
 
+    void processIncomingPacket(void);
     uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) override;
     bool sendPacket(uint8_t *buffer, uint16_t len) override;
 
