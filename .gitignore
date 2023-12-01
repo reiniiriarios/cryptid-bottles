@@ -4,10 +4,6 @@ build
 # env
 wifi-config.h
 
-# LWMQTT library
-/lwmqtt
-/src/lwmqtt
-
 # os
 .DS_Store
 Thumbs.db
