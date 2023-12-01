@@ -18,6 +18,10 @@ using namespace std;
 // How long to delay waiting for new data to be available in readPacket.
 #define MQTT_CLIENT_READINTERVAL_MS 10
 
+// Connection to broker timeout.
+#undef CONNECT_TIMEOUT_MS
+#define CONNECT_TIMEOUT_MS 1000
+
 // Ping timeout. Can be low b/c local server.
 #undef PING_TIMEOUT_MS
 #define PING_TIMEOUT_MS 100

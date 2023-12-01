@@ -99,39 +99,12 @@ void spawnFaeries(void) {
 
 // SETUP -------------------------------------------------------------------------------------------
 
-uint8_t loading_step = 0;
-void loading(status_t status) {
-  ledStatus(status);
-  uint8_t r = loading_step * 3,
-          g = loading_step * 10,
-          b = 255;
-  for (auto & bottle : bottles) {
-    bottle->illuminate(rgb_t{ r, g, b });
-  };
-  pxl8.show();
-  loading_step++;
-}
-
 void ledStatus(status_t status) {
   uint8_t r, g, b;
   switch (status) {
     case STATUS_OK:
       statusLED.setPixelColor(0, 0);
       interwebs.setLED(0, 0, 0);
-      break;
-    case STATUS_LOADING:
-      r = loading_step * 2;
-      g = loading_step * 10;
-      b = 255;
-      statusLED.setPixelColor(0, pxl8.color(r, g, b));
-      interwebs.setLED(r, g, b);
-      break;
-    case STATUS_LOADING_WIFI_ERR:
-      r = 255;
-      g = loading_step * 10;
-      b = loading_step * 2;
-      statusLED.setPixelColor(0, pxl8.color(r, g, b));
-      interwebs.setLED(r, g, b);
       break;
     case STATUS_WIFI_OFFLINE:
       statusLED.setPixelColor(0, 0xFF0080);
@@ -184,20 +157,15 @@ void setup(void) {
     err(0xFF0000);
   }
   pxl8.setBrightness(control.brightness);
-  loading();
 
   // Check connection to WiFi board.
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println(F("Communication with WiFi module failed"));
     err(0xFF0080);
   }
-  loading();
 
   // Set up MQTT callbacks, etc.
   control.initMQTT();
-
-  // Done. Call last to clear status LEDs.
-  loading(STATUS_OK);
 }
 
 // LOOP --------------------------------------------------------------------------------------------
@@ -272,13 +240,14 @@ void loop(void) {
     }
   }
 
-  every_n_seconds(1) {
+  every_n_loops(60) {
     // Process incoming data.
     interwebs.mqttLoop();
   }
 
   // Check and repair interwebs connections.
-  every_n_seconds(10) {
+  // Internal keepalive is 5min.
+  every_n_seconds(30) {
     // If status is okay, query connection over SPI to verify.
     if (interwebs.mqttIsConnected()) {
       interwebs.verifyConnection();
@@ -286,14 +255,14 @@ void loop(void) {
   }
   if (!interwebs.wifiIsConnected()) {
     ledStatus(STATUS_WIFI_OFFLINE);
-    bottles.at(0)->warningWiFi();
+    // bottles.at(0)->warningWiFi();
     every_n_seconds(1) {
       interwebs.wifiConnectionLoop();
     }
   }
   else if (!interwebs.mqttIsConnected()) {
     ledStatus(STATUS_MQTT_OFFLINE);
-    bottles.at(0)->warningMQTT();
+    // bottles.at(0)->warningMQTT();
     every_n_seconds(1) {
       if (interwebs.mqttConnectionLoop()) {
         ledStatus(STATUS_MQTT_SENDING);

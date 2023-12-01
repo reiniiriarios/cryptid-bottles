@@ -11,7 +11,12 @@
 #include "src/interwebs.h"
 #include "src/bottle.h"
 
+// Instead of using a timer, these approximations ensure the
+// same delay between actions. This means things don't execute
+// as precicely on schedule, but the animation is, in theory,
+// smoother.
 #define every_n_seconds(n) if (loopCounter % (MAX_FPS * n) == 0)
+#define every_n_loops(n) if (loopCounter % n == 0)
 
 /**
  * @brief Get a white RGB value at a random color temperature.
@@ -49,11 +54,6 @@ void spawnFaeries(void);
  * @brief Call if fatal crash.
  */
 void err(uint32_t ledColor = 0xFF0000);
-
-/**
- * @brief Callback to display loading progress.
- */
-void loading(status_t status = STATUS_LOADING);
 
 /**
  * @brief Set LEDs for a specific status.

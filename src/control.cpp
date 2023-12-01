@@ -4,6 +4,7 @@ Control::Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle*>* bottles
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
 
 void Control::turnOn(void) {
+  Serial.println(F("Turning light on"));
   pixelsOn = true;
   if (brightness == 0) {
     brightness = 127;
@@ -12,6 +13,7 @@ void Control::turnOn(void) {
 }
 
 void Control::turnOff(void) {
+  Serial.println(F("Turning light off"));
   pixelsOn = false;
   for (auto & bottle : *bottles) {
     bottle->blank();
@@ -27,13 +29,14 @@ void Control::initMQTT(void) {
 
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](char* payload, uint16_t /*len*/){
-    Serial.print(F("Setting on/off to "));
-    Serial.println(payload);
-    if (strcmp(payload, "ON") == 0 || strcmp(payload, "on") == 0 || strcmp(payload, "1")) {
+    String pStr = String(payload);
+    if (pStr == "ON" || pStr == "on" || pStr == "1") {
       turnOn();
-    }
-    else if (strcmp(payload, "OFF") == 0 || strcmp(payload, "off") == 0 || strcmp(payload, "0")) {
+    } else if (pStr == "OFF" || pStr == "on" || pStr == "0") {
       turnOff();
+    } else {
+      Serial.print(F("Unrecognized on/off command: "));
+      Serial.println(pStr);
     }
     mqttCurrentStatus();
   });
@@ -85,7 +88,7 @@ void Control::initMQTT(void) {
 
   // Set the bottles brightness.
   interwebs->onMqtt("cryptid/bottles/brightness/set", [&](char* payload, uint16_t /*len*/){
-    brightness = min(max(0, strtol(payload, nullptr, 8)), 255);
+    brightness = min(max(0, strtol(payload, nullptr, 10)), 255);
     Serial.print(F("Setting brightness to "));
     Serial.println(String(brightness));
     if (brightness == 0) {
@@ -123,7 +126,7 @@ void Control::initMQTT(void) {
 
   // Set to a given brightness at the current white balance.
   interwebs->onMqtt("cryptid/bottles/white/set", [&](char* payload, uint16_t /*len*/){
-    brightness = min(max(0, strtol(payload, nullptr, 8)), 255);
+    brightness = min(max(0, strtol(payload, nullptr, 10)), 255);
     Serial.print(F("Setting illumination to "));
     Serial.println(String(white_balance) + "@" + String(brightness));
     static_color = WHITE_TEMPERATURES.at(white_balance);
@@ -139,7 +142,7 @@ void Control::initMQTT(void) {
 
   // Set white balance in degrees kelvin.
   interwebs->onMqtt("cryptid/bottles/white_balance/set", [&](char* payload, uint16_t /*len*/){
-    white_balance = white_balance_t(min(max(MIN_WB_MIRED, roundmired(strtol(payload, nullptr, 8))), MAX_WB_MIRED));
+    white_balance = white_balance_t(min(max(MIN_WB_MIRED, roundmired(strtol(payload, nullptr, 10))), MAX_WB_MIRED));
     Serial.print(F("Setting white balance to "));
     Serial.println(String(white_balance));
     static_color = WHITE_TEMPERATURES.at(white_balance);

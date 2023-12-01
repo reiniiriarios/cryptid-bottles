@@ -18,7 +18,9 @@ Interwebs::Interwebs() : Adafruit_MQTT(nullptr, MQTT_PORT, MQTT_CLIENT_ID, MQTT_
 
   // Create WiFi client.
   this->wifiClient = new WiFiClient();
+  // Create a pointer to `_sock` private property of wifiClient.
   this->_sock = &(this->wifiClient->*robbed<WiFiClientSock>::ptr);
+  // Create a pointer to `subscriptions` private property of parent class.
   this->mqttSubs = &(this->*robbed<MQTTSubs>::ptr);
 }
 
@@ -271,6 +273,7 @@ bool Interwebs::waitAfterConnection(void) {
 bool Interwebs::mqttConnectBroker(void) {
   Serial.print(F("MQTT connecting to broker..."));
   if (this->connect() != 1) {
+    // If failed, log the attempt and wait until the next loop to try again.
     this->attempts++;
     if (this->attempts >= 5 || !this->wifiClient->connected()) {
       this->status = INTERWEBS_STATUS_MQTT_ERRORS;
@@ -329,12 +332,11 @@ bool Interwebs::mqttAnnounce(void) {
 // -------------------------------------- MAIN LOOP - RECEIVE --------------------------------------
 
 bool Interwebs::mqttLoop(void) {
-  // If WiFi isn't connected, and we know it, skip this loop.
-  if (!this->mqttIsConnected()) {
-    return false;
-  }
   // Try to read message in queue first.
   if (!this->processSubscriptionQueue()) {
+    if (!this->mqttIsConnected()) {
+      return false;
+    }
     // If nothing to read, try processing a packet instead.
     this->processIncomingSubscriptions();
   }
