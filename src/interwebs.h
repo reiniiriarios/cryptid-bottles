@@ -167,6 +167,13 @@ class Interwebs : public Adafruit_MQTT {
      */
     void setLED(uint8_t r, uint8_t g, uint8_t b);
 
+    /**
+     * @brief Get status.
+     * 
+     * @return status enum
+     */
+    interwebs_status_t getStatus(void);
+
     // -------------------------- CONNECTION LOOP - CLOSE SOCKET, RESTART --------------------------
 
     /**
@@ -268,7 +275,7 @@ class Interwebs : public Adafruit_MQTT {
     /**
      * @brief Current status of interwebs connections.
      */
-    int status = INTERWEBS_STATUS_INIT;
+    interwebs_status_t status = INTERWEBS_STATUS_INIT;
 
     /**
      * @brief Timer for waiting.

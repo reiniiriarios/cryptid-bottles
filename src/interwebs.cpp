@@ -28,6 +28,10 @@ void Interwebs::setLED(uint8_t r, uint8_t g, uint8_t b) {
   WiFi.setLEDs(r, g, b);
 }
 
+interwebs_status_t Interwebs::getStatus(void) {
+  return this->status;
+}
+
 // --------------------------------------- CONNECTION LOOPS ----------------------------------------
 
 bool Interwebs::wifiConnectionLoop(void) {
@@ -279,6 +283,7 @@ bool Interwebs::mqttConnectBroker(void) {
       this->status = INTERWEBS_STATUS_MQTT_ERRORS;
       this->attempts = 0;
     }
+    Serial.println(F("error"));
     return false;
   }
   Serial.println(F("success"));
@@ -300,7 +305,7 @@ bool Interwebs::mqttSubscribe(void) {
       // uint8_t len = this->subscribePacket(this->buffer, sub->topic, 0);
       if (!this->sendPacket(this->buffer, len)) {
         Serial.println(F("error sending packet"));
-        this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
+        this->status = this->wifiClient->connected() ? INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL : INTERWEBS_STATUS_MQTT_OFFLINE;
         return false;
       }
       if (this->processPacketsUntil(this->buffer, MQTT_CTRL_SUBACK, SUBACK_TIMEOUT_MS)) {
@@ -311,6 +316,7 @@ bool Interwebs::mqttSubscribe(void) {
     if (!success) {
       Serial.println(F("error"));
       this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
+      this->status = this->wifiClient->connected() ? INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL : INTERWEBS_STATUS_MQTT_OFFLINE;
       return false;
     }
   }
@@ -322,6 +328,9 @@ bool Interwebs::mqttSubscribe(void) {
 bool Interwebs::mqttAnnounce(void) {
   if (this->birth_msg.first != "") {
     if (!this->mqttPublish(this->birth_msg.first, this->birth_msg.second)) {
+      if (!this->wifiClient->connected()) {
+        this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
+      }
       return false;
     }
   }
@@ -334,7 +343,8 @@ bool Interwebs::mqttAnnounce(void) {
 bool Interwebs::mqttLoop(void) {
   // Try to read message in queue first.
   if (!this->processSubscriptionQueue()) {
-    if (!this->mqttIsConnected()) {
+    if (this->wifiIsConnected() && !this->wifiClient->connected()) {
+      this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
       return false;
     }
     // If nothing to read, try processing a packet instead.
@@ -362,11 +372,11 @@ bool Interwebs::connected(void) {
 }
 
 bool Interwebs::wifiIsConnected(void) {
-  return this->status >= 10;
+  return (int)this->status >= 10;
 }
 
 bool Interwebs::mqttIsConnected(void) {
-  return this->status >= 30;
+  return (int)this->status >= 30;
 }
 
 void Interwebs::printWifiStatus(void) {
@@ -392,7 +402,8 @@ void Interwebs::onMqtt(const char* topic, mqttcallback_t callback) {
 }
 
 void Interwebs::mqttSendMessage(String topic, String payload) {
-  if (!this->connected()) {
+  if (!this->wifiClient->connected()) {
+    this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
     return;
   }
   Serial.print(F("MQTT publishing to "));
