@@ -1,5 +1,10 @@
 # Cryptid Bottles
 
+<figure>
+  <img src="./docs/wip01.jpg" alt="">
+  <figcaption>WIP board and LED strands</figcaption>
+</figure> 
+
 ## Boards
 
 - [Adafruit Feather M4 Express](docs/feather-m4.md)
