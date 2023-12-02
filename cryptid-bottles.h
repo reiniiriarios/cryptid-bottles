@@ -10,6 +10,7 @@
 #include "src/pxl8.h"
 #include "src/interwebs.h"
 #include "src/bottle.h"
+#include "src/voltage.h"
 
 // Instead of using a timer, these approximations ensure the
 // same delay between actions. This means things don't execute

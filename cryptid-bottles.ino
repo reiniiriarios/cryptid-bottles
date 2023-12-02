@@ -11,6 +11,7 @@ Interwebs interwebs;
 std::vector<Bottle*> bottles = {};
 Control control(&pxl8, &interwebs, &bottles);
 Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
+VoltageMonitor voltageMonitor;
 
 // ERROR HANDLING ----------------------------------------------------------------------------------
 
@@ -131,6 +132,18 @@ void setup(void) {
   // Wait for serial port to open.
   // while (!Serial) delay(10);
   Serial.println(F("Starting..."));
+
+  Serial.println(F("Reading voltage monitor..."));
+  if (!voltageMonitor.begin()) {
+    Serial.println(F("Failed to find INA219 chip"));
+    err(0xFF6000);
+  }
+  // By default the INA219 will be calibrated with a range of 32V, 2A.
+  // However uncomment one of the below to change the range.  A smaller
+  // range can't measure as large of values but will measure with slightly
+  // better precision.
+  // voltageMonitor.setCalibration_32V_1A();
+  // voltageMonitor.setCalibration_16V_400mA();
 
   // Seed by reading unused anolog pin.
   randomSeed(analogRead(A0));
@@ -291,6 +304,15 @@ void loop(void) {
     Serial.print(F("Free Memory: "));
     Serial.print(freeMemory() * 0.001f, 2);
     Serial.println(F(" KB")); // 192KB total
+  }
+
+  // Check voltage.
+  every_n_seconds(125) {
+    Serial.print("Bus Voltage:   "); Serial.print(voltageMonitor.getBusVoltage_V()); Serial.println(" V");
+    Serial.print("Shunt Voltage: "); Serial.print(voltageMonitor.getShuntVoltage_mV()); Serial.println(" mV");
+    Serial.print("Load Voltage:  "); Serial.print(voltageMonitor.getLoadVoltage()); Serial.println(" V");
+    Serial.print("Current:       "); Serial.print(voltageMonitor.getCurrent_mA()); Serial.println(" mA");
+    Serial.print("Power:         "); Serial.print(voltageMonitor.getPower_mW()); Serial.println(" mW");
   }
 
   // Speed check.

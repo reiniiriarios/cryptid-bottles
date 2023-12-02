@@ -271,6 +271,8 @@ class Interwebs : public Adafruit_MQTT {
      */
     bool mqttPublish(String topic, String payload, bool retain = false, uint8_t qos = 0);
 
+  // --------------------##-------------------- PRIVATE ---------------------##---------------------
+
   private:
     /**
      * @brief Current status of interwebs connections.
@@ -318,14 +320,14 @@ class Interwebs : public Adafruit_MQTT {
      *
      * @return false
      */
-    bool connectServer() override;
+    bool connectServer(void) override;
 
     /**
      * @brief Stop WiFi client.
      * 
      * @return success
      */
-    bool disconnectServer() override;
+    bool disconnectServer(void) override;
 
     /**
      * @brief Override for parent class. This method DOES NOT connect to WiFi or the
@@ -342,7 +344,7 @@ class Interwebs : public Adafruit_MQTT {
      *           6 = Failed to subscribe;
      *         Use connectErrorString() to get a printable string version of the error.
      */
-    int8_t connect();
+    int8_t connect(void);
 
     // ----------------------------------------- MESSAGING -----------------------------------------
 
@@ -367,7 +369,7 @@ class Interwebs : public Adafruit_MQTT {
      * 
      * @param buffer 
      * @param maxlen 
-     * @param timeout 
+     * @param timeout
      * @return length read
      */
     uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) override;

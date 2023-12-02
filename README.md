@@ -22,6 +22,7 @@
    1. Adafruit ZeroDMA
    1. [Adafruit WiFiNiNA](https://github.com/adafruit/WiFiNINA/archive/master.zip) - _manual install_, forked from arduino, [see docs](https://learn.adafruit.com/adafruit-airlift-featherwing-esp32-wifi-co-processor-featherwing/arduino)
    1. Adafruit MQTT
+   1. Adafruit INA219
 1. For VS Code, compile to finish intellisense setup.
    1. `.vscode/c_cpp_properties.json` may update.
 1. Configure defines in `cryptid-bottles.h` and `src/pxl8.h` if relevant.
@@ -47,10 +48,11 @@
 - `SPIWIFI_ACK` from `D11`
 - `ESP32_GPIO0` disabled
 
-### Other Pins
+### Other Connections
 
 - Pin `D8` is connected to the onboard mini NeoPixel.
 - Analog pin `A0` used for random seed.
+- Current sensor INA219 connects over I2C at its default address.
 
 ## MQTT Control
 
