@@ -292,36 +292,58 @@ bool Interwebs::mqttConnectBroker(void) {
 }
 
 bool Interwebs::mqttSubscribe(void) {
-  Serial.print(F("MQTT subscribing..."));
-  for (uint8_t i = 0; i < MAXSUBSCRIPTIONS; i++) {
-    MQTTSubscribe* sub = (MQTTSubscribe*)((*this->mqttSubs)[i]);
-    if (!sub || sub->topic == nullptr) {
-      continue;
-    }
-    boolean success = false;
-    for (uint8_t retry = 0; (retry < 3) && !success; retry++) { // retry until we get a suback
-      // Construct and send subscription packet.
-      uint8_t len = (this->*robbed<MQTTSubPacket>::ptr)(this->buffer, sub->topic, 0);
-      // uint8_t len = this->subscribePacket(this->buffer, sub->topic, 0);
-      if (!this->sendPacket(this->buffer, len)) {
-        Serial.println(F("error sending packet"));
-        this->status = this->wifiClient->connected() ? INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL : INTERWEBS_STATUS_MQTT_OFFLINE;
-        return false;
-      }
-      if (this->processPacketsUntil(this->buffer, MQTT_CTRL_SUBACK, SUBACK_TIMEOUT_MS)) {
-        success = true;
-        break;
-      }
-    }
-    if (!success) {
-      Serial.println(F("error"));
-      this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
-      this->status = this->wifiClient->connected() ? INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL : INTERWEBS_STATUS_MQTT_OFFLINE;
-      return false;
-    }
+  // Check connection & number of attempts.
+  // If we're consistently failing, let's... start over?
+  if (!this->wifiClient->connected() || this->attempts > 3) {
+    this->attempts = 0;
+    this->subscription_counter = 0;
+    this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
+    return false;
   }
-  Serial.println(F("success"));
-  this->status = INTERWEBS_STATUS_MQTT_SUBSCRIBED;
+  this->attempts++;
+
+  // Find the next subscription to process or return if we finished.
+  MQTTSubscribe* sub;
+  do {
+    sub = (MQTTSubscribe*)((*this->mqttSubs)[this->subscription_counter]);
+    if (sub && sub->topic != nullptr) {
+      break; // found
+    }
+    if (!this->mqttSubscribeInc()) {
+      return true; // none left
+    }
+  } while (true);
+
+  // Subscribe
+  Serial.print(F("MQTT subscribing.."));
+  Serial.print(sub->topic);
+  // Construct and send subscription packet.
+  uint8_t len = (this->*robbed<MQTTSubPacket>::ptr)(this->buffer, sub->topic, 0);
+  if (!this->sendPacket(this->buffer, len)) {
+    Serial.println(F("..error sending packet"));
+    this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
+    return false;
+  }
+  if (!this->processPacketsUntil(this->buffer, MQTT_CTRL_SUBACK, SUBACK_TIMEOUT_MS)) {
+    Serial.println(F("..error"));
+    this->status = INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL;
+    return false;
+  }
+
+  // Done, next
+  Serial.println(F("..success"));
+  this->mqttSubscribeInc();
+  return true;
+}
+
+bool Interwebs::mqttSubscribeInc(void) {
+  this->attempts = 0;
+  ++this->subscription_counter;
+  if (this->subscription_counter > MAXSUBSCRIPTIONS) {
+    this->subscription_counter = 0;
+    this->status = INTERWEBS_STATUS_MQTT_SUBSCRIBED;
+    return false;
+  }
   return true;
 }
 

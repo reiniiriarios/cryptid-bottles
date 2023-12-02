@@ -20,11 +20,15 @@ using namespace std;
 
 // Connection to broker timeout.
 #undef CONNECT_TIMEOUT_MS
-#define CONNECT_TIMEOUT_MS 750
+#define CONNECT_TIMEOUT_MS 1000
 
 // Ping timeout. Can be low b/c local server.
 #undef PING_TIMEOUT_MS
 #define PING_TIMEOUT_MS 100
+
+// Suback timeout.
+#undef SUBACK_TIMEOUT_MS
+#define SUBACK_TIMEOUT_MS 250
 
 // Timeout for reading packets.
 #define READ_PACKET_TIMEOUT 100
@@ -313,6 +317,11 @@ class Interwebs : public Adafruit_MQTT {
      */
     std::pair<String, String> birth_msg;
 
+    /**
+     * @brief Count up the number of subscriptions.
+     */
+    uint8_t subscription_counter = 0;
+
     // ------------------------------------------ CONNECT ------------------------------------------
 
     /**
@@ -453,6 +462,13 @@ class Interwebs : public Adafruit_MQTT {
      * @return success
      */
     bool mqttSubscribe(void);
+
+    /**
+     * @brief Move to next subscription.
+     *
+     * @return there is another to process
+     */
+    bool mqttSubscribeInc(void);
 
     /**
      * @brief Send MQTT announcement.
