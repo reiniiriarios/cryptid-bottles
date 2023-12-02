@@ -356,14 +356,12 @@ bool Interwebs::mqttLoop(void) {
 // --------------------------------------- CONNECTION STATUS ---------------------------------------
 
 bool Interwebs::verifyConnection(void) {
-  Serial.print(F("Verifying connection..."));
   if (!this->ping()) {
-    Serial.println(F("ping failed"));
+    Serial.println(F("Ping failed, reconnecting."));
     this->disconnect();
     this->status = INTERWEBS_STATUS_MQTT_OFFLINE;
     return false;
   }
-  Serial.println(F("online"));
   return true;
 }
 
