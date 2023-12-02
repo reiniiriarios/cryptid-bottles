@@ -7,7 +7,8 @@
 // GLOBALS -----------------------------------------------------------------------------------------
 
 Pxl8 pxl8;
-Interwebs interwebs;
+Interwebs interwebs(new WiFiClient, WIFI_SSID, WIFI_PASS, new IPAddress(MQTT_SERVER),
+  MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
 std::vector<Bottle*> bottles = {};
 Control control(&pxl8, &interwebs, &bottles);
 Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
@@ -105,24 +106,24 @@ void ledStatus(status_t status) {
   switch (status) {
     case STATUS_OK:
       statusLED.setPixelColor(0, 0);
-      interwebs.setLED(0, 0, 0);
+      WiFi.setLEDs(0, 0, 0);
       break;
     case STATUS_WIFI_OFFLINE:
-      statusLED.setPixelColor(0, 0xFF0080);
-      interwebs.setLED(255, 0, 127);
+      statusLED.setPixelColor(0, 0xFF5000);
+      WiFi.setLEDs(255, 80, 0);
       break;
     case STATUS_MQTT_OFFLINE:
-      statusLED.setPixelColor(0, 0xFF5000);
-      interwebs.setLED(255, 80, 0);
+      statusLED.setPixelColor(0, 0xFF0080);
+      WiFi.setLEDs(255, 0, 127);
       break;
-    case STATUS_MQTT_SENDING:
+    case STATUS_MQTT_ACTIVE:
       statusLED.setPixelColor(0, 0x00C8FF);
-      interwebs.setLED(0, 200, 255);
+      WiFi.setLEDs(0, 200, 255);
       break;
     case STATUS_UNKNOWN_ERROR:
     default:
       statusLED.setPixelColor(0, 0xFF0000);
-      interwebs.setLED(255, 0, 0);
+      WiFi.setLEDs(255, 0, 0);
   }
   statusLED.show();
 }
@@ -130,8 +131,11 @@ void ledStatus(status_t status) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  // while (!Serial) delay(10);
+  while (!Serial) delay(10);
   Serial.println(F("Starting..."));
+
+  // Configure WiFi featherwing.
+  WiFi.setPins(SPIWIFI_SS, SPIWIFI_ACK, ESP32_RESETN, ESP32_GPIO0, &SPIWIFI);
 
   Serial.println(F("Reading voltage monitor..."));
   if (!voltageMonitor.begin()) {
@@ -253,47 +257,23 @@ void loop(void) {
     }
   }
 
-  every_n_loops(60) {
-    // Process incoming data.
-    interwebs.mqttLoop();
-  }
+  // Interwebs main loop.
+  interwebs.loop();
 
-  // Check and repair interwebs connections.
-  // Internal keepalive is 5min.
-  every_n_seconds(30) {
-    // If status is okay, query connection over SPI to verify.
-    if (interwebs.mqttIsConnected()) {
-      interwebs.verifyConnection();
-    }
-  }
+  // Set LED status depending on interwebs status.
   if (!interwebs.wifiIsConnected()) {
     ledStatus(STATUS_WIFI_OFFLINE);
-    // bottles.at(0)->warningWiFi();
-    every_n_seconds(1) {
-      interwebs.wifiConnectionLoop();
-    }
-  }
-  else if (!interwebs.mqttIsConnected()) {
+  } else if (!interwebs.mqttIsConnected()) {
     ledStatus(STATUS_MQTT_OFFLINE);
-    // bottles.at(0)->warningMQTT();
-    every_n_seconds(1) {
-      if (interwebs.mqttConnectionLoop()) {
-        ledStatus(STATUS_MQTT_SENDING);
-        control.sendDiscovery();
-        ledStatus(STATUS_MQTT_SENDING);
-        control.mqttCurrentStatus();
-        ledStatus(STATUS_OK);
-      }
-    }
+  } else if (interwebs.mqttIsActive()) {
+    ledStatus(STATUS_MQTT_ACTIVE);
+  } else {
+    ledStatus(STATUS_OK);
   }
 
   // Send status update.
   every_n_seconds(240) {
-    if (interwebs.mqttIsConnected()) {
-      ledStatus(STATUS_MQTT_SENDING);
-      control.mqttCurrentStatus();
-      ledStatus(STATUS_OK);
-    }
+    control.mqttCurrentStatus();
   }
 
   // Push all pixel changes to bottles.
@@ -307,19 +287,19 @@ void loop(void) {
   }
 
   // Check voltage.
-  every_n_seconds(125) {
-    Serial.print("Bus Voltage:   "); Serial.print(voltageMonitor.getBusVoltage_V()); Serial.println(" V");
-    Serial.print("Shunt Voltage: "); Serial.print(voltageMonitor.getShuntVoltage_mV()); Serial.println(" mV");
-    Serial.print("Load Voltage:  "); Serial.print(voltageMonitor.getLoadVoltage()); Serial.println(" V");
-    Serial.print("Current:       "); Serial.print(voltageMonitor.getCurrent_mA()); Serial.println(" mA");
-    Serial.print("Power:         "); Serial.print(voltageMonitor.getPower_mW()); Serial.println(" mW");
-  }
+  // every_n_seconds(125) {
+  //   Serial.print("Bus Voltage:   "); Serial.print(voltageMonitor.getBusVoltage_V()); Serial.println(" V");
+  //   Serial.print("Shunt Voltage: "); Serial.print(voltageMonitor.getShuntVoltage_mV()); Serial.println(" mV");
+  //   Serial.print("Load Voltage:  "); Serial.print(voltageMonitor.getLoadVoltage()); Serial.println(" V");
+  //   Serial.print("Current:       "); Serial.print(voltageMonitor.getCurrent_mA()); Serial.println(" mA");
+  //   Serial.print("Power:         "); Serial.print(voltageMonitor.getPower_mW()); Serial.println(" mW");
+  // }
 
   // Speed check.
   uint32_t m = millis();
   if (prevMillis != 0 && m > prevMillis) { // skips first, ignores millis() overflow
     uint32_t s = m - prevMillis;
-    if (s > 10) {
+    if (s > 14) {
       Serial.print(F("Slow frame (ms): "));
       Serial.println(String(s));
     }

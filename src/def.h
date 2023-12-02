@@ -50,7 +50,7 @@ typedef enum {
   STATUS_OK = 0,
   STATUS_WIFI_OFFLINE = 10,
   STATUS_MQTT_OFFLINE = 11,
-  STATUS_MQTT_SENDING = 20,
+  STATUS_MQTT_ACTIVE = 20,
 } status_t;
 
 /**

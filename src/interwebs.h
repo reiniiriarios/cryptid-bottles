@@ -1,40 +1,108 @@
 #ifndef CRYPTID_INTERWEBS_H
 #define CRYPTID_INTERWEBS_H
 
+#include <functional>
 #include <vector>
 using namespace std;
 
-#include <WiFiNINA.h>
 #include <utility/wifi_drv.h>
 #include <utility/server_drv.h>
 #include <utility/WiFiSocketBuffer.h>
-#include <Adafruit_MQTT.h>
 
-#include "def.h"
-#include "../wifi-config.h"
+// ---------------------------------------- TIMING CONFIG ------------------------------------------
+
+// Timeout for reading packets.
+#define READ_PACKET_TIMEOUT 750
+
+// Keepalive sent with connect packet
+#define MQTT_CONN_KEEPALIVE 300
+
+// How long should we go with no packets before verifying the connection via a ping.
+#define VERIFY_TIMEOUT 20000
+
+// Interval for sending MQTT status.
+#define STATUS_UPDATE_INTERVAL 30000
 
 // --------------------------------------------- DEFS ----------------------------------------------
 
-// How long to delay waiting for new data to be available in readPacket.
-#define MQTT_CLIENT_READINTERVAL_MS 10
-
-// Connection to broker timeout.
-#undef CONNECT_TIMEOUT_MS
-#define CONNECT_TIMEOUT_MS 1000
-
-// Ping timeout. Can be low b/c local server.
-#undef PING_TIMEOUT_MS
-#define PING_TIMEOUT_MS 100
-
-// Suback timeout.
-#undef SUBACK_TIMEOUT_MS
-#define SUBACK_TIMEOUT_MS 250
-
-// Timeout for reading packets.
-#define READ_PACKET_TIMEOUT 100
-
-// Use 3 (MQTT 3.0) or 4 (MQTT 3.1.1)
+// Use 3 (MQTT 3.0) or 4 (MQTT 3.1.1).
 #define MQTT_PROTOCOL_LEVEL 4
+
+// Packet types.
+#define MQTT_CTRL_CONNECT 0x1
+#define MQTT_CTRL_CONNECTACK 0x2
+#define MQTT_CTRL_PUBLISH 0x3
+#define MQTT_CTRL_PUBACK 0x4
+#define MQTT_CTRL_PUBREC 0x5
+#define MQTT_CTRL_PUBREL 0x6
+#define MQTT_CTRL_PUBCOMP 0x7
+#define MQTT_CTRL_SUBSCRIBE 0x8
+#define MQTT_CTRL_SUBACK 0x9
+#define MQTT_CTRL_UNSUBSCRIBE 0xA
+#define MQTT_CTRL_UNSUBACK 0xB
+#define MQTT_CTRL_PINGREQ 0xC
+#define MQTT_CTRL_PINGRESP 0xD
+#define MQTT_CTRL_DISCONNECT 0xE
+
+// QOS 2 not supported.
+#define MQTT_QOS_1 0x1
+#define MQTT_QOS_0 0x0
+
+// Flags for connection packet.
+#define MQTT_CONN_USERNAMEFLAG 0x80
+#define MQTT_CONN_PASSWORDFLAG 0x40
+#define MQTT_CONN_WILLRETAIN 0x20
+#define MQTT_CONN_WILLQOS_1 0x08
+#define MQTT_CONN_WILLQOS_2 0x18
+#define MQTT_CONN_WILLFLAG 0x04
+#define MQTT_CONN_CLEANSESSION 0x02
+
+// Largest full packet we're able to send.
+// Need to be able to store at least ~90 chars for a connect packet with full 23 char client ID.
+// This could be replaced by the ability to dynamically allocate a buffer as needed.
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_SAMD)
+#define MAXBUFFERSIZE (512)
+#else
+#define MAXBUFFERSIZE (150)
+#endif
+
+// If WiFi library differs.
+#ifndef WL_SUCCESS
+#define WL_SUCCESS 1
+#endif
+#ifndef WL_FAILURE
+#define WL_FAILURE -1
+#endif
+
+// ------------------------------------------- DEBUGGERY -------------------------------------------
+
+// Uncomment/comment to turn on/off debug output messages.
+// #define MQTT_DEBUG
+
+// Set where debug messages will be printed.
+#define DEBUG_PRINTER Serial
+// If using something like Zero or Due, change the above to SerialUSB
+
+/**
+ * @brief Helper function for error and debug printing a buffer.
+ * 
+ * @param buffer buffer to print
+ * @param len length of buffer to print
+ *
+ * @see https://github.com/adafruit/Adafruit_MQTT_Library
+ */
+void printBuffer(uint8_t *buffer, uint16_t len);
+
+// Define actual debug output functions when necessary.
+#ifdef MQTT_DEBUG
+#define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+#define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+#define DEBUG_PRINTBUFFER(buffer, len) { printBuffer(buffer, len); }
+#else
+#define DEBUG_PRINT(...) {}
+#define DEBUG_PRINTLN(...) {}
+#define DEBUG_PRINTBUFFER(buffer, len) {}
+#endif
 
 // -------------------------------------------- TYPEDEF --------------------------------------------
 
@@ -49,22 +117,49 @@ typedef enum {
   INTERWEBS_STATUS_WIFI_OFFLINE = 2,
   INTERWEBS_STATUS_WIFI_ERRORS = 3,
   INTERWEBS_STATUS_WIFI_CLOSING_SOCKET = 4,
-  // < 10 = WiFi offline
+  // < WiFi offline
   INTERWEBS_STATUS_WIFI_CONNECTED = 10,
   // MQTT
   INTERWEBS_STATUS_MQTT_CONNECTING = 20,
-  INTERWEBS_STATUS_MQTT_CONNECTION_WAIT = 29,
-  INTERWEBS_STATUS_MQTT_CONNECTION_SUCCESS = 23,
-  INTERWEBS_STATUS_MQTT_CONNECTED_TO_BROKER = 28,
-  INTERWEBS_STATUS_MQTT_CLOSING_SOCKET = 21,
-  INTERWEBS_STATUS_MQTT_SUBSCRIBED = 27,
-  INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL = 25,
-  INTERWEBS_STATUS_MQTT_DISCONNECTED = 22,
-  INTERWEBS_STATUS_MQTT_OFFLINE = 24,
-  INTERWEBS_STATUS_MQTT_ERRORS = 26,
-  // < 30 = MQTT offline
-  INTERWEBS_STATUS_MQTT_CONNECTED = 30,
+  INTERWEBS_STATUS_MQTT_CONNECTION_WAIT = 21,
+  INTERWEBS_STATUS_MQTT_CONNECTION_SUCCESS = 22,
+  INTERWEBS_STATUS_MQTT_CONNECTED_TO_BROKER = 23,
+  INTERWEBS_STATUS_MQTT_CONNECTION_CONFIRMED = 24,
+  INTERWEBS_STATUS_MQTT_CLOSING_SOCKET = 25,
+  INTERWEBS_STATUS_MQTT_DISCONNECTED = 28,
+  INTERWEBS_STATUS_MQTT_OFFLINE = 29,
+  INTERWEBS_STATUS_MQTT_ERRORS = 30,
+  // < MQTT offline
+  INTERWEBS_STATUS_OKAY = 40,
+  // > MQTT is active
+  INTERWEBS_STATUS_MQTT_SUBSCRIBED = 66,
+  INTERWEBS_STATUS_MQTT_SUBSCRIBING = 67,
+  INTERWEBS_STATUS_MQTT_SUBSCRIPTION_FAIL = 68,
+  INTERWEBS_STATUS_MQTT_ANNOUNCED = 69,
+  INTERWEBS_STATUS_READING_CONACK_PACKET = 50,
+  INTERWEBS_STATUS_READING_SUBACK_PACKET = 53,
+  INTERWEBS_STATUS_READING_PUBACK_PACKET = 55,
+  INTERWEBS_STATUS_READING_SUB_PACKET = 54,
+  INTERWEBS_STATUS_READING_PING_PACKET = 51,
+  INTERWEBS_STATUS_READING_PACKET = 52,
+  INTERWEBS_STATUS_SENDING_DISCOVERY = 56,
+  INTERWEBS_STATUS_SUBSCRIPTION_PACKET_READ = 60,
+  INTERWEBS_STATUS_SUBSCRIPTION_IN_QUEUE = 61,
+  INTERWEBS_STATUS_VERIFY_CONNECTION = 62,
+  INTERWEBS_STATUS_CONNECTION_VERIFIED = 63,
+  INTERWEBS_STATUS_MQTT_PUBLISHING = 64,
+  INTERWEBS_STATUS_MQTT_PUBLISHED = 65,
 } interwebs_status_t;
+
+/**
+ * @brief MQTT message.
+ */
+typedef struct mqtt_message_t {
+  String topic;
+  String payload;
+  uint8_t qos;
+  bool retain;
+} mqtt_message_t;
 
 /**
  * @brief MQTT subscription callback function.
@@ -75,21 +170,16 @@ typedef std::function<void(char*,uint16_t)> mqttcallback_t;
 
 /**
  * @brief Subscription class.
- *        Extends base class in order to add support for lambda callbacks.
- *
- * @todo processPacketsUntil() could be broken out to run with the main loop
- *       readFullPacket() could be similarly broken out
  */
-class MQTTSubscribe : public Adafruit_MQTT_Subscribe {
+class MQTTSubscribe {
   public:
     /**
      * @brief Constructor
      * 
-     * @param mqttserver pointer to Interwebs
      * @param topic 
      * @param qos
      */
-    MQTTSubscribe(Adafruit_MQTT *mqttserver, const char *topic, uint8_t qos = 0);
+    MQTTSubscribe(String topic, uint8_t qos = 0);
 
     /**
      * @brief Set a callback for the subscription.
@@ -101,7 +191,33 @@ class MQTTSubscribe : public Adafruit_MQTT_Subscribe {
     /**
      * @brief Lambda-compatible callback function.
      */
-    mqttcallback_t callback_lambda;
+    mqttcallback_t callback;
+
+    /**
+     * @brief Topic.
+     */
+    String topic;
+
+    /**
+     * @brief Quality of Service level.
+     */
+    uint8_t qos;
+
+    /**
+     * @brief Last data read from this subscription.
+     */
+    uint8_t lastread[MAXBUFFERSIZE];
+
+    /**
+     * @brief Number valid bytes in lastread.
+     *        Limited to MAXBUFFERSIZE-1 to ensure null terminating lastread.
+     */
+    uint16_t datalen;
+
+    /**
+     * @brief Whether this subscription has a new message that should be processed.
+     */
+    bool new_message;
 };
 
 // -------------------------------------------- ROBBERY --------------------------------------------
@@ -132,35 +248,19 @@ typename rob<Tag, p>::filler rob<Tag, p>::filler_obj;
 struct WiFiClientSock { typedef uint8_t WiFiClient::*type; };
 template class rob<WiFiClientSock, &WiFiClient::_sock>;
 
-// (MQTTSubscribe*)[MAXSUBSCRIPTIONS]
-// &Adafruit_MQTT::subscriptions
-// mqtt->subscriptions <=> &(mqtt->*robbed<MQTTSubs>::ptr)
-typedef Adafruit_MQTT_Subscribe* mqtt_sub_array_t[MAXSUBSCRIPTIONS];
-struct MQTTSubs { typedef mqtt_sub_array_t Adafruit_MQTT::*type; };
-template class rob<MQTTSubs, &Adafruit_MQTT::subscriptions>;
-
-// &Adafruit_MQTT::connectPacket(uint8_t *packet)
-// (mqtt->*robbed<MQTTConPacket>::ptr)(...);
-struct MQTTConPacket { typedef uint8_t(Adafruit_MQTT::*type)(uint8_t*); };
-template class rob<MQTTConPacket, &Adafruit_MQTT::connectPacket>;
-
-// &Adafruit_MQTT::subscribePacket(uint8_t *packet, const char *topic, uint8_t qos)
-// (mqtt->*robbed<MQTTSubPacket>::ptr)(...);
-struct MQTTSubPacket { typedef uint8_t(Adafruit_MQTT::*type)(uint8_t*, const char*, uint8_t); };
-template class rob<MQTTSubPacket, &Adafruit_MQTT::subscribePacket>;
-
 // ------------------------------------------ MAIN CLASS -------------------------------------------
 
 /**
  * @brief This class manages WiFi connection and MQTT broker connection as well
  *        as handles MQTT subscription callbacks.
  */
-class Interwebs : public Adafruit_MQTT {
+class Interwebs {
   public:
     /**
      * @brief Construct a new Interwebs object.
      */
-    Interwebs();
+    Interwebs(WiFiClient* client, const char* ssid, const char* wifi_pass, IPAddress* mqtt_server,
+      const char* mqtt_client_id, const char* mqtt_user, const char* mqtt_pass);
 
     /**
      * @brief Set the Airlift onboard LED to a specific color.
@@ -178,30 +278,7 @@ class Interwebs : public Adafruit_MQTT {
      */
     interwebs_status_t getStatus(void);
 
-    // -------------------------- CONNECTION LOOP - CLOSE SOCKET, RESTART --------------------------
-
-    /**
-     * @brief Reconnect to WiFi. This method operates step-by-step, continuing each call.
-     * 
-     * @return connected
-     */
-    bool wifiConnectionLoop(void);
-
-    /**
-     * @brief Reconnect to MQTT broker. This method operates step-by-step, continuing each call.
-     *
-     * @return connected
-     */
-    bool mqttConnectionLoop(void);
-
     // ------------------------------------- CONNECTION STATUS -------------------------------------
-
-    /**
-     * @brief Return status without querying anything new.
-     *
-     * @return connected
-     */
-    bool connected(void) override;
 
     /**
      * @brief Return WiFi status without querying anything new.
@@ -218,30 +295,31 @@ class Interwebs : public Adafruit_MQTT {
     bool mqttIsConnected(void);
 
     /**
-     * @brief Verify MQTT WiFi connection is stable by querying chip over SPI.
+     * @brief Return whether MQTT is connected and currently doing...something.
+     *
+     * @return actively doing a thing
+     */
+    bool mqttIsActive(void);
+
+    /**
+     * @brief Verify MQTT WiFi connection is stable by pinging the MQTT server.
      *
      * @return connected
      */
     bool verifyConnection(void);
 
-    /**
-     * @brief Print WiFi status over the Serial connection.
-     */
-    void printWifiStatus(void);
-
-    // ------------------------------------ MAIN LOOP - RECEIVE ------------------------------------
+    // ----------------------------------------- MAIN LOOP -----------------------------------------
 
     /**
-     * @brief Main MQTT client loop. Run on main loop.
-     *
-     * @return success
+     * @brief Main loop.
      */
-    bool mqttLoop(void);
+    void loop(void);
 
     // ----------------------------------------- MESSAGING -----------------------------------------
 
     /**
      * @brief Set the birth topic.
+     *        Set before connecting.
      * 
      * @param topic
      * @param payload
@@ -249,35 +327,53 @@ class Interwebs : public Adafruit_MQTT {
     void setBirth(String topic, String payload);
 
     /**
+     * @brief Set the last will and testament.
+     *        Set before connecting.
+     * 
+     * @param topic 
+     * @param payload 
+     * @param qos 
+     * @param retain 
+     * @return success
+     */
+    bool setWill(String topic, String payload, uint8_t qos = 0, bool retain = false);
+
+    /**
+     * @brief Add a discovery message to send when connected or reconnected to the MQTT broker.
+     *        Set before connecting.
+     * 
+     * @param topic 
+     * @param payload 
+     * @param qos 
+     * @param retain 
+     * @return success
+     */
+    void addDiscovery(String topic, String payload, uint8_t qos = 0, bool retain = false);
+
+    /**
      * @brief MQTT hook.
+     *        Set before connecting.
      *
      * @param topic
      * @param callback
      */
-    void onMqtt(const char* topic, mqttcallback_t callback);
+    void onMqtt(String topic, mqttcallback_t callback);
 
     /**
      * @brief Send MQTT message. Verifies connection before sending.
      *
      * @param topic
      * @param payload
-     */
-    void mqttSendMessage(String topic, String payload);
-
-    /**
-     * @brief Publish a MQTT message.
-     * 
-     * @param topic
-     * @param payload
      * @param retain
      * @param qos
-     * @return success
      */
-    bool mqttPublish(String topic, String payload, bool retain = false, uint8_t qos = 0);
+    void mqttSendMessage(String topic, String payload, bool retain = false, uint8_t qos = 0);
 
   // --------------------##-------------------- PRIVATE ---------------------##---------------------
 
   private:
+    // ------------------------------------- GENERAL PROPS -----------------------------------------
+
     /**
      * @brief Current status of interwebs connections.
      */
@@ -293,7 +389,7 @@ class Interwebs : public Adafruit_MQTT {
      */
     uint32_t attempts = 0;
 
-    // ---------------------------------------- WIFI PROPS -----------------------------------------
+    // --------------------------------------- WIFI PROPS ------------------------------------------
 
     /**
      * @brief The WiFi client.
@@ -301,61 +397,146 @@ class Interwebs : public Adafruit_MQTT {
     WiFiClient* wifiClient;
 
     /**
+     * @brief WiFi network name.
+     */
+    const char* ssid;
+
+    /**
+     * @brief Password for WiFi.
+     */
+    const char* wifi_pass;
+
+    /**
      * @brief Pointer to socket (private) of wifiClient.
      */
     uint8_t* _sock;
 
-    // ---------------------------------------- MQTT PROPS -----------------------------------------
+    // --------------------------------------- MQTT PROPS ------------------------------------------
 
     /**
-     * @brief Pointer to underlying subscriptions array.
+     * @brief MQTT server address.
      */
-    mqtt_sub_array_t* mqttSubs;
+    IPAddress* mqtt_server;
 
     /**
-     * @brief Birth topic.
+     * @brief Client ID for MQTT.
      */
-    std::pair<String, String> birth_msg;
+    const char* mqtt_client_id;
+
+    /**
+     * @brief Username for MQTT broker.
+     */
+    const char* mqtt_user;
+
+    /**
+     * @brief Password for MQTT broker.
+     */
+    const char* mqtt_pass;
+
+    /**
+     * @brief Last will and testament.
+     */
+    mqtt_message_t will;
+
+    /**
+     * @brief General buffer used for MQTT in/out.
+     */
+    uint8_t buffer[MAXBUFFERSIZE];
+
+    /**
+     * @brief Flag for whether we are currently reading a full packet.
+     */
+    bool reading_full_packet = false;
+
+    /**
+     * @brief Flag for whether we are currently reading part of a packet.
+     */
+    bool reading_packet = false;
+
+    /**
+     * @brief Iterator for process of reading full packet.
+     *        -1 sets a timer for a new loop.
+     *        0 is the start of the loop.
+     */
+    int8_t read_packet_jump_to = -1;
+
+    /**
+     * @brief Timer for reading a packet. Controls timeout.
+     */
+    uint32_t read_packet_timer;
+
+    /**
+     * @brief ID for counting packets.
+     */
+    uint16_t packet_id_counter;
+
+    /**
+     * @brief Buffer for processing packet.
+     */
+    uint8_t* read_packet_pbuf;
+
+    /**
+     * @brief Buffer for reading packet.
+     */
+    uint8_t* read_packet_buf;
+
+    /**
+     * @brief Max length of packet being read.
+     */
+    uint16_t read_packet_maxlen;
+
+    /**
+     * @brief Length of packet being read.
+     */
+    uint16_t read_packet_len;
+
+    /**
+     * @brief Length of full packet read.
+     */
+    uint16_t full_packet_len;
+
+    /**
+     * @brief Time the last packet was successfully received.
+     */
+    uint32_t last_con_verify;
+
+    /**
+     * @brief Vector of pointers for subscriptions.
+     */
+    std::vector<MQTTSubscribe*> mqttSubs;
+
+    /**
+     * @brief Vector of pointers for discovery messages.
+     */
+    std::vector<mqtt_message_t*> discoveries;
 
     /**
      * @brief Count up the number of subscriptions.
      */
     uint8_t subscription_counter = 0;
 
-    // ------------------------------------------ CONNECT ------------------------------------------
+    /**
+     * @brief Count up the number of discovery messages.
+     */
+    uint8_t discovery_counter = 0;
 
     /**
-     * @brief [NOT USED] Dummy method, required instantiation. Connection handled in loop.
-     *
-     * @return false
+     * @brief Birth topic.
      */
-    bool connectServer(void) override;
-
-    /**
-     * @brief Stop WiFi client.
-     * 
-     * @return success
-     */
-    bool disconnectServer(void) override;
-
-    /**
-     * @brief Override for parent class. This method DOES NOT connect to WiFi or the
-     *        configured server. It only connects to the MQTT broker after the other
-     *        two parts of the connection are established.
-     * 
-     * @return Returns 0 on success, otherwise an error code that indicates something went wrong:
-     *           -1 = Error connecting to server;
-     *           1 = Wrong protocol;
-     *           2 = ID rejected;
-     *           3 = Server unavailable;
-     *           4 = Bad username or password;
-     *           5 = Not authenticated;
-     *           6 = Failed to subscribe;
-     *         Use connectErrorString() to get a printable string version of the error.
-     */
-    int8_t connect(void);
+    std::pair<String, String> birth_msg;
 
     // ----------------------------------------- MESSAGING -----------------------------------------
+
+    /**
+     * @brief Publish a MQTT message.
+     * 
+     * @param topic
+     * @param payload
+     * @param retain
+     * @param qos
+     * @return success
+     */
+    bool mqttPublish(String topic, String payload, bool retain = false, uint8_t qos = 0);
 
     /**
      * @brief Process a single subscription flagged as having a new message.
@@ -363,34 +544,6 @@ class Interwebs : public Adafruit_MQTT {
      * @return subscription processed
      */
     bool processSubscriptionQueue(void);
-
-    // ------------------------------------ PACKET PROCESSING --------------------------------------
-
-    /**
-     * @brief Process a single incoming packet relating to a subscription.
-     */
-    void processIncomingSubscriptions(void);
-
-    /**
-     * @brief Read MQTT packet from the server.  Will read up to maxlen bytes and store
-     *        the data in the provided buffer.  Waits up to the specified timeout (in
-     *        milliseconds) for data to be available.
-     * 
-     * @param buffer 
-     * @param maxlen 
-     * @param timeout
-     * @return length read
-     */
-    uint16_t readPacket(uint8_t *buffer, uint16_t maxlen, int16_t timeout) override;
-
-    /**
-     * @brief Send data to the server specified by the buffer and length of data.
-     * 
-     * @param buffer 
-     * @param len 
-     * @return success
-     */
-    bool sendPacket(uint8_t *buffer, uint16_t len) override;
 
     // -------------------------- CONNECTION LOOP - CLOSE SOCKET, RESTART --------------------------
 
@@ -457,6 +610,13 @@ class Interwebs : public Adafruit_MQTT {
     bool mqttConnectBroker(void);
 
     /**
+     * @brief Confirm connection to broker after sending connection packet.
+     *
+     * @return success
+     */
+    bool confirmConnectToBroker();
+
+    /**
      * @brief Connect MQTT subscriptions.
      *
      * @return success
@@ -476,6 +636,115 @@ class Interwebs : public Adafruit_MQTT {
      * @return success
      */
     bool mqttAnnounce(void);
+
+    /**
+     * @brief Loop for sending MQTT discovery messages.
+     * 
+     * @return success
+     */
+    bool sendDiscoveries(void);
+
+    // ------------------------------------ PACKET PROCESSING --------------------------------------
+
+    /**
+     * @brief Stepped loop for reading a full packet.
+     */
+    void readFullPacketUntilComplete(void);
+
+    /**
+     * @brief Read MQTT packet from the server. Will read up to maxlen bytes and store
+     *        the data in the provided buffer. Waits up to the specified timeout (in
+     *        milliseconds) for data to be available. Called multiple times in
+     *        readFullPacketUntilComplete().
+     *
+     * @return finished reading packet or timed out
+     */
+    bool readPacketUntilComplete(void);
+
+    /**
+     * @brief Send data to the server specified by the buffer and length of data.
+     * 
+     * @param buffer 
+     * @param len 
+     * @return success
+     *
+     * @see https://github.com/adafruit/Adafruit_MQTT_Library
+     */
+    bool sendPacket(uint8_t *buffer, uint16_t len);
+
+    /**
+     * @brief Handles a single subscription packet received.
+     *
+     * @param len 
+     * @return success
+     *
+     * @see https://github.com/adafruit/Adafruit_MQTT_Library
+     */
+    bool handleSubscriptionPacket(uint16_t len);
+
+    /**
+     * @brief Generate a connection packet.
+     *        This connect packet and code follows the MQTT 3.1 spec (some small differences
+     *        in the protocol).
+     * 
+     * @return packet length
+     *
+     * @see https://github.com/adafruit/Adafruit_MQTT_Library
+     * @see http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html#connect
+     */
+    uint8_t connectPacket(void);
+
+    /**
+     * @brief Generate a publish packet.
+     * 
+     * @param topic 
+     * @param data 
+     * @param bLen 
+     * @param qos 
+     * @param maxPacketLen 
+     * @param retain 
+     * @return packet length
+     *
+     * @see https://github.com/adafruit/Adafruit_MQTT_Library
+     * @see http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718040
+     */
+    uint16_t publishPacket(const char *topic, uint8_t *data, uint16_t bLen, uint8_t qos, bool retain);
+
+    /**
+     * @brief Generate a subscriptiong packet.
+     *
+     * @param topic 
+     * @param qos 
+     * @return packet length
+     *
+     * @see https://github.com/adafruit/Adafruit_MQTT_Library
+     */
+    uint8_t subscribePacket(const char *topic, uint8_t qos);
 };
+
+
+/**
+ * @brief Helper function to only print as much of a string as possible to a buffer.
+ * 
+ * @param p 
+ * @param s 
+ * @param maxlen 
+ * @return pointer to copy of data, possibly shortened
+ *
+ * @see https://github.com/adafruit/Adafruit_MQTT_Library
+ */
+static uint8_t* stringprint(uint8_t *p, const char *s, uint16_t maxlen = 0);
+
+/**
+ * @brief Helper function used to figure out how much bigger the payload needs to be
+ *        in order to account for its variable length field.
+ * 
+ * @param currLen 
+ * @return additional length
+ *
+ * @see https://github.com/adafruit/Adafruit_MQTT_Library
+ * @see http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Table_2.4_Size
+ */
+static uint16_t packetAdditionalLen(uint32_t currLen);
 
 #endif

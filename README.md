@@ -22,7 +22,6 @@
    1. Adafruit NeoPixel
    1. Adafruit ZeroDMA
    1. [Adafruit WiFiNiNA](https://github.com/adafruit/WiFiNINA/archive/master.zip) - _manual install_, forked from arduino, [see docs](https://learn.adafruit.com/adafruit-airlift-featherwing-esp32-wifi-co-processor-featherwing/arduino)
-   1. Adafruit MQTT
    1. Adafruit INA219
 1. For VS Code, compile to finish intellisense setup.
    1. `.vscode/c_cpp_properties.json` may update.
@@ -90,10 +89,11 @@ The two larger LEDs on both the M4 and ESP32 boards will display:
 
 ## The Interwebs
 
-The [Interwebs class](./src/interwebs.cpp) is complex primarily because it splits apart tasks
-that would otherwise be sequential into small, individual tasks, to be completed one at a time,
-each iteration of the main loop. This enables smooth animation of the light on a single-threaded
-chip, where otherwise a task like connecting to the MQTT broker might freeze the animation for a
-number of seconds while it completes each step.
+The [Interwebs class](./src/interwebs.cpp) is based off of the
+[Arduino MQTT library](https://github.com/adafruit/Adafruit_MQTT_Library). It splits
+apart tasks that would otherwise be sequential into small, individual tasks, to be completed one
+at a time, each iteration of the main loop. This enables smooth animation of the light on a
+single-threaded chip, where otherwise a task like connecting to the MQTT broker might freeze
+the animation for a number of seconds while it completes each step.
 
 An alternative would be to use a multi-threaded chip and... not do this. But this was fun.

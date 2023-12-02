@@ -186,26 +186,6 @@ class Control {
      */
     void initMQTT(void);
 
-    /**
-     * @brief Send MQTT discovery message.
-     *
-     * @return success
-     */
-    bool sendDiscovery();
-
-    /**
-     * @brief Send MQTT discovery message for select option.
-     * 
-     * @tparam T map.first
-     * @tparam R map.second
-     * @param id unique id
-     * @param name device name if different from id
-     * @param options map of options (mqtt value as first (string))
-     * @return success
-     */
-    template<typename T>
-    bool sendDiscoverySelect(String id, String name, std::map<String, T> options);
-
   private:
     /**
      * @brief Pointer to Pxl8 object.
