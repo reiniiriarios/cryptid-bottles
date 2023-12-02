@@ -20,7 +20,7 @@ using namespace std;
 
 // Connection to broker timeout.
 #undef CONNECT_TIMEOUT_MS
-#define CONNECT_TIMEOUT_MS 1000
+#define CONNECT_TIMEOUT_MS 750
 
 // Ping timeout. Can be low b/c local server.
 #undef PING_TIMEOUT_MS
