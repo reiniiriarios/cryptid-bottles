@@ -26,9 +26,9 @@ void Control::initMQTT(void) {
   // Enable birth and last will and testament.
   interwebs->setBirth("cryptid/bottles/status", "online");
   interwebs->setWill("cryptid/bottles/status", "offline");
-  interwebs->addDiscovery("homeassistant/light/cryptid-bottles/cryptidBottles/config", discoveryJson);
-  interwebs->addDiscovery("homeassistant/select/glow_speed/cryptidBottles/config", discoveryJsonGlowSpeed);
-  interwebs->addDiscovery("homeassistant/select/faerie_speed/cryptidBottles/config", discoveryJsonFaerieSpeed);
+  interwebs->addDiscovery("homeassistant/light/cryptid-bottles/cryptidBottles/config", discoveryJson.c_str());
+  interwebs->addDiscovery("homeassistant/select/glow_speed/cryptidBottles/config", discoveryJsonGlowSpeed.c_str());
+  interwebs->addDiscovery("homeassistant/select/faerie_speed/cryptidBottles/config", discoveryJsonFaerieSpeed.c_str());
 
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](char* payload, uint16_t /*len*/){
@@ -157,6 +157,7 @@ void Control::initMQTT(void) {
   // Send discovery when Home Assistant notifies it's online.
   interwebs->onMqtt("homeassistant/status", [&](char* payload, uint16_t /*len*/){
     if (strcmp(payload, "online") == 0) {
+      interwebs->sendDiscoveries();
       mqttCurrentStatus();
     }
   });
@@ -172,5 +173,5 @@ void Control::mqttCurrentStatus(void) {
     "\"effect\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\","
     "\"glow_speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\","
     "\"faerie_speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"}";
-  interwebs->mqttSendMessage("cryptid/bottles/state", payload);
+  interwebs->mqttSendMessage("cryptid/bottles/state", payload.c_str());
 }

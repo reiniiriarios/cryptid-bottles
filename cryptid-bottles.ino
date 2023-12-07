@@ -7,8 +7,8 @@
 // GLOBALS -----------------------------------------------------------------------------------------
 
 Pxl8 pxl8;
-Arduino_MQTT_Looped interwebs(new WiFiClient, WIFI_SSID, WIFI_PASS, new IPAddress(MQTT_SERVER),
-  MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
+Arduino_MQTT_Looped interwebs(new WiFiClient, WIFI_SSID, WIFI_PASS,
+  new IPAddress(MQTT_SERVER), 1883, MQTT_USER, MQTT_PASS, MQTT_CLIENT_ID);
 std::vector<Bottle*> bottles = {};
 Control control(&pxl8, &interwebs, &bottles);
 Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
@@ -131,7 +131,7 @@ void ledStatus(status_t status) {
 void setup(void) {
   Serial.begin(9600);
   // Wait for serial port to open.
-  while (!Serial) delay(10);
+  // while (!Serial) delay(10);
   Serial.println(F("Starting..."));
 
   // Configure WiFi featherwing.
