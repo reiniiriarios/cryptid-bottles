@@ -1,6 +1,6 @@
 #include "control.h"
 
-Control::Control(Pxl8* pxl8, Arduino_MQTT_Looped* interwebs, std::vector<Bottle*>* bottles)
+Control::Control(Pxl8* pxl8, MQTT_Looped* interwebs, std::vector<Bottle*>* bottles)
   : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
 
 void Control::turnOn(void) {
