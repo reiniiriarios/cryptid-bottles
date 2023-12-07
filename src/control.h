@@ -2,8 +2,8 @@
 #define CRYPTID_CONTROL_H
 
 #include <vector>
+#include <Arduino_MQTT_Looped.h>
 #include "def.h"
-#include "interwebs.h"
 #include "bottle.h"
 
 /**
@@ -122,7 +122,7 @@ class Control {
      *
      * @param interwebs Pointer to Interwebs object.
      */
-    Control(Pxl8* pxl8, Interwebs* interwebs, std::vector<Bottle*>* bottles);
+    Control(Pxl8* pxl8, Arduino_MQTT_Looped* interwebs, std::vector<Bottle*>* bottles);
 
     /**
      * @brief Whether to display pixels.
@@ -195,7 +195,7 @@ class Control {
     /**
      * @brief Pointer to Interwebs object.
      */
-    Interwebs* interwebs;
+    Arduino_MQTT_Looped* interwebs;
 
     /**
      * @brief Pointer to Bottle objects array.

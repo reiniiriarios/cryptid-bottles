@@ -29,6 +29,7 @@
                 "/home/reinii/Arduino/libraries/WiFiNINA/src",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/SPI",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/Adafruit_ZeroDMA",
+                "/home/reinii/Arduino/libraries/arduino-mqtt-looped",
                 "/home/reinii/Arduino/libraries/Adafruit_NeoPixel",
                 "/home/reinii/Arduino/libraries/Adafruit_NeoPXL8",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/Wire",

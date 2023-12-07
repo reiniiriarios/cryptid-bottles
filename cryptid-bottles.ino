@@ -7,7 +7,7 @@
 // GLOBALS -----------------------------------------------------------------------------------------
 
 Pxl8 pxl8;
-Interwebs interwebs(new WiFiClient, WIFI_SSID, WIFI_PASS, new IPAddress(MQTT_SERVER),
+Arduino_MQTT_Looped interwebs(new WiFiClient, WIFI_SSID, WIFI_PASS, new IPAddress(MQTT_SERVER),
   MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
 std::vector<Bottle*> bottles = {};
 Control control(&pxl8, &interwebs, &bottles);
