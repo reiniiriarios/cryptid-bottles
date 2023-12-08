@@ -68,11 +68,13 @@ void Control::initMQTT(void) {
       bottleAnimation = BOTTLE_ANIMATION_FAERIES;
     }
     if (GLOW_SPEED.find(pStr) == GLOW_SPEED.end()) {
-      pStr = "medium"; // default
+      Serial.println(F("Setting glow speed to default"));
+      glowSpeed = GLOW_SPEED_MEDIUM;
+    } else {
+      Serial.print(F("Setting glow speed to "));
+      Serial.println(pStr);
+      glowSpeed = GLOW_SPEED.at(pStr);
     }
-    Serial.print(F("Setting glow speed to "));
-    Serial.println(pStr);
-    glowSpeed = GLOW_SPEED.at(pStr);
     mqttCurrentStatus();
   });
 
@@ -81,11 +83,13 @@ void Control::initMQTT(void) {
     String pStr = String(payload);
     bottleAnimation = BOTTLE_ANIMATION_FAERIES;
     if (FAERIE_SPEED.find(pStr) == FAERIE_SPEED.end()) {
-      pStr = "medium"; // default
+      Serial.println(F("Setting faerie speed to default"));
+      faerieSpeed = FAERIE_SPEED_MEDIUM;
+    } else {
+      Serial.print(F("Setting faerie speed to "));
+      Serial.println(pStr);
+      faerieSpeed = FAERIE_SPEED.at(pStr);
     }
-    Serial.print(F("Setting faerie speed to "));
-    Serial.println(pStr);
-    faerieSpeed = FAERIE_SPEED.at(pStr);
     mqttCurrentStatus();
   });
 
@@ -170,8 +174,29 @@ void Control::mqttCurrentStatus(void) {
     "\"brightness\":\"" + String(brightness) + "\","
     "\"rgb\":\"" + String(static_color.r) + "," + String(static_color.g) + "," + String(static_color.b) + "\","
     "\"white_balance\":\"" + String(white_balance) + "\","
-    "\"effect\":\"" + BOTTLE_ANIMATIONS_INV.at(bottleAnimation) + "\","
-    "\"glow_speed\":\"" + GLOW_SPEED_INV.at(glowSpeed) + "\","
-    "\"faerie_speed\":\"" + FAERIE_SPEED_INV.at(faerieSpeed) + "\"}";
+    "\"effect\":\"" + this->getBottleAnimationString() + "\","
+    "\"glow_speed\":\"" + this->getGlowSpeedString() + "\","
+    "\"faerie_speed\":\"" + this->getFaerieSpeedString() + "\"}";
   interwebs->mqttSendMessage("cryptid/bottles/state", payload.c_str());
+}
+
+String Control::getBottleAnimationString(void) {
+  if (BOTTLE_ANIMATIONS_INV.find(this->bottleAnimation) == BOTTLE_ANIMATIONS_INV.end()) {
+    this->bottleAnimation = BOTTLE_ANIMATION_DEFAULT;
+  }
+  return BOTTLE_ANIMATIONS_INV.at(this->bottleAnimation);
+}
+
+String Control::getGlowSpeedString(void) {
+  if (GLOW_SPEED_INV.find(this->glowSpeed) == GLOW_SPEED_INV.end()) {
+    this->glowSpeed = GLOW_SPEED_MEDIUM;
+  }
+  return GLOW_SPEED_INV.at(this->glowSpeed);
+}
+
+String Control::getFaerieSpeedString(void) {
+  if (FAERIE_SPEED_INV.find(this->faerieSpeed) == FAERIE_SPEED_INV.end()) {
+    this->faerieSpeed = FAERIE_SPEED_MEDIUM;
+  }
+  return FAERIE_SPEED_INV.at(this->faerieSpeed);
 }

@@ -186,6 +186,27 @@ class Control {
      */
     void initMQTT(void);
 
+    /**
+     * @brief Get the Bottle Animation string for MQTT.
+     * 
+     * @return String 
+     */
+    String getBottleAnimationString(void);
+
+    /**
+     * @brief Get the Glow Speed string for MQTT.
+     * 
+     * @return String 
+     */
+    String getGlowSpeedString(void);
+
+    /**
+     * @brief Get the Faerie Speed string for MQTT.
+     * 
+     * @return String 
+     */
+    String getFaerieSpeedString(void);
+
   private:
     /**
      * @brief Pointer to Pxl8 object.
