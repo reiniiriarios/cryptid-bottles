@@ -272,7 +272,7 @@ void loop(void) {
   }
 
   // Send status update.
-  every_n_seconds(240) {
+  every_n_seconds(240, 1) {
     // control.mqttCurrentStatus();
   }
 
@@ -280,20 +280,31 @@ void loop(void) {
   pxl8.show();
 
   // Check memory available.
-  every_n_seconds(120) {
+  every_n_seconds(120, 2) {
     Serial.print(F("Free Memory: "));
     Serial.print(freeMemory() * 0.001f, 2);
     Serial.println(F(" KB")); // 192KB total
   }
 
   // Check voltage.
-  // every_n_seconds(125) {
-  //   Serial.print("Bus Voltage:   "); Serial.print(voltageMonitor.getBusVoltage_V()); Serial.println(" V");
-  //   Serial.print("Shunt Voltage: "); Serial.print(voltageMonitor.getShuntVoltage_mV()); Serial.println(" mV");
-  //   Serial.print("Load Voltage:  "); Serial.print(voltageMonitor.getLoadVoltage()); Serial.println(" V");
-  //   Serial.print("Current:       "); Serial.print(voltageMonitor.getCurrent_mA()); Serial.println(" mA");
-  //   Serial.print("Power:         "); Serial.print(voltageMonitor.getPower_mW()); Serial.println(" mW");
-  // }
+  every_n_seconds(125, 3) {
+    Serial.print("Bus Voltage:   "); Serial.print(voltageMonitor.getBusVoltage_V()); Serial.println(" V");
+  }
+  every_n_seconds(125, 4) {
+    Serial.print("Shunt Voltage: "); Serial.print(voltageMonitor.getShuntVoltage_mV()); Serial.println(" mV");
+  }
+  every_n_seconds(125, 5) {
+    Serial.print("Load Voltage:  "); Serial.print(voltageMonitor.getLoadVoltage()); Serial.println(" V");
+  }
+  every_n_seconds(125, 6) {
+    Serial.print("Current:       "); Serial.print(voltageMonitor.getCurrent_mA()); Serial.println(" mA");
+  }
+  every_n_seconds(125, 7) {
+    Serial.print("Power:         "); Serial.print(voltageMonitor.getPower_mW()); Serial.println(" mW");
+  }
+  every_n_seconds(125, 8) {
+    Serial.print("Avg Current:   "); Serial.print(voltageMonitor.getAverage_mA()); Serial.println(" mA");
+  }
 
   // Speed check.
   uint32_t m = millis();

@@ -18,8 +18,8 @@
 // same delay between actions. This means things don't execute
 // as precicely on schedule, but the animation is, in theory,
 // smoother.
-#define every_n_seconds(n) if (loopCounter % (MAX_FPS * n) == 0)
-#define every_n_loops(n) if (loopCounter % n == 0)
+#define every_n_seconds(n, offset) if (loopCounter % (MAX_FPS * n) == (MAX_FPS * offset))
+#define every_n_loops(n, offset) if (loopCounter % n == offset)
 
 /**
  * @brief Get a white RGB value at a random color temperature.
