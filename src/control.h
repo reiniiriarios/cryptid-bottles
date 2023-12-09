@@ -170,13 +170,6 @@ class Control {
     void turnOff(void);
 
     /**
-     * @brief Get the RGB value for the current white balance.
-     * 
-     * @return RGB
-     */
-    rgb_t getWhiteBalanceRGB(void);
-
-    /**
      * @brief Send all current MQTT status.
      */
     void mqttCurrentStatus(void);
