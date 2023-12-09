@@ -26,9 +26,19 @@ void Control::initMQTT(void) {
   // Enable birth and last will and testament.
   interwebs->setBirth("cryptid/bottles/status", "online");
   interwebs->setWill("cryptid/bottles/status", "offline");
+
+  // Add discoveries for each device.
   interwebs->addDiscovery("homeassistant/light/cryptid-bottles/cryptidBottles/config", discoveryJson.c_str());
+  // The `light` type has most settings, but these two do not fit within the spec.
   interwebs->addDiscovery("homeassistant/select/glow_speed/cryptidBottles/config", discoveryJsonGlowSpeed.c_str());
   interwebs->addDiscovery("homeassistant/select/faerie_speed/cryptidBottles/config", discoveryJsonFaerieSpeed.c_str());
+  // Power. Zap.
+  interwebs->addDiscovery("homeassistant/sensor/bus_v/cryptidBottles/config", discoveryJsonBusVoltage.c_str());
+  interwebs->addDiscovery("homeassistant/sensor/shunt_v/cryptidBottles/config", discoveryJsonShuntVoltage.c_str());
+  interwebs->addDiscovery("homeassistant/sensor/load_v/cryptidBottles/config", discoveryJsonLoadVoltage.c_str());
+  interwebs->addDiscovery("homeassistant/sensor/power/cryptidBottles/config", discoveryJsonPower.c_str());
+  interwebs->addDiscovery("homeassistant/sensor/current/cryptidBottles/config", discoveryJsonCurrent.c_str());
+  interwebs->addDiscovery("homeassistant/sensor/avg_current/cryptidBottles/config", discoveryJsonAvgCurrent.c_str());
 
   // Turn lights on or off.
   interwebs->onMqtt("cryptid/bottles/on/set", [&](char* payload, uint16_t /*len*/){
@@ -178,6 +188,16 @@ void Control::mqttCurrentStatus(void) {
     "\"glow_speed\":\"" + this->getGlowSpeedString() + "\","
     "\"faerie_speed\":\"" + this->getFaerieSpeedString() + "\"}";
   interwebs->mqttSendMessage("cryptid/bottles/state", payload.c_str());
+}
+
+void Control::mqttCurrentSensors(void) {
+  String payload = "{\"bus_v\":" + String(this->last_bus_voltage) + ","
+    "\"shunt_v\":" + String(this->last_shunt_voltage) + ","
+    "\"load_v\":" + String(this->last_load_voltage) + ","
+    "\"power\":" + String(this->last_power) + ","
+    "\"current\":" + String(this->last_current) + ","
+    "\"avg_current\":" + String(this->last_avg_current) + "}";
+  interwebs->mqttSendMessage("cryptid/bottles/sensor/state", payload.c_str());
 }
 
 String Control::getBottleAnimationString(void) {

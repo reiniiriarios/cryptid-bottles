@@ -25,14 +25,14 @@ class VoltageMonitor : public Adafruit_INA219 {
      *
      * @return the average reading in milliamps
      */
-    float getAverage_mA(void);
+    float getCurrentAvg_mA(void);
 
     /**
      * @brief Return the average mAH since the first measure.
      *
      * @return the average reading in milliamp hours.
      */
-    float getAverage_mAH(void);
+    float getCurrentAvg_mAH(void);
 
     /**
      * @brief Get load voltage as a sum of bus and shunt voltage.

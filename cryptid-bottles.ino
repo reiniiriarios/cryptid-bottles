@@ -271,39 +271,41 @@ void loop(void) {
     ledStatus(STATUS_OK);
   }
 
-  // Send status update.
+  // Send status update for settings.
   every_n_seconds(240, 1) {
     control.mqttCurrentStatus();
+  }
+  // Send status update for sensors.
+  every_n_seconds(240, 2) {
+    control.mqttCurrentSensors();
   }
 
   // Push all pixel changes to bottles.
   pxl8.show();
 
   // Check memory available.
-  every_n_seconds(120, 2) {
+  every_n_seconds(120, 3) {
     Serial.print(F("Free Memory: "));
     Serial.print(freeMemory() * 0.001f, 2);
     Serial.println(F(" KB")); // 192KB total
   }
 
-  // Check voltage.
-  every_n_seconds(125, 3) {
-    Serial.print("Bus Voltage:   "); Serial.print(voltageMonitor.getBusVoltage_V()); Serial.println(" V");
+  // Log power measurements.
+  every_n_seconds(15, 4) {
+    control.last_bus_voltage = voltageMonitor.getBusVoltage_V();
   }
-  every_n_seconds(125, 4) {
-    Serial.print("Shunt Voltage: "); Serial.print(voltageMonitor.getShuntVoltage_mV()); Serial.println(" mV");
+  every_n_seconds(15, 5) {
+    control.last_shunt_voltage = voltageMonitor.getShuntVoltage_mV();
   }
-  every_n_seconds(125, 5) {
-    Serial.print("Load Voltage:  "); Serial.print(voltageMonitor.getLoadVoltage()); Serial.println(" V");
+  every_n_seconds(15, 6) {
+    control.last_load_voltage = voltageMonitor.getLoadVoltage();
   }
-  every_n_seconds(125, 6) {
-    Serial.print("Current:       "); Serial.print(voltageMonitor.getCurrent_mA()); Serial.println(" mA");
+  every_n_seconds(15, 7) {
+    control.last_current = voltageMonitor.getCurrent_mA();
+    control.last_avg_current = voltageMonitor.getCurrentAvg_mA();
   }
-  every_n_seconds(125, 7) {
-    Serial.print("Power:         "); Serial.print(voltageMonitor.getPower_mW()); Serial.println(" mW");
-  }
-  every_n_seconds(125, 8) {
-    Serial.print("Avg Current:   "); Serial.print(voltageMonitor.getAverage_mA()); Serial.println(" mA");
+  every_n_seconds(15, 8) {
+    control.last_power = voltageMonitor.getPower_mW();
   }
 
   // Speed check.

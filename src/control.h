@@ -103,6 +103,63 @@ const static String discoveryJsonGlowSpeed = discoverySelect("glow_speed", "Glow
 const static String discoveryJsonFaerieSpeed = discoverySelect("faerie_speed", "Faerie Speed", "play-speed", FAERIE_SPEED);
 
 /**
+ * @brief Get discovery JSON for Sensor.
+ * 
+ * @tparam T map setting
+ * @param id
+ * @param name
+ * @param device_class type of sensor/data
+ * @param state_class measurement, total, or total_increasing
+ * @param unit measurement unit, such as mW
+ * @return const String
+ *
+ * @see https://www.home-assistant.io/integrations/mqtt
+ * @see https://www.home-assistant.io/integrations/sensor/#device-class
+ * @see https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes
+ */
+const static String discoverySensor(String id, String name, String device_class, String state_class, String unit) {
+  return "{\"~\":\"cryptid/bottles/sensor\","
+         "\"name\":\"" + name + "\","
+         "\"uniq_id\":\"cryptid-bottles-" + id + "\","
+         "\"dev_cla\":\"" + device_class + "\","
+         "\"stat_cla\":\"" + state_class + "\","
+         "\"unit_of_meas\":\"" + unit + "\","
+         "\"stat_t\":\"~/state\","
+         "\"val_tpl\":\"{{ value_json." + id + " }}\","
+         "\"dev\":{\"ids\":[\"cryptidBottles\"],\"name\":\"Cryptid Bottles\"}}";
+}
+
+/**
+ * @brief Discovery JSON for Bus Voltage.
+ */
+const static String discoveryJsonBusVoltage = discoverySensor("bus_v", "Bus Voltage", "voltage", "measurement", "V");
+
+/**
+ * @brief Discovery JSON for Shunt Voltage.
+ */
+const static String discoveryJsonShuntVoltage = discoverySensor("shunt_v", "Shunt Voltage", "voltage", "measurement", "mV");
+
+/**
+ * @brief Discovery JSON for Load Voltage.
+ */
+const static String discoveryJsonLoadVoltage = discoverySensor("load_v", "Load Voltage", "voltage", "measurement", "V");
+
+/**
+ * @brief Discovery JSON for Power.
+ */
+const static String discoveryJsonPower = discoverySensor("power", "Power", "power", "measurement", "mW");
+
+/**
+ * @brief Discovery JSON for Current.
+ */
+const static String discoveryJsonCurrent = discoverySensor("current", "Current", "current", "measurement", "mA");
+
+/**
+ * @brief Discovery JSON for Average Current.
+ */
+const static String discoveryJsonAvgCurrent = discoverySensor("avg_current", "Average Current", "current", "measurement", "mA");
+
+/**
  * @brief Round mired value to the nearest value that has an enum.
  *
  * @param n mireds
@@ -160,6 +217,36 @@ class Control {
     rgb_t static_color = rgb_t{ 255, 255, 255 };
 
     /**
+     * @brief Last reading for Bus Voltage.
+     */
+    float last_bus_voltage = 0;
+
+    /**
+     * @brief Last reading for Shunt Voltage.
+     */
+    float last_shunt_voltage = 0;
+
+    /**
+     * @brief Last reading for Load Voltage.
+     */
+    float last_load_voltage = 0;
+
+    /**
+     * @brief Last reading for Power.
+     */
+    float last_power = 0;
+
+    /**
+     * @brief Last reading for Current.
+     */
+    float last_current = 0;
+
+    /**
+     * @brief Last reading for Average Current.
+     */
+    float last_avg_current = 0;
+
+    /**
      * @brief Turn on light and check brightness is not zero.
      */
     void turnOn(void);
@@ -170,9 +257,14 @@ class Control {
     void turnOff(void);
 
     /**
-     * @brief Send all current MQTT status.
+     * @brief Send all current MQTT status for settings.
      */
     void mqttCurrentStatus(void);
+
+    /**
+     * @brief Send all current MQTT status for sensors.
+     */
+    void mqttCurrentSensors(void);
 
     /**
      * @brief Init MQTT control commands. Call before connecting interwebs.

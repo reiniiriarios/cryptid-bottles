@@ -8,11 +8,11 @@ float VoltageMonitor::getCurrent_mA(void) {
   return mA;
 }
 
-float VoltageMonitor::getAverage_mA(void) {
+float VoltageMonitor::getCurrentAvg_mA(void) {
   return this->average_mA;
 }
 
-float VoltageMonitor::getAverage_mAH(void) {
+float VoltageMonitor::getCurrentAvg_mAH(void) {
   return this->average_mA / 3600;
 }
 
