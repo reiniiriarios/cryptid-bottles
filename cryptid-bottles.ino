@@ -272,11 +272,11 @@ void loop(void) {
   }
 
   // Send status update for settings.
-  every_n_seconds(240, 1) {
+  every_n_seconds(STATUS_UPDATE_INTERVAL, 10) {
     control.mqttCurrentStatus();
   }
   // Send status update for sensors.
-  every_n_seconds(240, 2) {
+  every_n_seconds(STATUS_UPDATE_INTERVAL, 20) {
     control.mqttCurrentSensors();
   }
 
@@ -284,27 +284,27 @@ void loop(void) {
   pxl8.show();
 
   // Check memory available.
-  every_n_seconds(120, 3) {
+  every_n_seconds(MEMORY_MEASURE_INTERVAL, 30) {
     Serial.print(F("Free Memory: "));
     Serial.print(freeMemory() * 0.001f, 2);
     Serial.println(F(" KB")); // 192KB total
   }
 
   // Log power measurements.
-  every_n_seconds(15, 4) {
+  every_n_seconds(POWER_MEASURE_INTERVAL, 40) {
     control.last_bus_voltage = voltageMonitor.getBusVoltage_V();
   }
-  every_n_seconds(15, 5) {
+  every_n_seconds(POWER_MEASURE_INTERVAL, 45) {
     control.last_shunt_voltage = voltageMonitor.getShuntVoltage_mV();
   }
-  every_n_seconds(15, 6) {
+  every_n_seconds(POWER_MEASURE_INTERVAL, 55) {
     control.last_load_voltage = voltageMonitor.getLoadVoltage();
   }
-  every_n_seconds(15, 7) {
+  every_n_seconds(POWER_MEASURE_INTERVAL, 65) {
     control.last_current = voltageMonitor.getCurrent_mA();
     control.last_avg_current = voltageMonitor.getCurrentAvg_mA();
   }
-  every_n_seconds(15, 8) {
+  every_n_seconds(POWER_MEASURE_INTERVAL, 70) {
     control.last_power = voltageMonitor.getPower_mW();
   }
 
@@ -312,7 +312,7 @@ void loop(void) {
   uint32_t m = millis();
   if (prevMillis != 0 && m > prevMillis) { // skips first, ignores millis() overflow
     uint32_t s = m - prevMillis;
-    if (s > 14) {
+    if (s > SLOW_FRAME_LIMIT) {
       Serial.print(F("Slow frame (ms): "));
       Serial.println(String(s));
     }

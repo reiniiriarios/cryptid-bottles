@@ -18,7 +18,7 @@
 // same delay between actions. This means things don't execute
 // as precicely on schedule, but the animation is, in theory,
 // smoother.
-#define every_n_seconds(n, offset) if (loopCounter % (MAX_FPS * n) == (MAX_FPS * offset))
+#define every_n_seconds(n, offset) if (loopCounter % (MAX_FPS * n) == offset)
 #define every_n_loops(n, offset) if (loopCounter % n == offset)
 
 /**

@@ -12,6 +12,18 @@ using namespace std;
 // Max frames per second.
 #define MAX_FPS 120
 
+// Limit in ms that a frame should fall within.
+#define SLOW_FRAME_LIMIT 14
+
+// How often in seconds current status is published.
+#define STATUS_UPDATE_INTERVAL 240
+
+// How often in seconds the power sensor is measured.
+#define POWER_MEASURE_INTERVAL 15
+
+// How often memory is measured.
+#define MEMORY_MEASURE_INTERVAL 120
+
 // Pixel type flags, add together as needed:
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
