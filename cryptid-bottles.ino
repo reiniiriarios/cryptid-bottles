@@ -273,7 +273,7 @@ void loop(void) {
 
   // Send status update.
   every_n_seconds(240, 1) {
-    // control.mqttCurrentStatus();
+    control.mqttCurrentStatus();
   }
 
   // Push all pixel changes to bottles.
