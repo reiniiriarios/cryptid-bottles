@@ -272,11 +272,11 @@ void loop(void) {
   }
 
   // Send status update for settings.
-  every_n_seconds(STATUS_UPDATE_INTERVAL, 10) {
+  every_n_seconds(STATE_UPDATE_INTERVAL, 10) {
     control.mqttCurrentStatus();
   }
   // Send status update for sensors.
-  every_n_seconds(STATUS_UPDATE_INTERVAL, 20) {
+  every_n_seconds(STATE_UPDATE_INTERVAL, 20) {
     control.mqttCurrentSensors();
   }
 

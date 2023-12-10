@@ -16,7 +16,7 @@ using namespace std;
 #define SLOW_FRAME_LIMIT 14
 
 // How often in seconds current status is published.
-#define STATUS_UPDATE_INTERVAL 240
+#define STATE_UPDATE_INTERVAL 240
 
 // How often in seconds the power sensor is measured.
 #define POWER_MEASURE_INTERVAL 15
