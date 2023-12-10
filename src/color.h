@@ -50,64 +50,6 @@ static inline uint16_t normalizeHue16(float hue) {
 }
 
 /**
- * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
- * 
- * @param value 
- * @return normalized value
- */
-static inline uint8_t normalizeSL(float v) {
-  if (v > 100) v = 100;
-  if (v < 0) v = 0;
-  return (uint8_t)v;
-}
-
-/**
- * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
- * 
- * @param value 
- * @return normalized value
- */
-static inline uint8_t normalizeSL(int v) {
-  if (v > 100) v = 100;
-  if (v < 0) v = 0;
-  return (uint8_t)v;
-}
-
-/**
- * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
- * 
- * @param value 
- * @return normalized value
- */
-static inline uint8_t normalizeSL(long v) {
-  if (v > 100) v = 100;
-  if (v < 0) v = 0;
-  return (uint8_t)v;
-}
-
-/**
- * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
- * 
- * @param value 
- * @return normalized value
- */
-static inline uint8_t normalizeSL(uint8_t v) {
-  return v & 0x64;
-}
-
-/**
- * @brief Normalize value between 0 and 100. Useful when saturation or lightness may escape range.
- * 
- * @param value 
- * @return normalized value
- */
-static inline uint8_t normalizeSL8(float v) {
-  if (v > 100) v = 100;
-  if (v < 0) v = 0;
-  return (uint8_t)(v * 2.55);
-}
-
-/**
  * @brief Normalize value between 0 and 255. Useful when RGB value may escape range.
  * 
  * @param value 
@@ -145,21 +87,6 @@ typedef struct rgb_t {
   rgb_t(float r, float g, float b)
     : r(normalizeRGB(r)), g(normalizeRGB(g)), b(normalizeRGB(b)) {}
 } rgb_t;
-
-/**
- * @brief HSL normalized between 0-360 (H) and 0-100 (SL).
- */
-typedef struct hsl_t {
-  uint16_t h;
-  uint8_t s;
-  uint8_t l;
-  hsl_t(uint16_t h, uint8_t s, uint8_t l)
-    : h(normalizeHue(h)), s(normalizeSL(s)), l(normalizeSL(l)) {}
-  hsl_t(int h, int s, int l)
-    : h(normalizeHue(h)), s(normalizeSL(s)), l(normalizeSL(l)) {}
-  hsl_t(float h, float s, float l)
-    : h(normalizeHue(h)), s(normalizeSL(s)), l(normalizeSL(l)) {}
-} hsl_t;
 
 /**
  * @brief Blend one RGB value with another and normalize.
