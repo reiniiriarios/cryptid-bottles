@@ -71,7 +71,7 @@ Bottles can be controlled over MQTT.
   | `brightness`    | `0-255`                                                                                                      |
   | `rgb`           | `0-255,0-255,0-255`, e.g. `0,128,200`                                                                        |
   | `white_balance` | `30-90` in [mireds](https://en.wikipedia.org/wiki/Mired), e.g. `40`, `65`                                    |
-  | `white`         | `0-255`F                                                                                                     |
+  | `white`         | `0-255`                                                                                                      |
   | `effect`        | `Default`, `Glow`, `Glow White`, `Faeries`, `Rain`, `Rainbow`, `Test`, `Test White`, `Illuminate`, `Warning` |
   | `glow_speed`    | `Slow`,`Medium`,`Fast`                                                                                       |
   | `faerie_speed`  | `Slow`,`Medium`,`Fast`                                                                                       |
@@ -80,10 +80,12 @@ Bottles can be controlled over MQTT.
 
 ## Status LEDs 🚥
 
-The two larger LEDs on both the M4 and ESP32 boards will display:
+The two RGB LEDs on both the M4 and ESP32 boards will display:
 
-- 💚 **green**: bootloader active (M4 only) (double tap reset to activate)
+- 💚 **green**: Bootloader active (M4 only) (double tap Reset to activate)
 - 🧡 **orange**: WiFi disconnected, connecting
 - 💜 **purple**: MQTT disconnected, connecting
 - 💙 **cyan**: Sending MQTT message
 - 🛑 **red**: Unknown error
+
+🔌 The large green LED on the board with the INA219 indicates power, behind main capacitors.
