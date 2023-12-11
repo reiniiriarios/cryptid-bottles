@@ -1,7 +1,11 @@
 #include "control.h"
 
 Control::Control(Pxl8* pxl8, MQTT_Looped* interwebs, std::vector<Bottle*>* bottles)
-  : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {}
+  : pxl8(pxl8), interwebs(interwebs), bottles(bottles) {
+  this->lastGlowChange = millis();
+}
+
+// ---------- MQTT Commands ----------
 
 void Control::turnOn(void) {
   Serial.println(F("Turning light on"));
@@ -219,4 +223,59 @@ String Control::getFaerieSpeedString(void) {
     this->faerieSpeed = FAERIE_SPEED_MEDIUM;
   }
   return FAERIE_SPEED_INV.at(this->faerieSpeed);
+}
+
+// ---------- Animation ----------
+
+rgb_t Control::getRandomWhiteBalance(void) {
+  auto it = WHITE_TEMPERATURES.begin();
+  std::advance(it, rand() % WHITE_TEMPERATURES.size());
+  return it->second;
+}
+
+bool Control::shouldChangeGlow(void) {
+  if (millis() - this->lastGlowChange < 2500) return false; // Don't change too often.
+  if (random(0, this->glowSpeed - 1000) == 0) return true;
+  if (millis() - this->lastGlowChange > this->glowSpeed) return true;
+  return false;
+}
+
+bool Control::shouldShowFaerie(void) {
+  // If a faerie is already flying, keep displaying animation.
+  if (this->faerieFlying) return true;
+  // Randomly spawn a faerie.
+  if (random(0, this->faerieSpeed - 1000) == 0) return true;
+  // Timeout for spawning a faerie has been reached.
+  if (millis() - this->lastFaerieFly > this->faerieSpeed) return true;
+  return false;
+}
+
+void Control::updateRandomBottleHue(void) {
+  uint8_t id = random(0, this->bottles->size());
+  uint16_t hueStart = random(0, 360);
+  uint16_t hueEnd = hueStart + random(30, 40);
+  this->bottles->at(id)->setHue(hueStart, hueEnd, random(1500, 2500));
+  this->lastGlowChange = millis();
+}
+
+void Control::updateRandomBottleWhiteBalance(void) {
+  uint8_t id = random(0, this->bottles->size());
+  rgb_t c = this->getRandomWhiteBalance();
+  this->bottles->at(id)->setColor(c, random(1500, 2500));
+  this->lastGlowChange = millis();
+}
+
+void Control::showFaerie(void) {
+  // If a new faerie, pick a random bottle.
+  if (this->faerieBottle == -1) {
+    this->faerieBottle = random(0, this->bottles->size());
+    this->bottles->at(this->faerieBottle)->spawnFaerie(random(8, 14) * 0.1);
+  }
+  this->faerieFlying = this->bottles->at(this->faerieBottle)->showFaerie();
+  // After animation, reset bottle and log time.
+  if (!this->faerieFlying) {
+    this->faerieBottle = -1;
+    this->lastFaerieFly = millis();
+    this->faerieFlying = false;
+  }
 }

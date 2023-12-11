@@ -292,6 +292,42 @@ class Control {
      */
     String getFaerieSpeedString(void);
 
+    /**
+     * @brief Get a random white balance in rgb.
+     *
+     * @return rgb_t 
+     */
+    rgb_t getRandomWhiteBalance(void);
+
+    /**
+     * @brief Whether it's time for a bottle to change glow hues.
+     * 
+     * @return bool
+     */
+    bool shouldChangeGlow(void);
+
+    /**
+     * @brief Whether a faerie should be rendered.
+     * 
+     * @return bool
+     */
+    bool shouldShowFaerie(void);
+
+    /**
+     * @brief Update the hue of a random bottle.
+     */
+    void updateRandomBottleHue(void);
+
+    /**
+     * @brief Update the white balance of a random bottle.
+     */
+    void updateRandomBottleWhiteBalance(void);
+
+    /**
+     * @brief Render faerie animation at current status in current (random) bottle.
+     */
+    void showFaerie(void);
+
   private:
     /**
      * @brief Pointer to Pxl8 object.
@@ -307,6 +343,27 @@ class Control {
      * @brief Pointer to Bottle objects array.
      */
     std::vector<Bottle*>* bottles;
+
+    /**
+     * @brief Last time a bottle changed hues.
+     */
+    uint32_t lastGlowChange;
+
+    /**
+     * @brief Whether a faerie is currently spawned.
+     */
+    bool faerieFlying = false;
+
+    /**
+     * @brief Last time a faerie flew.
+     */
+    uint32_t lastFaerieFly = millis();
+
+    /**
+     * @brief Id of bottle a faerie is currently in.
+     */
+    int8_t faerieBottle = -1;
+
 };
 
 #endif

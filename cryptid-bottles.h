@@ -23,38 +23,6 @@
 #define every_n_loops(n, offset) if (loopCounter % n == offset)
 
 /**
- * @brief Get a white RGB value at a random color temperature.
- * 
- * @return RGB
- */
-rgb_t randomWhiteBalance(void);
-
-/**
- * @brief Whether to change a bottle's glow color.
- */
-bool shouldChangeGlow(void);
-
-/**
- * @brief Update bottle hues.
- */
-void updateBottleHues(void);
-
-/**
- * @brief Update bottle white balances.
- */
-void updateBottleWhiteBalance(void);
-
-/**
- * @brief Whether to render a faerie.
- */
-bool shouldShowFaerie(void);
-
-/**
- * @brief Randomly spawn and render faeries.
- */
-void spawnFaeries(void);
-
-/**
  * @brief Call if fatal crash.
  */
 void err(uint32_t ledColor = 0xFF0000);

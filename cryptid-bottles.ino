@@ -14,7 +14,7 @@ Control control(&pxl8, &interwebs, &bottles);
 Adafruit_NeoPixel statusLED(1, 8, NEO_GRB + NEO_KHZ800);
 VoltageMonitor voltageMonitor;
 
-// ERROR HANDLING ----------------------------------------------------------------------------------
+// STATUS LEDS -------------------------------------------------------------------------------------
 
 void err(uint32_t ledColor) {
   Serial.println(F("FATAL ERROR"));
@@ -27,79 +27,6 @@ void err(uint32_t ledColor) {
     statusLED.setPixelColor(0, c);
   }
 }
-
-// ANIMATION HELPERS -------------------------------------------------------------------------------
-
-// Last time a bottle changed hues.
-uint32_t lastGlowChange = millis();
-
-bool shouldChangeGlow(void) {
-  if (millis() - lastGlowChange < 2500) return false; // Don't change too often.
-  if (random(0, control.glowSpeed - 1000) == 0) return true;
-  if (millis() - lastGlowChange > control.glowSpeed) return true;
-  return false;
-}
-
-void updateBottleHues(void) {
-  if (shouldChangeGlow()) {
-    uint8_t id = random(0, bottles.size());
-    uint16_t hueStart = random(0, 360);
-    uint16_t hueEnd = hueStart + random(30, 40);
-    bottles.at(id)->setHue(hueStart, hueEnd, random(1500, 2500));
-    lastGlowChange = millis();
-  }
-}
-
-rgb_t randomWhiteBalance(void) {
-  auto it = WHITE_TEMPERATURES.begin();
-  std::advance(it, rand() % WHITE_TEMPERATURES.size());
-  return it->second;
-}
-
-void updateBottleWhiteBalance(void) {
-  if (shouldChangeGlow()) {
-    uint8_t id = random(0, bottles.size());
-    rgb_t c = randomWhiteBalance();
-    bottles.at(id)->setColor(c, random(1500, 2500));
-    lastGlowChange = millis();
-  }
-}
-
-// Whether there is currently a faerie spawned.
-bool faerieFlying = false;
-// Last time a faerie flew. Start at current time to avoid immediate spawn.
-uint32_t lastFaerieFly = millis();
-// Bottle faerie is currently in.
-int8_t faerieBottle = -1;
-
-bool shouldShowFaerie(void) {
-  // If a faerie is already flying, keep displaying animation.
-  if (faerieFlying) return true;
-  // Randomly spawn a faerie.
-  if (random(0, control.faerieSpeed - 1000) == 0) return true;
-  // Timeout for spawning a faerie has been reached.
-  if (millis() - lastFaerieFly > control.faerieSpeed) return true;
-  return false;
-}
-
-void spawnFaeries(void) {
-  if (shouldShowFaerie()) {
-    // If a new faerie, pick a random bottle.
-    if (faerieBottle == -1) {
-      faerieBottle = random(0, bottles.size());
-      bottles.at(faerieBottle)->spawnFaerie(random(8, 14) * 0.1);
-    }
-    faerieFlying = bottles.at(faerieBottle)->showFaerie();
-    // After animation, reset bottle and log time.
-    if (!faerieFlying) {
-      faerieBottle = -1;
-      lastFaerieFly = millis();
-      faerieFlying = false;
-    }
-  }
-}
-
-// SETUP -------------------------------------------------------------------------------------------
 
 void ledStatus(status_t status) {
   uint8_t r, g, b;
@@ -127,6 +54,8 @@ void ledStatus(status_t status) {
   }
   statusLED.show();
 }
+
+// SETUP -------------------------------------------------------------------------------------------
 
 void setup(void) {
   Serial.begin(9600);
@@ -165,7 +94,7 @@ void setup(void) {
   for (auto & bottle : bottles) {
     uint16_t hs = random(0, 360);
     bottle->setHue(hs, hs + random(30, 40));
-    bottle->setColor(randomWhiteBalance());
+    bottle->setColor(control.getRandomWhiteBalance());
   };
 
   // Start pixel driver. Call after bottle setup.
@@ -195,8 +124,10 @@ void setup(void) {
 
 // FPS throttle.
 uint32_t prevMicros;
+
 // Speed check.
 uint32_t prevMillis = 0;
+
 // Counts up every frame for "every so often" items.
 // By starting at 0, actions are called the first loop as well.
 uint32_t loopCounter = 0;
@@ -214,20 +145,28 @@ void loop(void) {
     switch (control.bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
       case BOTTLE_ANIMATION_FAERIES:
-        updateBottleHues();
+        if (control.shouldChangeGlow()) {
+          control.updateRandomBottleHue();
+        }
         for (auto & bottle : bottles) {
           bottle->glow();
         };
-        spawnFaeries();
+        if (control.shouldShowFaerie()) {
+          control.showFaerie();
+        }
         break;
       case BOTTLE_ANIMATION_GLOW:
-        updateBottleHues();
+        if (control.shouldChangeGlow()) {
+          control.updateRandomBottleHue();
+        }
         for (auto & bottle : bottles) {
           bottle->glow();
         };
         break;
       case BOTTLE_ANIMATION_GLOW_W:
-        updateBottleWhiteBalance();
+        if (control.shouldChangeGlow()) {
+          control.updateRandomBottleWhiteBalance();
+        }
         for (auto & bottle : bottles) {
           bottle->glowColor();
         };
