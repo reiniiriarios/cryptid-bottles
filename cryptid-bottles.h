@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <vector>
+#include <Adafruit_SleepyDog.h>
 #include <WiFiNINA.h>
 #include <MQTT_Looped.h>
 #include "src/def.h"

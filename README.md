@@ -18,6 +18,7 @@
 1. Install board [following instructions](https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/setup).
 1. Install required libraries (and their dependencies) via Arduino IDE.
    1. Adafruit SAMD
+   1. Adafruit SleepyDog
    1. Adafruit NeoPXL8 - [see docs](https://learn.adafruit.com/adafruit-neopxl8-featherwing-and-library/neopxl8-arduino-library)
    1. Adafruit NeoPixel
    1. Adafruit ZeroDMA

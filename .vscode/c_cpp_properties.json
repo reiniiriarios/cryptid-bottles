@@ -26,6 +26,7 @@
                 "/home/reinii/.arduino15/packages/adafruit/tools/CMSIS-Atmel/1.2.2/CMSIS/Device/ATMEL/",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/cores/arduino",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/variants/feather_m4",
+                "/home/reinii/Arduino/libraries/Adafruit_SleepyDog_Library",
                 "/home/reinii/Arduino/libraries/WiFiNINA/src",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/SPI",
                 "/home/reinii/.arduino15/packages/adafruit/hardware/samd/1.7.13/libraries/Adafruit_ZeroDMA",

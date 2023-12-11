@@ -183,6 +183,12 @@ void setup(void) {
 
   // Set up MQTT callbacks, etc.
   control.initMQTT();
+
+  // Set reboot after hanging for 1s.
+  int cd = Watchdog.enable(1000);
+  Serial.print("Watchdog enabled with ");
+  Serial.print(cd, DEC);
+  Serial.println(" ms countdown.");
 }
 
 // LOOP --------------------------------------------------------------------------------------------
@@ -196,6 +202,8 @@ uint32_t prevMillis = 0;
 uint32_t loopCounter = 0;
 
 void loop(void) {
+  Watchdog.reset();
+
   // FPS Throttle.
   uint32_t t;
   while (((t = micros()) - prevMicros) < (1000000L / MAX_FPS));
