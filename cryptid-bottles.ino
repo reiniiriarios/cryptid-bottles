@@ -140,7 +140,8 @@ void loop(void) {
   while (((t = micros()) - prevMicros) < (1000000L / MAX_FPS));
   prevMicros = t;
 
-  // Main animation processing.
+  // ---------- Animation ----------
+
   if (control.pixelsOn) {
     switch (control.bottleAnimation) {
       case BOTTLE_ANIMATION_DEFAULT:
@@ -204,10 +205,13 @@ void loop(void) {
     }
   }
 
-  // Interwebs main loop.
+  // Push all pixel changes to bottles.
+  pxl8.show();
+
+  // ---------- Interwebs ----------
+
   interwebs.loop();
 
-  // Set LED status depending on interwebs status.
   if (!interwebs.wifiIsConnected()) {
     ledStatus(STATUS_WIFI_OFFLINE);
   } else if (!interwebs.mqttIsConnected()) {
@@ -218,17 +222,14 @@ void loop(void) {
     ledStatus(STATUS_OK);
   }
 
-  // Send status update for settings.
   every_n_seconds(STATE_UPDATE_INTERVAL, 10) {
     control.mqttCurrentStatus();
   }
-  // Send status update for sensors.
   every_n_seconds(STATE_UPDATE_INTERVAL, 20) {
     control.mqttCurrentSensors();
   }
 
-  // Push all pixel changes to bottles.
-  pxl8.show();
+  // ---------- System Operation ----------
 
   // Check memory available.
   every_n_seconds(MEMORY_MEASURE_INTERVAL, 30) {
